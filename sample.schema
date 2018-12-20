@@ -1,0 +1,51 @@
+
+# this is a comment.
+
+TABLE user
+{
+	userid		INT64		INDEX	QUERY
+	firstname	TEXT
+	lastname	TEXT		LIKEQUERY
+	mi		TEXT
+	ssn		INT		INDEX	QUERY
+	balance		DOUBLE
+	proto		BLOB
+
+	CUSTOM-GET great_balance (DOUBLE)
+		   "balance > ?"
+
+	CUSTOM-GET founders      ()
+		   "userid < 100"
+
+	CUSTOM-GET firstlast (TEXT TEXT)
+		   "firstname LIKE ? AND lastname LIKE ?"
+
+	CUSTOM-UPD balance  (balance)
+	CUSTOM-UPD firstlast (firstname lastname)
+}
+
+TABLE book
+{
+	bookid		INT64		INDEX	QUERY
+	title		TEXT		LIKEQUERY
+	isbn		TEXT		INDEX	QUERY
+	price		DOUBLE
+	quantity	INT
+
+	CUSTOM-GET out_of_stock ()
+		   "WHERE quantity == 0"
+
+	CUSTOM-UPD quantity (quantity)
+	CUSTOM-UPD price (price)
+}
+
+TABLE checkouts
+{
+	bookid		INT64		INDEX QUERY
+	userid		INT64		INDEX QUERY
+	duedate		INT64
+
+	CUSTOM-GET due_now (INT64)
+		   "WHERE duedate > ?"
+
+}
