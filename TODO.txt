@@ -1,5 +1,4 @@
 
-consider compiling prepared statements only on first use
 deleting a row?!
 support initial values for fields
 investigate how difficult it would be to solve database replication issues?

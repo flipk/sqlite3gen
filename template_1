@@ -45,7 +45,7 @@ public:
 @@table_custom_get_method_protos@@
     bool get_next(void);
     bool insert(void); // updates rowid
-    bool update(void) const;
+    bool update(void);
 @@table_custom_upd_method_protos@@
 
     static bool table_create(sqlite3 *pdb);
@@ -122,19 +122,8 @@ SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb, bool _debug)
 {
     int r;
 
-    r = sqlite3_prepare_v2(pdb, "INSERT INTO @@tablename@@ "
-        "(@@fieldnames@@) "
-        "values (@@questionmarks@@)",
-        -1, &pStmt_insert, NULL);
-    if (r != SQLITE_OK)
-        printf("ERROR building INSERT at line %d\n", __LINE__);
-
-    r = sqlite3_prepare_v2(pdb, "UPDATE @@tablename@@ SET "
-        "(@@fieldnames@@) "
-        "= (@@questionmarks@@) where rowid = ?",
-        -1, &pStmt_update, NULL);
-    if (r != SQLITE_OK)
-        printf("ERROR building UPDATE at line %d\n", __LINE__);
+    pStmt_insert = NULL;
+    pStmt_update = NULL;
 
 @@prepare_queries@@
 @@prepare_like_queries@@
@@ -146,8 +135,10 @@ SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb, bool _debug)
 
 SQL_TABLE_@@tablename@@ :: ~SQL_TABLE_@@tablename@@(void)
 {
-    sqlite3_finalize(pStmt_insert);
-    sqlite3_finalize(pStmt_update);
+    if (pStmt_insert)
+        sqlite3_finalize(pStmt_insert);
+    if (pStmt_update)
+        sqlite3_finalize(pStmt_update);
 
 @@finalize_queries@@
 @@finalize_like_queries@@
@@ -191,6 +182,16 @@ bool SQL_TABLE_@@tablename@@ :: insert(void)
 {
     int r;
 
+    if (pStmt_insert == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb, "INSERT INTO @@tablename@@ "
+            "(@@fieldnames@@) "
+            "values (@@questionmarks@@)",
+            -1, &pStmt_insert, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building INSERT at line %d\n", __LINE__);
+    }
     sqlite3_reset(pStmt_insert);
 
 @@insert_binders@@
@@ -214,9 +215,20 @@ bool SQL_TABLE_@@tablename@@ :: insert(void)
     return true;
 }
 
-bool SQL_TABLE_@@tablename@@ :: update(void) const
+bool SQL_TABLE_@@tablename@@ :: update(void)
 {
     int r;
+
+    if (pStmt_update == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb, "UPDATE @@tablename@@ SET "
+            "(@@fieldnames@@) "
+            "= (@@questionmarks@@) where rowid = ?",
+            -1, &pStmt_update, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building UPDATE at line %d\n", __LINE__);
+    }
 
     sqlite3_reset(pStmt_update);
 
@@ -259,56 +271,39 @@ bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
 ________ END
 
 ________ TABLE_prepare_query
-    r = sqlite3_prepare_v2(pdb,
-        "SELECT rowid,* FROM @@tablename@@ WHERE @@fieldname@@ = ?",
-        -1, &pStmt_by_@@fieldname@@, NULL);
-    if (r != SQLITE_OK)
-        printf("ERROR building SELECT for @@fieldname@@ at line %d\n",
-               __LINE__);
+    pStmt_by_@@fieldname@@ = NULL;
 ________ END
 
 ________ TABLE_prepare_like_query
-    r = sqlite3_prepare_v2(pdb,
-        "SELECT rowid,* FROM @@tablename@@ WHERE @@fieldname@@ like ?",
-        -1, &pStmt_by_@@fieldname@@_like, NULL);
-    if (r != SQLITE_OK)
-        printf("ERROR building SELECT LIKE for @@fieldname@@ at line %d\n",
-               __LINE__);
+    pStmt_by_@@fieldname@@_like = NULL;
 ________ END
 
 ________ TABLE_prepare_custom_get_query
-    r = sqlite3_prepare_v2(pdb,
-        "SELECT rowid,* FROM @@tablename@@ WHERE @@querystring@@",
-        -1, &pStmt_get_@@customname@@, NULL);
-    if (r != SQLITE_OK)
-        printf("ERROR building SELECT for "
-               "CUSTOM-GET @@customname@@ at line %d\n", __LINE__);
+    pStmt_get_@@customname@@ = NULL;
 ________ END
 
 ________ TABLE_prepare_custom_upd
-    r = sqlite3_prepare_v2(pdb,
-        "UPDATE @@tablename@@ SET (@@custom_fieldlist@@) = "
-        "(@@custom_questionmarks@@) where rowid = ?",
-        -1, &pStmt_update_@@customname@@, NULL);
-    if (r != SQLITE_OK)
-        printf("ERROR building CUSTOM-UPD "
-               "@@customname@@ at line %d\n", __LINE__);
+    pStmt_update_@@customname@@ = NULL;
 ________ END
 
 ________ TABLE_finalize_query
-    sqlite3_finalize(pStmt_by_@@fieldname@@);
+    if (pStmt_by_@@fieldname@@)
+        sqlite3_finalize(pStmt_by_@@fieldname@@);
 ________ END
 
 ________ TABLE_finalize_like_query
-    sqlite3_finalize(pStmt_by_@@fieldname@@_like);
+    if (pStmt_by_@@fieldname@@_like)
+        sqlite3_finalize(pStmt_by_@@fieldname@@_like);
 ________ END
 
 ________ TABLE_finalize_custom_get_query
-    sqlite3_finalize(pStmt_get_@@customname@@);
+    if (pStmt_get_@@customname@@)
+        sqlite3_finalize(pStmt_get_@@customname@@);
 ________ END
 
 ________ TABLE_finalize_custom_upd
-    sqlite3_finalize(pStmt_update_@@customname@@);
+    if (pStmt_update_@@customname@@)
+        sqlite3_finalize(pStmt_update_@@customname@@);
 ________ END
 
 ________ TABLE_get_column_pod
@@ -348,6 +343,17 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@(@@fieldtype@@ v)
 {
     int r;
     bool ret = false;
+
+    if (pStmt_by_@@fieldname@@ == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,* FROM @@tablename@@ WHERE @@fieldname@@ = ?",
+            -1, &pStmt_by_@@fieldname@@, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building SELECT for @@fieldname@@ at line %d\n",
+                   __LINE__);
+    }
 
     sqlite3_reset(pStmt_by_@@fieldname@@);
 
@@ -401,6 +407,17 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@_like(
 {
     int r;
     bool ret = false;
+
+    if(pStmt_by_@@fieldname@@_like == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,* FROM @@tablename@@ WHERE @@fieldname@@ like ?",
+            -1, &pStmt_by_@@fieldname@@_like, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building SELECT LIKE for @@fieldname@@ at line %d\n",
+                   __LINE__);
+    }
 
     sqlite3_reset(pStmt_by_@@fieldname@@_like);
 
@@ -460,6 +477,17 @@ bool SQL_TABLE_@@tablename@@ :: get_@@customname@@(@@type_and_vX@@)
     int r;
     bool ret = false;
 
+    if(pStmt_get_@@customname@@ == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,* FROM @@tablename@@ WHERE @@querystring@@",
+            -1, &pStmt_get_@@customname@@, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building SELECT for "
+                   "CUSTOM-GET @@customname@@ at line %d\n", __LINE__);
+    }
+
     sqlite3_reset(pStmt_get_@@customname@@);
 
 @@custom_get_binders@@
@@ -514,6 +542,18 @@ bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
 {
     int r;
     bool ret = false;
+
+    if(pStmt_update_@@customname@@ == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "UPDATE @@tablename@@ SET (@@custom_fieldlist@@) = "
+            "(@@custom_questionmarks@@) where rowid = ?",
+            -1, &pStmt_update_@@customname@@, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building CUSTOM-UPD "
+                   "@@customname@@ at line %d\n", __LINE__);
+    }
 
     sqlite3_reset(pStmt_update_@@customname@@);
 
