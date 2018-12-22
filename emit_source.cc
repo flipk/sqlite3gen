@@ -63,11 +63,11 @@ void emit_source(const std::string &fname,
         {
             TypeDef t = fd->type.type;
 
-            patterns["fieldname"] = fd->name;
-            patterns["fieldtype"] = TypeDef_to_Ctype(t, true);
+            patterns["fieldname"]          = fd->name;
+            patterns["fieldtype"]          = TypeDef_to_Ctype(t, true);
             patterns["sqlite_column_func"] = TypeDef_to_sqlite_column(t);
-            patterns["sqlite_bind_func"] = TypeDef_to_sqlite_bind(t);
-            patterns["sqlite_type"] = TypeDef_to_sqlite_macro(t);
+            patterns["sqlite_bind_func"]   = TypeDef_to_sqlite_bind(t);
+            patterns["sqlite_type"]        = TypeDef_to_sqlite_macro(t);
 
             column_index.str("");
             column_index << column;
@@ -103,13 +103,17 @@ void emit_source(const std::string &fname,
 
                 SET_PATTERN(query_bind);
 
-                output_TABLE_query_implementation(query_implementations, patterns);
+                output_TABLE_query_implementation(
+                    query_implementations, patterns);
             }
             if (fd->attrs.likequery)
             {
-                output_TABLE_prepare_like_query(prepare_like_queries, patterns);
-                output_TABLE_finalize_like_query(finalize_like_queries, patterns);
-                output_TABLE_query_like_implementation(query_like_implementations, patterns);
+                output_TABLE_prepare_like_query(
+                    prepare_like_queries, patterns);
+                output_TABLE_finalize_like_query(
+                    finalize_like_queries, patterns);
+                output_TABLE_query_like_implementation(
+                    query_like_implementations, patterns);
             }
             if (fd->attrs.index)
             {
@@ -146,8 +150,10 @@ void emit_source(const std::string &fname,
                 ostringstream custom_get_binders;
 
                 patterns["querystring"] = cust->query;
-                output_TABLE_prepare_custom_get_query(prepare_custom_get_queries, patterns);
-                output_TABLE_finalize_custom_get_query(finalize_custom_get_queries, patterns);
+                output_TABLE_prepare_custom_get_query(
+                    prepare_custom_get_queries, patterns);
+                output_TABLE_finalize_custom_get_query(
+                    finalize_custom_get_queries, patterns);
 
                 TypeDefValue *type;
                 int count = 1;
@@ -163,11 +169,13 @@ void emit_source(const std::string &fname,
                     case TYPE_INT:
                     case TYPE_INT64:
                     case TYPE_DOUBLE:
-                        output_TABLE_custom_get_binder_pod(custom_get_binders, patterns);
+                        output_TABLE_custom_get_binder_pod(
+                            custom_get_binders, patterns);
                         break;
                     case TYPE_TEXT:
                     case TYPE_BLOB:
-                        output_TABLE_custom_get_binder_string(custom_get_binders, patterns);
+                        output_TABLE_custom_get_binder_string(
+                            custom_get_binders, patterns);
                         break;
                     }
                 }
@@ -176,7 +184,8 @@ void emit_source(const std::string &fname,
 
                 patterns["type_and_vX"] = make_custom_get_arglist(cust);
 
-                output_TABLE_custom_get_implementation(custom_get_implementations, patterns);
+                output_TABLE_custom_get_implementation(
+                    custom_get_implementations, patterns);
             }
             else if (cust->type == CustomGetUpdList::UPD)
             {
@@ -184,7 +193,8 @@ void emit_source(const std::string &fname,
                 ostringstream custom_fieldlist;
                 ostringstream custom_questionmarks;
 
-                output_TABLE_finalize_custom_upd(finalize_custom_upd, patterns);
+                output_TABLE_finalize_custom_upd(
+                    finalize_custom_upd, patterns);
 
                 int counter = 1;
                 WordList * w;
@@ -212,11 +222,13 @@ void emit_source(const std::string &fname,
                     case TYPE_INT:
                     case TYPE_INT64:
                     case TYPE_DOUBLE:
-                        output_TABLE_custom_upd_binder_pod(custom_update_binders, patterns);
+                        output_TABLE_custom_upd_binder_pod(
+                            custom_update_binders, patterns);
                         break;
                     case TYPE_TEXT:
                     case TYPE_BLOB:
-                        output_TABLE_custom_upd_binder_string(custom_update_binders, patterns);
+                        output_TABLE_custom_upd_binder_string(
+                            custom_update_binders, patterns);
                         break;
                     }
                 }
@@ -224,7 +236,8 @@ void emit_source(const std::string &fname,
                 SET_PATTERN(custom_fieldlist);
                 SET_PATTERN(custom_questionmarks);
 
-                output_TABLE_prepare_custom_upd(prepare_custom_upd, patterns);
+                output_TABLE_prepare_custom_upd(
+                    prepare_custom_upd, patterns);
 
                 SET_PATTERN(custom_update_binders);
 
@@ -232,7 +245,8 @@ void emit_source(const std::string &fname,
                 fieldindex << counter;
                 SET_PATTERN(fieldindex);
 
-                output_TABLE_custom_upd_implementation(custom_upd_implementations, patterns);
+                output_TABLE_custom_upd_implementation(
+                    custom_upd_implementations, patterns);
             }
         }
 
