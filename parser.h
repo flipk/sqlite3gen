@@ -46,14 +46,21 @@ struct WordList {
 
 struct CustomGetUpdList {
     struct CustomGetUpdList * next;
-    enum { GET, UPD } type;
+    enum { GET, UPD, DEL } type;
     std::string name;
-    TypeDefValue *typelist; // for GET
-    std::string query; // for GET only
+    TypeDefValue *typelist; // for GET/DEL
+    std::string query; // for GET/DEL
     WordList *wordlist; // for UPD
     void init_get(const std::string &_name, TypeDefValue *_typelist,
                   const std::string &_query) {
         type = GET;
+        name = _name;
+        typelist = _typelist;
+        query = _query;
+    }
+    void init_del(const std::string &_name, TypeDefValue *_typelist,
+                  const std::string &_query) {
+        type = DEL;
         name = _name;
         typelist = _typelist;
         query = _query;

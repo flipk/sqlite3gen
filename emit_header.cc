@@ -35,11 +35,13 @@ void emit_header(const std::string &fname, const TableDef *tds)
         ostringstream stmt_by_decls_like;
         ostringstream stmt_custom_get_decls;
         ostringstream stmt_custom_upd_decls;
+        ostringstream stmt_custom_del_decls;
         ostringstream table_field_type_name_decls;
         ostringstream table_query_method_protos;
         ostringstream table_query_like_method_protos;
         ostringstream table_custom_get_method_protos;
         ostringstream table_custom_upd_method_protos;
+        ostringstream table_custom_del_method_protos;
         const FieldDef *fd;
         const CustomGetUpdList * cust;
 
@@ -73,8 +75,9 @@ void emit_header(const std::string &fname, const TableDef *tds)
         for (cust = td->customs; cust; cust = cust->next)
         {
             patterns["customname"] = cust->name;
-            if (cust->type == CustomGetUpdList::GET)
+            switch (cust->type)
             {
+            case CustomGetUpdList::GET:
                 output_TABLE_CLASS_stmt_custom_get_decl(
                     stmt_custom_get_decls, patterns);
 
@@ -83,13 +86,27 @@ void emit_header(const std::string &fname, const TableDef *tds)
 
                 output_TABLE_CLASS_table_custom_get_method_protos(
                     table_custom_get_method_protos, patterns);
-            }
-            else if (cust->type == CustomGetUpdList::UPD)
-            {
+
+                break;
+
+            case CustomGetUpdList::UPD:
                 output_TABLE_CLASS_stmt_custom_upd_decl(
                     stmt_custom_upd_decls, patterns);
                 output_TABLE_CLASS_table_custom_upd_method_protos(
                     table_custom_upd_method_protos, patterns);
+
+                break;
+
+            case CustomGetUpdList::DEL:
+                output_TABLE_CLASS_stmt_custom_del_decl(
+                    stmt_custom_del_decls, patterns);
+
+                patterns["type_and_vX"] =
+                    make_custom_get_arglist(cust);
+
+                output_TABLE_CLASS_table_custom_del_method_protos(
+                    table_custom_del_method_protos, patterns);
+                break;
             }
         }
 
@@ -97,11 +114,13 @@ void emit_header(const std::string &fname, const TableDef *tds)
         SET_PATTERN(stmt_by_decls_like);
         SET_PATTERN(stmt_custom_get_decls);
         SET_PATTERN(stmt_custom_upd_decls);
+        SET_PATTERN(stmt_custom_del_decls);
         SET_PATTERN(table_field_type_name_decls);
         SET_PATTERN(table_query_method_protos);
         SET_PATTERN(table_query_like_method_protos);
         SET_PATTERN(table_custom_get_method_protos);
         SET_PATTERN(table_custom_upd_method_protos);
+        SET_PATTERN(table_custom_del_method_protos);
 
         output_TABLE_CLASS_DEFN(out, patterns);
     }

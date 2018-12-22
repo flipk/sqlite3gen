@@ -170,6 +170,12 @@ main()
 
         get_custom1(pdb, 15.00);
         get_custom2(pdb, "flip%", "kad%");
+
+#if 1
+        user.delete_ssn(456789012);
+#else
+        user.delete_rowid();
+#endif
     }
     sqlite3_close(pdb);
     return 0;

@@ -40,16 +40,19 @@ void emit_source(const std::string &fname,
         ostringstream questionmarks;
         ostringstream prepare_custom_get_queries;
         ostringstream prepare_custom_upd;
+        ostringstream prepare_custom_del;
         ostringstream finalize_queries;
         ostringstream finalize_like_queries;
         ostringstream finalize_custom_get_queries;
         ostringstream finalize_custom_upd;
+        ostringstream finalize_custom_del;
         ostringstream get_columns;
         ostringstream query_implementations;
         ostringstream query_like_implementations;
         ostringstream insert_binders;
         ostringstream custom_get_implementations;
         ostringstream custom_upd_implementations;
+        ostringstream custom_del_implementations;
         ostringstream index_creation;
 
         const FieldDef * fd;
@@ -145,7 +148,10 @@ void emit_source(const std::string &fname,
         for (cust = td->customs; cust; cust = cust->next)
         {
             patterns["customname"] = cust->name;
-            if (cust->type == CustomGetUpdList::GET)
+
+            switch (cust->type)
+            {
+            case CustomGetUpdList::GET:
             {
                 ostringstream custom_get_binders;
 
@@ -187,7 +193,9 @@ void emit_source(const std::string &fname,
                 output_TABLE_custom_get_implementation(
                     custom_get_implementations, patterns);
             }
-            else if (cust->type == CustomGetUpdList::UPD)
+            break;
+
+            case CustomGetUpdList::UPD:
             {
                 ostringstream custom_update_binders;
                 ostringstream custom_fieldlist;
@@ -248,6 +256,52 @@ void emit_source(const std::string &fname,
                 output_TABLE_custom_upd_implementation(
                     custom_upd_implementations, patterns);
             }
+            break;
+
+            case CustomGetUpdList::DEL:
+            {
+                ostringstream custom_del_binders;
+
+                patterns["querystring"] = cust->query;
+                output_TABLE_prepare_custom_del(
+                    prepare_custom_del, patterns);
+                output_TABLE_finalize_custom_del(
+                    finalize_custom_del, patterns);
+
+                TypeDefValue *type;
+                int count = 1;
+                for (type = cust->typelist; type; type = type->next, count++)
+                {
+                    TypeDef t = type->type;
+                    ostringstream arg_index;
+                    arg_index << count;
+                    SET_PATTERN(arg_index);
+                    patterns["sqlite_bind_func"] = TypeDef_to_sqlite_bind(t);
+                    switch (t)
+                    {
+                    case TYPE_INT:
+                    case TYPE_INT64:
+                    case TYPE_DOUBLE:
+                        output_TABLE_custom_del_binder_pod(
+                            custom_del_binders, patterns);
+                        break;
+                    case TYPE_TEXT:
+                    case TYPE_BLOB:
+                        output_TABLE_custom_del_binder_string(
+                            custom_del_binders, patterns);
+                        break;
+                    }
+                }
+
+                SET_PATTERN(custom_del_binders);
+
+                patterns["type_and_vX"] = make_custom_get_arglist(cust);
+
+                output_TABLE_custom_del_implementation(
+                    custom_del_implementations, patterns);
+            }
+            break;
+            }
         }
 
         SET_PATTERN(prepare_queries);
@@ -258,16 +312,19 @@ void emit_source(const std::string &fname,
         SET_PATTERN(prepare_like_queries);
         SET_PATTERN(prepare_custom_get_queries);
         SET_PATTERN(prepare_custom_upd);
+        SET_PATTERN(prepare_custom_del);
         SET_PATTERN(finalize_queries);
         SET_PATTERN(finalize_like_queries);
         SET_PATTERN(finalize_custom_get_queries);
         SET_PATTERN(finalize_custom_upd);
+        SET_PATTERN(finalize_custom_del);
         SET_PATTERN(get_columns);
         SET_PATTERN(query_implementations);
         SET_PATTERN(query_like_implementations);
         SET_PATTERN(insert_binders);
         SET_PATTERN(custom_get_implementations);
         SET_PATTERN(custom_upd_implementations);
+        SET_PATTERN(custom_del_implementations);
         SET_PATTERN(index_creation);
 
         output_TABLE_CLASS_IMPL(out, patterns);

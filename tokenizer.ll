@@ -43,6 +43,7 @@ QUERY      { return KW_QUERY; }
 LIKEQUERY  { return KW_LIKEQUERY; }
 CUSTOM-GET { return KW_CUSTOM_GET; }
 CUSTOM-UPD { return KW_CUSTOM_UPD; }
+CUSTOM-DEL { return KW_CUSTOM_DEL; }
 
 (0x)?[0-9]+ {
                yylval.integer = strtoul(yytext, NULL, 0);

@@ -22,10 +22,12 @@ ________ TABLE_CLASS_DEFN
 class SQL_TABLE_@@tablename@@ {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_update;
+    sqlite3_stmt * pStmt_delete_rowid;
 @@stmt_by_decls@@
 @@stmt_by_decls_like@@
 @@stmt_custom_get_decls@@
 @@stmt_custom_upd_decls@@
+@@stmt_custom_del_decls@@
 
 protected:
     sqlite3 *pdb;
@@ -46,7 +48,9 @@ public:
     bool get_next(void);
     bool insert(void); // updates rowid
     bool update(void);
+    bool delete_rowid(void); // delete by rowid
 @@table_custom_upd_method_protos@@
+@@table_custom_del_method_protos@@
 
     static bool table_create(sqlite3 *pdb);
 };
@@ -69,6 +73,10 @@ ________ TABLE_CLASS_stmt_custom_upd_decl
     sqlite3_stmt * pStmt_update_@@customname@@;
 ________ END
 
+________ TABLE_CLASS_stmt_custom_del_decl
+    sqlite3_stmt * pStmt_del_@@customname@@;
+________ END
+
 ________ TABLE_CLASS_table_field_type_name_decls
     @@fieldtype@@ @@fieldname@@;
 ________ END
@@ -87,6 +95,10 @@ ________ END
 
 ________ TABLE_CLASS_table_custom_upd_method_protos
     bool update_@@customname@@(void);
+________ END
+
+________ TABLE_CLASS_table_custom_del_method_protos
+    bool delete_@@customname@@(@@type_and_vX@@);
 ________ END
 
 ________ CLASS_ALL_TABELS_DEFN
@@ -124,11 +136,13 @@ SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb, bool _debug)
 
     pStmt_insert = NULL;
     pStmt_update = NULL;
+    pStmt_delete_rowid = NULL;
 
 @@prepare_queries@@
 @@prepare_like_queries@@
 @@prepare_custom_get_queries@@
 @@prepare_custom_upd@@
+@@prepare_custom_del@@
 
     previous_get = NULL;
 }
@@ -139,11 +153,14 @@ SQL_TABLE_@@tablename@@ :: ~SQL_TABLE_@@tablename@@(void)
         sqlite3_finalize(pStmt_insert);
     if (pStmt_update)
         sqlite3_finalize(pStmt_update);
+    if (pStmt_delete_rowid)
+        sqlite3_finalize(pStmt_delete_rowid);
 
 @@finalize_queries@@
 @@finalize_like_queries@@
 @@finalize_custom_get_queries@@
 @@finalize_custom_upd@@
+@@finalize_custom_del@@
 
 }
 
@@ -224,7 +241,7 @@ bool SQL_TABLE_@@tablename@@ :: update(void)
         r = sqlite3_prepare_v2(
             pdb, "UPDATE @@tablename@@ SET "
             "(@@fieldnames@@) "
-            "= (@@questionmarks@@) where rowid = ?",
+            "= (@@questionmarks@@) WHERE rowid = ?",
             -1, &pStmt_update, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building UPDATE at line %d\n", __LINE__);
@@ -254,8 +271,45 @@ bool SQL_TABLE_@@tablename@@ :: update(void)
     return true;
 }
 
+bool SQL_TABLE_@@tablename@@ :: delete_rowid(void)
+{
+    int r;
+
+    if (pStmt_delete_rowid == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb, "DELETE FROM @@tablename@@ WHERE rowid = ?",
+            -1, &pStmt_delete_rowid, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building UPDATE at line %d\n", __LINE__);
+    }
+
+    sqlite3_reset(pStmt_delete_rowid);
+
+    r = sqlite3_bind_int64(pStmt_delete_rowid,
+                           1, rowid);
+
+    if (debug)
+    {
+        char * sql = sqlite3_expanded_sql(pStmt_delete_rowid);
+        printf("DELETE: %s\n", sql);
+        sqlite3_free(sql);
+    }
+
+    r = sqlite3_step(pStmt_delete_rowid);
+    if (r != SQLITE_DONE)
+    {
+        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
+                "delete_rowid: r = %d\n", r);
+        return false;
+    }
+
+    return true;
+}
+
 @@custom_get_implementations@@
 @@custom_upd_implementations@@
+@@custom_del_implementations@@
 
 //static
 bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
@@ -286,6 +340,10 @@ ________ TABLE_prepare_custom_upd
     pStmt_update_@@customname@@ = NULL;
 ________ END
 
+________ TABLE_prepare_custom_del
+    pStmt_del_@@customname@@ = NULL;
+________ END
+
 ________ TABLE_finalize_query
     if (pStmt_by_@@fieldname@@)
         sqlite3_finalize(pStmt_by_@@fieldname@@);
@@ -304,6 +362,11 @@ ________ END
 ________ TABLE_finalize_custom_upd
     if (pStmt_update_@@customname@@)
         sqlite3_finalize(pStmt_update_@@customname@@);
+________ END
+
+________ TABLE_finalize_custom_del
+    if (pStmt_del_@@customname@@)
+        sqlite3_finalize(pStmt_del_@@customname@@);
 ________ END
 
 ________ TABLE_get_column_pod
@@ -600,6 +663,72 @@ ________ TABLE_custom_upd_binder_string
     {
         fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
                 "update_@@customname@@: bind @@fieldname@@: r = %d\n", r);
+    }
+________ END
+
+________ TABLE_custom_del_implementation
+bool SQL_TABLE_@@tablename@@ :: delete_@@customname@@(@@type_and_vX@@)
+{
+    int r;
+    bool ret = false;
+
+    if(pStmt_del_@@customname@@ == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "DELETE FROM @@tablename@@ WHERE @@querystring@@",
+            -1, &pStmt_del_@@customname@@, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building DELETE for "
+                   "CUSTOM-DEL @@customname@@ at line %d\n", __LINE__);
+    }
+
+    sqlite3_reset(pStmt_del_@@customname@@);
+
+@@custom_del_binders@@
+
+    if (debug)
+    {
+        char * sql = sqlite3_expanded_sql(pStmt_del_@@customname@@);
+        printf("DELETE delete_@@customname@@: %s\n", sql);
+        sqlite3_free(sql);
+    }
+
+    r = sqlite3_step(pStmt_del_@@customname@@);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_del_@@customname@@);
+        previous_get = pStmt_del_@@customname@@;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+________ END
+
+________ TABLE_custom_del_binder_pod
+    r = @@sqlite_bind_func@@(pStmt_del_@@customname@@,
+                             @@arg_index@@, v@@arg_index@@);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_@@tablename@@ :: delete_@@customname@@ "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_del_binder_string
+    r = @@sqlite_bind_func@@(pStmt_del_@@customname@@, @@arg_index@@,
+                          v@@arg_index@@.c_str(), v@@arg_index@@.length(),
+                          SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_@@tablename@@ :: delete_@@customname@@ : "
+                "bind: r = %d\n", r);
+        return false;
     }
 ________ END
 

@@ -22,6 +22,9 @@ TABLE user
 
 	CUSTOM-UPD balance  (balance)
 	CUSTOM-UPD firstlast (firstname lastname)
+
+	CUSTOM-DEL ssn (INT)
+	           "ssn = ?"
 }
 
 TABLE book

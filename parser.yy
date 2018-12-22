@@ -36,7 +36,7 @@ static void validate_table(TableDef *tb);
 %token L_CURLY R_CURLY L_PAREN R_PAREN KW_TABLE
 %token KW_INT KW_INT64 KW_TEXT KW_BLOB KW_DOUBLE
 %token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD
-%token KW_CUSTOM_GET KW_CUSTOM_UPD
+%token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_DEL
 %token TOK_INTEGER TOK_STRING
 
 %type <word>    KW_WORD
@@ -47,7 +47,7 @@ static void validate_table(TableDef *tb);
 %type <integer> TOK_INTEGER
 %type <word>    TOK_STRING
 %type <words>   WORDLIST
-%type <getupdlist> CUSTOMGET CUSTOMUPD CUSTOMS
+%type <getupdlist> CUSTOMGET CUSTOMUPD CUSTOMDEL CUSTOMS
 
 %start SCHEMA
 
@@ -114,6 +114,11 @@ CUSTOMS
             $$ = $1;
             $$->next = $2;
 	}
+	| CUSTOMDEL CUSTOMS
+	{
+            $$ = $1;
+            $$->next = $2;
+	}
 	;
 
 CUSTOMGET
@@ -121,6 +126,16 @@ CUSTOMGET
 	{
             $$ = new CustomGetUpdList;
             $$->init_get(*$2, $4, *$6);
+            delete $2;
+            delete $6;
+	}
+	;
+
+CUSTOMDEL
+	: KW_CUSTOM_DEL KW_WORD L_PAREN TYPELIST R_PAREN TOK_STRING
+	{
+            $$ = new CustomGetUpdList;
+            $$->init_del(*$2, $4, *$6);
             delete $2;
             delete $6;
 	}
