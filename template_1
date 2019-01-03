@@ -315,7 +315,7 @@ bool SQL_TABLE_@@tablename@@ :: delete_rowid(void)
 bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
 {
     sqlite3_exec(pdb, "CREATE TABLE @@tablename@@ "
-        "(userid int64, firstname string, lastname string, mi string, ssn integer, balance double, proto blob)",
+        "(@@table_create_fields@@)",
         NULL, NULL, NULL);
 
 @@index_creation@@

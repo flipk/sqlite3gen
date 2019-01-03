@@ -59,6 +59,20 @@ TypeDef_to_sqlite_type(TypeDef t)
 }
 
 static inline std::string
+TypeDef_to_sqlite_create_type(TypeDef t)
+{
+    switch (t)
+    {
+    case TYPE_INT:     return "integer";
+    case TYPE_INT64:   return "int64";
+    case TYPE_DOUBLE:  return "double";
+    case TYPE_TEXT:    return "string";
+    case TYPE_BLOB:    return "blob";
+    }
+    return "UNKNOWN_TYPE";
+}
+
+static inline std::string
 TypeDef_to_sqlite_bind(TypeDef t)
 {
     return std::string("sqlite3_bind_") + TypeDef_to_sqlite_type(t);

@@ -53,6 +53,7 @@ void emit_source(const std::string &fname,
         ostringstream custom_get_implementations;
         ostringstream custom_upd_implementations;
         ostringstream custom_del_implementations;
+        ostringstream table_create_fields;
         ostringstream index_creation;
 
         const FieldDef * fd;
@@ -78,10 +79,13 @@ void emit_source(const std::string &fname,
 
             fieldnames << fd->name;
             questionmarks << "?";
+            table_create_fields << fd->name << " "
+                                << TypeDef_to_sqlite_create_type(t);
             if (fd->next)
             {
                 fieldnames << ", ";
                 questionmarks << ",";
+                table_create_fields << ", ";
             }
 
             if (fd->attrs.query)
@@ -325,6 +329,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(custom_get_implementations);
         SET_PATTERN(custom_upd_implementations);
         SET_PATTERN(custom_del_implementations);
+        SET_PATTERN(table_create_fields);
         SET_PATTERN(index_creation);
 
         output_TABLE_CLASS_IMPL(out, patterns);
