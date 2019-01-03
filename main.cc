@@ -3,7 +3,7 @@
 #include <string>
 
 #include "parser.h"
-#include "sql3gen-parser.hh"
+#include PARSER_YY_HDR
 #include "tokenizer.h"
 #include "emit.h"
 
