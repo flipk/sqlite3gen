@@ -1477,7 +1477,7 @@ bool SQL_TABLE_book :: update_price(void)
 bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
 {
     sqlite3_exec(pdb, "CREATE TABLE book "
-        "(userid int64, firstname string, lastname string, mi string, ssn integer, balance double, proto blob)",
+        "(bookid int64, title string, isbn string, price double, quantity integer)",
         NULL, NULL, NULL);
 
     sqlite3_exec(pdb,"CREATE INDEX book_bookid "
@@ -1889,7 +1889,7 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
 bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
 {
     sqlite3_exec(pdb, "CREATE TABLE checkouts "
-        "(userid int64, firstname string, lastname string, mi string, ssn integer, balance double, proto blob)",
+        "(bookid int64, userid int64, duedate int64)",
         NULL, NULL, NULL);
 
     sqlite3_exec(pdb,"CREATE INDEX checkouts_bookid "
