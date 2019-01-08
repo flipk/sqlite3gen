@@ -57,12 +57,19 @@ public:
 
         return ret;
     }
+    void print(void) {
+        printf("row %" PRId64 " userid %" PRId64
+               " %s %s %s ssn %d %f proto (%d)\n",
+               (int64_t) rowid, userid,
+               firstname.c_str(), mi.c_str(), lastname.c_str(),
+               ssn, balance, (int) proto.length());
+    }
 };
 
 void
 get_all(sqlite3 *pdb, int userid)
 {
-    SQL_TABLE_user  u(pdb, true);
+    SQL_TABLE_user_custom  u(pdb, true);
 
     if (u.get_by_userid(userid) == false)
     {
@@ -70,17 +77,14 @@ get_all(sqlite3 *pdb, int userid)
         return;
     }
     do {
-        printf("row %d userid %d %s %s %s ssn %d %f proto (%d)\n",
-               u.rowid,
-               u.userid, u.firstname.c_str(), u.mi.c_str(), u.lastname.c_str(),
-               u.ssn, u.balance, u.proto.length());
+        u.print();
     } while (u.get_next());
 }
 
 void
 get_like(sqlite3 *pdb, const std::string &patt)
 {
-    SQL_TABLE_user  u(pdb, true);
+    SQL_TABLE_user_custom  u(pdb, true);
 
     if (u.get_by_lastname_like(patt) == false)
     {
@@ -88,10 +92,7 @@ get_like(sqlite3 *pdb, const std::string &patt)
         return;
     }
     do {
-        printf("row %d userid %d %s %s %s ssn %d %f proto (%d)\n",
-               u.rowid,
-               u.userid, u.firstname.c_str(), u.mi.c_str(), u.lastname.c_str(),
-               u.ssn, u.balance, u.proto.length());
+        u.print();
     } while (u.get_next());
 }
 
@@ -106,10 +107,7 @@ get_custom1(sqlite3 *pdb, double thresh)
         return;
     }
     do {
-        printf("row %d userid %d %s %s %s ssn %d %f proto (%d)\n",
-               u.rowid,
-               u.userid, u.firstname.c_str(), u.mi.c_str(), u.lastname.c_str(),
-               u.ssn, u.balance, u.proto.length());
+        u.print();
     } while (u.get_next());
 }
 
@@ -126,10 +124,7 @@ get_custom2(sqlite3 *pdb,
         return;
     }
     do {
-        printf("row %d userid %d %s %s %s ssn %d %f proto (%d)\n",
-               u.rowid,
-               u.userid, u.firstname.c_str(), u.mi.c_str(), u.lastname.c_str(),
-               u.ssn, u.balance, u.proto.length());
+        u.print();
     } while (u.get_next());
 }
 
@@ -151,7 +146,7 @@ main()
         user.proto = "PROTOBUFS BABY";
 
         user.insert();
-        printf("inserted row %d\n", user.rowid);
+        printf("inserted row %" PRId64 "\n", (int64_t) user.rowid);
 
         get_all(pdb, 4);
 
@@ -162,7 +157,7 @@ main()
         user.update_balance();
 #endif
 
-        printf("updated row %d\n", user.rowid);
+        printf("updated row %" PRId64 "\n", (int64_t) user.rowid);
 
         get_all(pdb, 4);
 

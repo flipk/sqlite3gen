@@ -33,7 +33,7 @@ string
 escape(const string &in)
 {
     string out;
-    for (int ind = 0; ind < in.length(); ind++)
+    for (int ind = 0; ind < (int)in.length(); ind++)
     {
         if (in[ind] == '"')
         {
@@ -64,14 +64,14 @@ add_template(ostream &cc_out, ostream &h_out,
     if (ECHO_OUTPUT)
         fprintf(stderr,
                 "template '%s' of length %d\n",
-                name.c_str(), body.length());
+                name.c_str(), (int) body.length());
 
     // now to identify all the @@patterns@@
-    for (int ind = 0; ind < body.length() - 2; ind++)
+    for (int ind = 0; ind < (int) body.length() - 2; ind++)
         if (body[ind] == '@' && body[ind+1] == '@')
             ats.push_back(ind);
 
-    for (int ind = 0; ind < ats.size(); ind += 2)
+    for (int ind = 0; ind < (int) ats.size(); ind += 2)
     {
         pattern_info pi;
         pi.start_pos = ats[ind];
@@ -83,7 +83,7 @@ add_template(ostream &cc_out, ostream &h_out,
     }
 
     if (ECHO_OUTPUT)
-        for (int ind = 0; ind < patterns.size(); ind++)
+        for (int ind = 0; ind < (int) patterns.size(); ind++)
         {
             pattern_info &pi = patterns[ind];
             fprintf(stderr, "  pattern: [%d-%d] %s\n",
@@ -112,7 +112,7 @@ add_template(ostream &cc_out, ostream &h_out,
 
     string piece;
     int last_pos = 0;
-    for (int ind = 0; ind < patterns.size(); ind++)
+    for (int ind = 0; ind < (int) patterns.size(); ind++)
     {
         pattern_info &pi = patterns[ind];
         piece = body.substr(last_pos, pi.start_pos - last_pos);
@@ -164,10 +164,10 @@ process_line(ostream &cc_out, ostream &h_out,
 
 void print_line(const string &line)
 {
-    fprintf(stderr, "length : %d\n", line.length());
+    fprintf(stderr, "length : %d\n", (int) line.length());
     unsigned char * ptr = (unsigned char *) line.c_str();
     fprintf(stderr, "contents: ");
-    for (int ind = 0; ind < line.length(); ind++)
+    for (int ind = 0; ind < (int) line.length(); ind++)
         fprintf(stderr, "%02x ", ptr[ind]);
     fprintf(stderr, "\n");
 }

@@ -3,6 +3,8 @@ PROG_TARGETS = template_to_c sql3gen sample
 
 OBJDIR = obj
 
+CXXFLAGS = -Wall -Werror
+
 template_to_c_TARGET = $(OBJDIR)/template_to_c
 template_to_c_CXXSRCS = template_to_c.cc
 
@@ -10,7 +12,8 @@ sql3gen_TARGET = $(OBJDIR)/sql3gen
 sql3gen_LLSRCS = tokenizer.ll
 sql3gen_YYSRCS = parser.yy
 sql3gen_CXXSRCS = main.cc emit_header.cc emit_source.cc template_patterns.cc
-sql3gen_DEFS = -DPARSER_YY_HDR=\"$(sql3gen_parser.yy_HDR)\"
+sql3gen_DEFS = -DPARSER_YY_HDR=\"$(sql3gen_parser.yy_HDR)\" \
+	-DYY_NO_UNPUT=1 -DYY_TYPEDEF_YY_SIZE_T=1 -Dyy_size_t=int
 sql3gen_LIBS = $(OBJDIR)/template_1.o
 sql3gen_PREMAKE = $(template_to_c_TARGET) $(OBJDIR)/template_1.o
 
