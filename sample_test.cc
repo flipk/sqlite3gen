@@ -1,9 +1,12 @@
 
+#define __STDC_FORMAT_MACROS
+
 #ifndef DEPENDING
 #include SAMPLE_H_HDR
 #endif
 
 #include <stdio.h>
+#include <inttypes.h>
 
 class SQL_TABLE_user_custom : public SQL_TABLE_user {
     sqlite3_stmt * pStmt_by_great_balance;
