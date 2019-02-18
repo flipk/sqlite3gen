@@ -175,6 +175,7 @@ main()
         user.delete_rowid();
 #endif
     }
+    SQL_TABLE_ALL_TABLES::table_drop_all(pdb);
     sqlite3_close(pdb);
     return 0;
 }

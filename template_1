@@ -53,6 +53,7 @@ public:
 @@table_custom_del_method_protos@@
 
     static bool table_create(sqlite3 *pdb);
+    static void table_drop(sqlite3 *pdb);
 };
 
 ________ END
@@ -106,6 +107,7 @@ ________ CLASS_ALL_TABELS_DEFN
 class SQL_TABLE_ALL_TABLES {
 public:
     static bool table_create_all(sqlite3 *pdb);
+    static void table_drop_all(sqlite3 *pdb);
 };
 
 ________ END
@@ -318,10 +320,25 @@ bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
         "(@@table_create_fields@@)",
         NULL, NULL, NULL);
 
+//    if (debug)
+        printf("CREATE TABLE: CREATE TABLE @@tablename@@ "
+               "(@@table_create_fields@@)");
+
 @@index_creation@@
 
     return true;
 }
+
+//static
+void SQL_TABLE_@@tablename@@ :: table_drop(sqlite3 *pdb)
+{
+    sqlite3_exec(pdb, "DROP TABLE @@tablename@@",
+         NULL, NULL, NULL);
+
+//    if (debug)
+        printf("DROP: DROP TABLE @@tablename@@\n");
+}
+
 ________ END
 
 ________ TABLE_prepare_query
@@ -736,6 +753,9 @@ ________ TABLE_create_index
     sqlite3_exec(pdb,"CREATE INDEX @@tablename@@_@@fieldname@@ "
                  "ON @@tablename@@ (@@fieldname@@)",
         NULL, NULL, NULL);
+//    if (debug)
+        printf("CREATE INDEX: CREATE INDEX @@tablename@@_@@fieldname@@ "
+               "ON @@tablename@@ (@@fieldname@@)");
 ________ END
 
 ________ CLASS_ALL_TABELS_IMPL
@@ -745,9 +765,19 @@ bool SQL_TABLE_ALL_TABLES :: table_create_all(sqlite3 *pdb)
 @@create_all_tables@@
     return true;
 }
+
+void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
+{
+@@drop_all_tables@@
+}
+
 ________ END
 
 ________ CLASS_ALL_TABLES_create_a_table
     if (!SQL_TABLE_@@tablename@@::table_create(pdb))
         return false;
+________ END
+
+________ CLASS_ALL_TABLES_drop_a_table
+    SQL_TABLE_@@tablename@@::table_drop(pdb);
 ________ END

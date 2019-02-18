@@ -31,6 +31,7 @@ void emit_source(const std::string &fname,
     output_SOURCE_TOP(out, patterns);
 
     ostringstream create_all_tables;
+    ostringstream drop_all_tables;
 
     for (td = tds; td; td = td->next)
     {
@@ -335,9 +336,11 @@ void emit_source(const std::string &fname,
         output_TABLE_CLASS_IMPL(out, patterns);
 
         output_CLASS_ALL_TABLES_create_a_table(create_all_tables, patterns);
+        output_CLASS_ALL_TABLES_drop_a_table(drop_all_tables, patterns);
     }
 
     SET_PATTERN(create_all_tables);
+    SET_PATTERN(drop_all_tables);
 
     output_CLASS_ALL_TABELS_IMPL(out, patterns);
 }
