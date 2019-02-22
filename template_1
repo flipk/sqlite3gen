@@ -15,6 +15,8 @@ ________ HEADER_TOP
 #include <string>
 #include "sqlite3.h"
 
+typedef void (*sql_log_function_t)(void *arg, sqlite3_stmt *);
+
 ________ END
 
 ________ TABLE_CLASS_DEFN
@@ -32,12 +34,14 @@ class SQL_TABLE_@@tablename@@ {
 
 protected:
     sqlite3 *pdb;
-    bool debug;
     sqlite3_stmt * previous_get;
     bool get_columns(sqlite3_stmt *pStmt);
+    static sql_log_function_t log_upd_func;
+    static sql_log_function_t log_get_func;
+    static void * log_arg;
 
 public:
-    SQL_TABLE_@@tablename@@(sqlite3 *_pdb, bool _debug = false);
+    SQL_TABLE_@@tablename@@(sqlite3 *_pdb);
     virtual ~SQL_TABLE_@@tablename@@(void);
 
     sqlite3_int64 rowid;
@@ -54,6 +58,14 @@ public:
 @@table_custom_upd_method_protos@@
 @@table_custom_del_method_protos@@
 
+    static void register_log_funcs(sql_log_function_t _upd_func,
+                                   sql_log_function_t _get_func,
+                                   void *_arg)
+    {
+        log_upd_func = _upd_func;
+        log_get_func = _get_func;
+        log_arg  = _arg;
+    }
     static bool table_create(sqlite3 *pdb);
     static void table_drop(sqlite3 *pdb);
 };
@@ -133,8 +145,13 @@ ________ END
 
 ________ TABLE_CLASS_IMPL
 
-SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb, bool _debug)
-    : pdb(_pdb), debug(_debug)
+//static
+sql_log_function_t SQL_TABLE_@@tablename@@ :: log_upd_func = NULL;
+sql_log_function_t SQL_TABLE_@@tablename@@ :: log_get_func = NULL;
+void *             SQL_TABLE_@@tablename@@ :: log_arg  = NULL;
+
+SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
+    : pdb(_pdb)
 {
     pStmt_insert = NULL;
     pStmt_update = NULL;
@@ -218,12 +235,8 @@ bool SQL_TABLE_@@tablename@@ :: insert(void)
 
 @@insert_binders@@
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_insert);
-        printf("INSERT: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_insert);
 
     r = sqlite3_step(pStmt_insert);
     if (r != SQLITE_DONE)
@@ -259,12 +272,8 @@ bool SQL_TABLE_@@tablename@@ :: update(void)
     r = sqlite3_bind_int64(pStmt_update,
                            @@column_index@@, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_update);
-        printf("UPDATE: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update);
 
     r = sqlite3_step(pStmt_update);
     if (r != SQLITE_DONE)
@@ -294,12 +303,8 @@ bool SQL_TABLE_@@tablename@@ :: delete_rowid(void)
     r = sqlite3_bind_int64(pStmt_delete_rowid,
                            1, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_delete_rowid);
-        printf("DELETE: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_delete_rowid);
 
     r = sqlite3_step(pStmt_delete_rowid);
     if (r != SQLITE_DONE)
@@ -340,12 +345,8 @@ bool SQL_TABLE_@@tablename@@ :: get_by_rowid(int64_t v1)
         return false;
     }
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_get_by_rowid);
-        printf("SELECT get_by_rowid: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_by_rowid);
 
     r = sqlite3_step(pStmt_get_by_rowid);
     if (r == SQLITE_ROW)
@@ -370,9 +371,8 @@ bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
         "(@@table_create_fields@@)",
         NULL, NULL, NULL);
 
-//    if (debug)
-        printf("CREATE TABLE: CREATE TABLE @@tablename@@ "
-               "(@@table_create_fields@@)");
+    printf("CREATE TABLE: CREATE TABLE @@tablename@@ "
+           "(@@table_create_fields@@)\n");
 
 @@index_creation@@
 
@@ -385,8 +385,7 @@ void SQL_TABLE_@@tablename@@ :: table_drop(sqlite3 *pdb)
     sqlite3_exec(pdb, "DROP TABLE @@tablename@@",
          NULL, NULL, NULL);
 
-//    if (debug)
-        printf("DROP: DROP TABLE @@tablename@@\n");
+    printf("DROP: DROP TABLE @@tablename@@\n");
 }
 
 ________ END
@@ -489,12 +488,8 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@(@@fieldtype@@ v)
 
 @@query_bind@@
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_by_@@fieldname@@);
-        printf("SELECT get_by_@@fieldname@@: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_by_@@fieldname@@);
 
     r = sqlite3_step(pStmt_by_@@fieldname@@);
     if (r == SQLITE_ROW)
@@ -561,12 +556,8 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@_like(
         return false;
     }
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_by_@@fieldname@@_like);
-        printf("SELECT get_by_@@fieldname@@_like: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_by_@@fieldname@@_like);
 
     r = sqlite3_step(pStmt_by_@@fieldname@@_like);
     if (r == SQLITE_ROW)
@@ -622,12 +613,8 @@ bool SQL_TABLE_@@tablename@@ :: get_@@customname@@(@@type_and_vX@@)
 
 @@custom_get_binders@@
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_get_@@customname@@);
-        printf("SELECT get_@@customname@@: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_@@customname@@);
 
     r = sqlite3_step(pStmt_get_@@customname@@);
     if (r == SQLITE_ROW)
@@ -692,12 +679,8 @@ bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
     r = sqlite3_bind_int64(pStmt_update_@@customname@@,
                            @@fieldindex@@, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_update_@@customname@@);
-        printf("UPDATE update_@@customname@@: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update_@@customname@@);
 
     r = sqlite3_step(pStmt_update_@@customname@@);
     if (r != SQLITE_DONE)
@@ -754,12 +737,8 @@ bool SQL_TABLE_@@tablename@@ :: delete_@@customname@@(@@type_and_vX@@)
 
 @@custom_del_binders@@
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_del_@@customname@@);
-        printf("DELETE delete_@@customname@@: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_del_@@customname@@);
 
     r = sqlite3_step(pStmt_del_@@customname@@);
     if (r == SQLITE_ROW)
@@ -803,9 +782,8 @@ ________ TABLE_create_index
     sqlite3_exec(pdb,"CREATE INDEX @@tablename@@_@@fieldname@@ "
                  "ON @@tablename@@ (@@fieldname@@)",
         NULL, NULL, NULL);
-//    if (debug)
-        printf("CREATE INDEX: CREATE INDEX @@tablename@@_@@fieldname@@ "
-               "ON @@tablename@@ (@@fieldname@@)");
+    printf("CREATE INDEX: CREATE INDEX @@tablename@@_@@fieldname@@ "
+           "ON @@tablename@@ (@@fieldname@@)\n");
 ________ END
 
 ________ CLASS_ALL_TABELS_IMPL

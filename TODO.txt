@@ -1,12 +1,6 @@
 
-a hook / callback function of some kind where every executed SQL
-  callback gets logged. should this be registered by static method
-  so it only needs to be done once globally?
-
 default values for fields
 
 look at "sqlcipher" fedora package!
 
 protobuf integration for rows?
-
-investigate how difficult it would be to solve database replication issues?

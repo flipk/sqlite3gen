@@ -11,8 +11,8 @@
 class SQL_TABLE_user_custom : public SQL_TABLE_user {
     sqlite3_stmt * pStmt_by_great_balance;
 public:
-    SQL_TABLE_user_custom(sqlite3 *_pdb, bool _debug = false)
-        : SQL_TABLE_user(_pdb, _debug)
+    SQL_TABLE_user_custom(sqlite3 *_pdb)
+        : SQL_TABLE_user(_pdb)
     {
         int r;
         r = sqlite3_prepare_v2(pdb,
@@ -42,12 +42,8 @@ public:
             return false;
         }
 
-        if (debug)
-        {
-            char * sql = sqlite3_expanded_sql(pStmt_by_great_balance);
-            printf("SELECT: %s\n", sql);
-            sqlite3_free(sql);
-        }
+        if (log_get_func)
+            log_get_func(log_arg, pStmt_by_great_balance);
 
         r = sqlite3_step(pStmt_by_great_balance);
         if (r == SQLITE_ROW)
@@ -72,7 +68,7 @@ public:
 void
 get_all(sqlite3 *pdb, int userid)
 {
-    SQL_TABLE_user_custom  u(pdb, true);
+    SQL_TABLE_user_custom  u(pdb);
 
     if (u.get_by_userid(userid) == false)
     {
@@ -87,7 +83,7 @@ get_all(sqlite3 *pdb, int userid)
 void
 get_row(sqlite3 *pdb, int64_t row)
 {
-    SQL_TABLE_user_custom  u(pdb, true);
+    SQL_TABLE_user_custom  u(pdb);
 
     if (u.get_by_rowid(row) == false)
     {
@@ -102,7 +98,7 @@ get_row(sqlite3 *pdb, int64_t row)
 void
 get_like(sqlite3 *pdb, const std::string &patt)
 {
-    SQL_TABLE_user_custom  u(pdb, true);
+    SQL_TABLE_user_custom  u(pdb);
 
     if (u.get_by_lastname_like(patt) == false)
     {
@@ -117,7 +113,7 @@ get_like(sqlite3 *pdb, const std::string &patt)
 void
 get_custom1(sqlite3 *pdb, double thresh)
 {
-    SQL_TABLE_user_custom  u(pdb, true);
+    SQL_TABLE_user_custom  u(pdb);
 
     if (u.get_great_balance(thresh) == false)
     {
@@ -134,7 +130,7 @@ get_custom2(sqlite3 *pdb,
             const std::string &first,
             const std::string &last)
 {
-    SQL_TABLE_user_custom  u(pdb, true);
+    SQL_TABLE_user_custom  u(pdb);
 
     if (u.get_firstlast(first, last) == false)
     {
@@ -146,14 +142,29 @@ get_custom2(sqlite3 *pdb,
     } while (u.get_next());
 }
 
+void log_sql_upd(void *arg, sqlite3_stmt *stmt)
+{
+    char * sql = sqlite3_expanded_sql(stmt);
+    printf("** SQL UPDATE LOG: %s\n", sql);
+    sqlite3_free(sql);
+}
+
+void log_sql_get(void *arg, sqlite3_stmt *stmt)
+{
+    char * sql = sqlite3_expanded_sql(stmt);
+    printf("** SQL GET LOG: %s\n", sql);
+    sqlite3_free(sql);
+}
+
 int
 main()
 {
     sqlite3 * pdb;
     sqlite3_open("obj.native/sample_test.db", &pdb);
     SQL_TABLE_ALL_TABLES::table_create_all(pdb);
+    SQL_TABLE_user::register_log_funcs(&log_sql_upd, &log_sql_get, NULL);
     {
-        SQL_TABLE_user  user(pdb, true);
+        SQL_TABLE_user  user(pdb);
 
         user.userid = 4;
         user.firstname = "flippy";
