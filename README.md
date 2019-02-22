@@ -103,7 +103,7 @@ bool get_by_<column-name>_like(std::string v);
 Note the argument of `v` for a `_like` method will always
 be `std::string`.
 
-### insert, update, delete_rowid methods
+### insert, update, get_by_rowid, delete_rowid methods
 
 The following methods are always added to every SQL_TABLE class:
 
@@ -111,6 +111,7 @@ The following methods are always added to every SQL_TABLE class:
 bool insert(void); // updates rowid
 bool update(void);
 bool delete_rowid(void); // delete by rowid
+bool get_by_rowid(int64_t rowid);
 ```
 
 Use the `insert` method to add a new row to the table. Note the `rowid`
@@ -125,6 +126,8 @@ is undefined if you call `update` without populating `rowid`.
 The `delete_rowid` field uses the current rowid value in the object to
 delete. The rowid field is the only field of the object consumed in the
 delete method.
+
+The `get_by_rowid` fetches a row from the table using the rowid value.
 
 ### CUSTOM queries
 

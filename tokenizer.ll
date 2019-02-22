@@ -63,13 +63,12 @@ tokenizer_init(FILE *in)
     yyin = in;
 }
 
-#if 0 // quiet warning on stupid rhel 6
+// quiet a warning about yyunput defined but not used.
 void ___tokenizer__unused__crap(void)
 {
   char c = 0;
   yyunput(0, &c);
 }
-#endif
 
 static string *
 strvec( const char * w, int len )

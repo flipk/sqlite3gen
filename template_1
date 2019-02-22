@@ -23,6 +23,7 @@ class SQL_TABLE_@@tablename@@ {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
+    sqlite3_stmt * pStmt_get_by_rowid;
 @@stmt_by_decls@@
 @@stmt_by_decls_like@@
 @@stmt_custom_get_decls@@
@@ -49,6 +50,7 @@ public:
     bool insert(void); // updates rowid
     bool update(void);
     bool delete_rowid(void); // delete by rowid
+    bool get_by_rowid(int64_t v1);
 @@table_custom_upd_method_protos@@
 @@table_custom_del_method_protos@@
 
@@ -123,7 +125,7 @@ ________ SOURCE_TOP
 // NOTE // NOTE // NOTE // NOTE // NOTE // NOTE // NOTE  //
 ///////////////////////////////////////////////////////////
 
-#include "sample.h"
+#include "@@headerfile@@"
 #include <string.h>
 #include <stdio.h>
 
@@ -134,11 +136,10 @@ ________ TABLE_CLASS_IMPL
 SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb, bool _debug)
     : pdb(_pdb), debug(_debug)
 {
-    int r;
-
     pStmt_insert = NULL;
     pStmt_update = NULL;
     pStmt_delete_rowid = NULL;
+    pStmt_get_by_rowid = NULL;
 
 @@prepare_queries@@
 @@prepare_like_queries@@
@@ -157,6 +158,8 @@ SQL_TABLE_@@tablename@@ :: ~SQL_TABLE_@@tablename@@(void)
         sqlite3_finalize(pStmt_update);
     if (pStmt_delete_rowid)
         sqlite3_finalize(pStmt_delete_rowid);
+    if (pStmt_get_by_rowid)
+        sqlite3_finalize(pStmt_get_by_rowid);
 
 @@finalize_queries@@
 @@finalize_like_queries@@
@@ -168,7 +171,7 @@ SQL_TABLE_@@tablename@@ :: ~SQL_TABLE_@@tablename@@(void)
 
 bool SQL_TABLE_@@tablename@@ :: get_columns(sqlite3_stmt * pStmt)
 {
-    int got, want;
+    int got;
 
     rowid = sqlite3_column_int64(pStmt, 0);
 
@@ -307,6 +310,53 @@ bool SQL_TABLE_@@tablename@@ :: delete_rowid(void)
     }
 
     return true;
+}
+
+bool SQL_TABLE_@@tablename@@ :: get_by_rowid(int64_t v1)
+{
+    int r;
+    bool ret = false;
+
+    if(pStmt_get_by_rowid == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,* FROM @@tablename@@ WHERE rowid = ?",
+            -1, &pStmt_get_by_rowid, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building SELECT for "
+                   "get_by_rowid at line %d\n", __LINE__);
+    }
+
+    sqlite3_reset(pStmt_get_by_rowid);
+
+    r = sqlite3_bind_int64(pStmt_get_by_rowid,
+                             1, v1);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_@@tablename@@  :: get_by_rowid "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+
+    if (debug)
+    {
+        char * sql = sqlite3_expanded_sql(pStmt_get_by_rowid);
+        printf("SELECT get_by_rowid: %s\n", sql);
+        sqlite3_free(sql);
+    }
+
+    r = sqlite3_step(pStmt_get_by_rowid);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_get_by_rowid);
+        previous_get = pStmt_get_by_rowid;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
 }
 
 @@custom_get_implementations@@

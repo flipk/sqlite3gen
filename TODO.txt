@@ -1,6 +1,4 @@
 
-support initial values for fields
-
 a hook / callback function of some kind where every executed SQL
   callback gets logged. should this be registered by static method
   so it only needs to be done once globally?

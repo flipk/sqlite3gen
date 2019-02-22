@@ -1,7 +1,9 @@
 
 PROG_TARGETS = template_to_c sql3gen sample
 
-OBJDIR = obj
+export TARGET=native
+
+OBJDIR = obj.$(TARGET)
 
 CXXFLAGS = -Wall -Werror
 
@@ -13,7 +15,7 @@ sql3gen_LLSRCS = tokenizer.ll
 sql3gen_YYSRCS = parser.yy
 sql3gen_CXXSRCS = main.cc emit_header.cc emit_source.cc template_patterns.cc
 sql3gen_DEFS = -DPARSER_YY_HDR=\"$(sql3gen_parser.yy_HDR)\" \
-	-DYY_NO_UNPUT=1 -DYY_TYPEDEF_YY_SIZE_T=1 -Dyy_size_t=int
+	-DYY_TYPEDEF_YY_SIZE_T=1 -Dyy_size_t=int
 sql3gen_LIBS = $(OBJDIR)/template_1.o
 sql3gen_PREMAKE = $(template_to_c_TARGET) $(OBJDIR)/template_1.o
 
@@ -28,21 +30,25 @@ include Makefile.inc
 
 $(sql3gen_TARGET): $(OBJDIR)/template_1.o
 
+$(sql3gen_CXXOBJS): $(OBJDIR)/template_1.o
+
 $(OBJDIR)/template_1.o: $(OBJDIR)/template_1.cc
 	@echo compiling $(OBJDIR)/template_1.cc
 	$(Q)g++ -O3 -c $(OBJDIR)/template_1.cc -o $(OBJDIR)/template_1.o -I$(OBJDIR) -I.
 
-$(OBJDIR)/template_1.cc: $(template_to_c_TARGET) template_1
+$(OBJDIR)/template_1.cc $(OBJDIR)/template_1.h: $(template_to_c_TARGET) template_1
 	@echo generating $(OBJDIR)/template_1.cc
-	$(Q)./obj/template_to_c template_1 $(OBJDIR)/template_1.cc.tmp $(OBJDIR)/template_1.h.tmp
+	$(Q)./$(OBJDIR)/template_to_c template_1 $(OBJDIR)/template_1.cc.tmp $(OBJDIR)/template_1.h.tmp
 	$(Q)mv $(OBJDIR)/template_1.cc.tmp $(OBJDIR)/template_1.cc
 	$(Q)mv $(OBJDIR)/template_1.h.tmp $(OBJDIR)/template_1.h
 
 $(sample_TARGET): $(OBJDIR)/sample.o
 
+$(sample_CXXOBJS): $(OBJDIR)/sample.o
+
 $(OBJDIR)/sample.o: $(OBJDIR)/sample.cc
 	@echo compiling $(OBJDIR)/sample.cc
-	$(Q)g++ $(sample_INCS) -O3 -c $(OBJDIR)/sample.cc -o $(OBJDIR)/sample.o
+	$(Q)g++ $(sample_INCS) $(CXXFLAGS) -O3 -c $(OBJDIR)/sample.cc -o $(OBJDIR)/sample.o
 
 $(OBJDIR)/sample.cc: $(sql3gen_TARGET) sample.schema
 	@echo generating $(OBJDIR)/sample.cc

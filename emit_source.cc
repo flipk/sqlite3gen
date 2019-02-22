@@ -28,6 +28,8 @@ void emit_source(const std::string &fname,
         exit(1);
     }
 
+    patterns["headerfile"] = header_fname;
+
     output_SOURCE_TOP(out, patterns);
 
     ostringstream create_all_tables;

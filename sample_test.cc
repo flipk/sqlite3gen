@@ -85,6 +85,21 @@ get_all(sqlite3 *pdb, int userid)
 }
 
 void
+get_row(sqlite3 *pdb, int64_t row)
+{
+    SQL_TABLE_user_custom  u(pdb, true);
+
+    if (u.get_by_rowid(row) == false)
+    {
+        printf("get failed\n");
+        return;
+    }
+    do {
+        u.print();
+    } while (u.get_next());
+}
+
+void
 get_like(sqlite3 *pdb, const std::string &patt)
 {
     SQL_TABLE_user_custom  u(pdb, true);
@@ -135,7 +150,7 @@ int
 main()
 {
     sqlite3 * pdb;
-    sqlite3_open("obj/sample_test.db", &pdb);
+    sqlite3_open("obj.native/sample_test.db", &pdb);
     SQL_TABLE_ALL_TABLES::table_create_all(pdb);
     {
         SQL_TABLE_user  user(pdb, true);
@@ -161,6 +176,8 @@ main()
 #endif
 
         printf("updated row %" PRId64 "\n", (int64_t) user.rowid);
+
+        get_row(pdb, user.rowid);
 
         get_all(pdb, 4);
 
