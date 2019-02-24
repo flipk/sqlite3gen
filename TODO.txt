@@ -1,6 +1,2 @@
-
-default values for fields
-
-look at "sqlcipher" fedora package!
-
-protobuf integration for rows?
+- default values for fields
+- make aes_vfs which encrypts using aes

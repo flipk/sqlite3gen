@@ -3,7 +3,7 @@ PROG_TARGETS = template_to_c sql3gen sample
 
 export TARGET=native
 
-OBJDIR = obj.$(TARGET)
+OBJDIR = build_$(TARGET)
 
 CXXFLAGS = -Wall -Werror
 

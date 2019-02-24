@@ -11,15 +11,10 @@
 class SQL_TABLE_user_custom : public SQL_TABLE_user {
     sqlite3_stmt * pStmt_by_great_balance;
 public:
-    SQL_TABLE_user_custom(sqlite3 *_pdb)
+    SQL_TABLE_user_custom(sqlite3 *_pdb = NULL)
         : SQL_TABLE_user(_pdb)
     {
-        int r;
-        r = sqlite3_prepare_v2(pdb,
-                               "SELECT rowid,* FROM user WHERE balance > ?",
-                               -1, &pStmt_by_great_balance, NULL);
-        if (r != SQLITE_OK)
-            printf("ERROR building SELECT for balance at line %d\n", __LINE__);
+        pStmt_by_great_balance = NULL;
     }
     ~SQL_TABLE_user_custom(void)
     {
@@ -31,6 +26,17 @@ public:
     bool get_by_great_balance(double threshold) {
         int r;
         bool ret = false;
+
+        if (pStmt_by_great_balance == NULL)
+        {
+            r = sqlite3_prepare_v2(
+                pdb,
+                "SELECT rowid,* FROM user WHERE balance > ?",
+                -1, &pStmt_by_great_balance, NULL);
+            if (r != SQLITE_OK)
+                printf("ERROR building SELECT for balance at line %d\n",
+                       __LINE__);
+        }
 
         sqlite3_reset(pStmt_by_great_balance);
 
@@ -65,12 +71,12 @@ public:
     }
 };
 
-void
-get_all(sqlite3 *pdb, int userid)
-{
-    SQL_TABLE_user_custom  u(pdb);
+SQL_TABLE_user_custom u;
 
-    if (u.get_by_userid(userid) == false)
+void
+get_all(sqlite3 *pdb)
+{
+    if (u.get_all() == false)
     {
         printf("get failed\n");
         return;
@@ -83,8 +89,6 @@ get_all(sqlite3 *pdb, int userid)
 void
 get_row(sqlite3 *pdb, int64_t row)
 {
-    SQL_TABLE_user_custom  u(pdb);
-
     if (u.get_by_rowid(row) == false)
     {
         printf("get failed\n");
@@ -98,8 +102,6 @@ get_row(sqlite3 *pdb, int64_t row)
 void
 get_like(sqlite3 *pdb, const std::string &patt)
 {
-    SQL_TABLE_user_custom  u(pdb);
-
     if (u.get_by_lastname_like(patt) == false)
     {
         printf("get like failed\n");
@@ -113,8 +115,6 @@ get_like(sqlite3 *pdb, const std::string &patt)
 void
 get_custom1(sqlite3 *pdb, double thresh)
 {
-    SQL_TABLE_user_custom  u(pdb);
-
     if (u.get_great_balance(thresh) == false)
     {
         printf("get by great threshold returned no users\n");
@@ -130,8 +130,6 @@ get_custom2(sqlite3 *pdb,
             const std::string &first,
             const std::string &last)
 {
-    SQL_TABLE_user_custom  u(pdb);
-
     if (u.get_firstlast(first, last) == false)
     {
         printf("get by firstlast returned no users\n");
@@ -160,11 +158,15 @@ int
 main()
 {
     sqlite3 * pdb;
-    sqlite3_open("obj.native/sample_test.db", &pdb);
+    SQL_TABLE_user  user;
+
+    sqlite3_open("build_native/sample_test.db", &pdb);
+    user.set_db(pdb);
+    u.set_db(pdb);
+
     SQL_TABLE_ALL_TABLES::table_create_all(pdb);
     SQL_TABLE_user::register_log_funcs(&log_sql_upd, &log_sql_get, NULL);
     {
-        SQL_TABLE_user  user(pdb);
 
         user.userid = 4;
         user.firstname = "flippy";
@@ -177,7 +179,7 @@ main()
         user.insert();
         printf("inserted row %" PRId64 "\n", (int64_t) user.rowid);
 
-        get_all(pdb, 4);
+        get_all(pdb);
 
         user.balance = 15.44;
 #if 0
@@ -190,7 +192,7 @@ main()
 
         get_row(pdb, user.rowid);
 
-        get_all(pdb, 4);
+        get_all(pdb);
 
         get_like(pdb, "%dood%");
 

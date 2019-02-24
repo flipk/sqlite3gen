@@ -12,11 +12,15 @@
 #include <string>
 #include "sqlite3.h"
 
+typedef void (*sql_log_function_t)(void *arg, sqlite3_stmt *);
+
 
 class SQL_TABLE_user {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
+    sqlite3_stmt * pStmt_get_by_rowid;
+    sqlite3_stmt * pStmt_get_all;
     sqlite3_stmt * pStmt_by_userid;
     sqlite3_stmt * pStmt_by_ssn;
 
@@ -34,13 +38,17 @@ class SQL_TABLE_user {
 
 protected:
     sqlite3 *pdb;
-    bool debug;
     sqlite3_stmt * previous_get;
     bool get_columns(sqlite3_stmt *pStmt);
+    static sql_log_function_t log_upd_func;
+    static sql_log_function_t log_get_func;
+    static void * log_arg;
 
 public:
-    SQL_TABLE_user(sqlite3 *_pdb, bool _debug = false);
+    SQL_TABLE_user(sqlite3 *_pdb = NULL);
     virtual ~SQL_TABLE_user(void);
+
+    void set_db(sqlite3 *_pdb) { pdb = _pdb; }
 
     sqlite3_int64 rowid;
 
@@ -65,13 +73,24 @@ public:
     bool insert(void); // updates rowid
     bool update(void);
     bool delete_rowid(void); // delete by rowid
+    bool get_by_rowid(int64_t v1);
+    bool get_all(void);
     bool update_balance(void);
     bool update_firstlast(void);
 
     bool delete_ssn(int32_t v1);
 
 
+    static void register_log_funcs(sql_log_function_t _upd_func,
+                                   sql_log_function_t _get_func,
+                                   void *_arg)
+    {
+        log_upd_func = _upd_func;
+        log_get_func = _get_func;
+        log_arg  = _arg;
+    }
     static bool table_create(sqlite3 *pdb);
+    static void table_drop(sqlite3 *pdb);
 };
 
 
@@ -79,6 +98,8 @@ class SQL_TABLE_book {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
+    sqlite3_stmt * pStmt_get_by_rowid;
+    sqlite3_stmt * pStmt_get_all;
     sqlite3_stmt * pStmt_by_bookid;
     sqlite3_stmt * pStmt_by_isbn;
 
@@ -93,13 +114,17 @@ class SQL_TABLE_book {
 
 protected:
     sqlite3 *pdb;
-    bool debug;
     sqlite3_stmt * previous_get;
     bool get_columns(sqlite3_stmt *pStmt);
+    static sql_log_function_t log_upd_func;
+    static sql_log_function_t log_get_func;
+    static void * log_arg;
 
 public:
-    SQL_TABLE_book(sqlite3 *_pdb, bool _debug = false);
+    SQL_TABLE_book(sqlite3 *_pdb = NULL);
     virtual ~SQL_TABLE_book(void);
+
+    void set_db(sqlite3 *_pdb) { pdb = _pdb; }
 
     sqlite3_int64 rowid;
 
@@ -120,12 +145,23 @@ public:
     bool insert(void); // updates rowid
     bool update(void);
     bool delete_rowid(void); // delete by rowid
+    bool get_by_rowid(int64_t v1);
+    bool get_all(void);
     bool update_quantity(void);
     bool update_price(void);
 
 
 
+    static void register_log_funcs(sql_log_function_t _upd_func,
+                                   sql_log_function_t _get_func,
+                                   void *_arg)
+    {
+        log_upd_func = _upd_func;
+        log_get_func = _get_func;
+        log_arg  = _arg;
+    }
     static bool table_create(sqlite3 *pdb);
+    static void table_drop(sqlite3 *pdb);
 };
 
 
@@ -133,6 +169,8 @@ class SQL_TABLE_checkouts {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
+    sqlite3_stmt * pStmt_get_by_rowid;
+    sqlite3_stmt * pStmt_get_all;
     sqlite3_stmt * pStmt_by_bookid;
     sqlite3_stmt * pStmt_by_userid;
 
@@ -144,13 +182,17 @@ class SQL_TABLE_checkouts {
 
 protected:
     sqlite3 *pdb;
-    bool debug;
     sqlite3_stmt * previous_get;
     bool get_columns(sqlite3_stmt *pStmt);
+    static sql_log_function_t log_upd_func;
+    static sql_log_function_t log_get_func;
+    static void * log_arg;
 
 public:
-    SQL_TABLE_checkouts(sqlite3 *_pdb, bool _debug = false);
+    SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
     virtual ~SQL_TABLE_checkouts(void);
+
+    void set_db(sqlite3 *_pdb) { pdb = _pdb; }
 
     sqlite3_int64 rowid;
 
@@ -168,15 +210,27 @@ public:
     bool insert(void); // updates rowid
     bool update(void);
     bool delete_rowid(void); // delete by rowid
+    bool get_by_rowid(int64_t v1);
+    bool get_all(void);
 
 
 
+    static void register_log_funcs(sql_log_function_t _upd_func,
+                                   sql_log_function_t _get_func,
+                                   void *_arg)
+    {
+        log_upd_func = _upd_func;
+        log_get_func = _get_func;
+        log_arg  = _arg;
+    }
     static bool table_create(sqlite3 *pdb);
+    static void table_drop(sqlite3 *pdb);
 };
 
 
 class SQL_TABLE_ALL_TABLES {
 public:
     static bool table_create_all(sqlite3 *pdb);
+    static void table_drop_all(sqlite3 *pdb);
 };
 

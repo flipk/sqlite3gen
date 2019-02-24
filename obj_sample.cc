@@ -13,14 +13,19 @@
 #include <stdio.h>
 
 
-SQL_TABLE_user :: SQL_TABLE_user(sqlite3 *_pdb, bool _debug)
-    : pdb(_pdb), debug(_debug)
-{
-    int r;
+//static
+sql_log_function_t SQL_TABLE_user :: log_upd_func = NULL;
+sql_log_function_t SQL_TABLE_user :: log_get_func = NULL;
+void *             SQL_TABLE_user :: log_arg  = NULL;
 
+SQL_TABLE_user :: SQL_TABLE_user(sqlite3 *_pdb)
+    : pdb(_pdb)
+{
     pStmt_insert = NULL;
     pStmt_update = NULL;
     pStmt_delete_rowid = NULL;
+    pStmt_get_by_rowid = NULL;
+    pStmt_get_all = NULL;
 
     pStmt_by_userid = NULL;
     pStmt_by_ssn = NULL;
@@ -48,6 +53,10 @@ SQL_TABLE_user :: ~SQL_TABLE_user(void)
         sqlite3_finalize(pStmt_update);
     if (pStmt_delete_rowid)
         sqlite3_finalize(pStmt_delete_rowid);
+    if (pStmt_get_by_rowid)
+        sqlite3_finalize(pStmt_get_by_rowid);
+    if (pStmt_get_all)
+        sqlite3_finalize(pStmt_get_all);
 
     if (pStmt_by_userid)
         sqlite3_finalize(pStmt_by_userid);
@@ -77,7 +86,7 @@ SQL_TABLE_user :: ~SQL_TABLE_user(void)
 
 bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
 {
-    int got, want;
+    int got;
 
     rowid = sqlite3_column_int64(pStmt, 0);
 
@@ -185,6 +194,12 @@ bool SQL_TABLE_user :: get_by_userid(int64_t v)
     int r;
     bool ret = false;
 
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
     if (pStmt_by_userid == NULL)
     {
         r = sqlite3_prepare_v2(
@@ -207,12 +222,8 @@ bool SQL_TABLE_user :: get_by_userid(int64_t v)
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_by_userid);
-        printf("SELECT get_by_userid: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_by_userid);
 
     r = sqlite3_step(pStmt_by_userid);
     if (r == SQLITE_ROW)
@@ -229,6 +240,12 @@ bool SQL_TABLE_user :: get_by_ssn(int32_t v)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
 
     if (pStmt_by_ssn == NULL)
     {
@@ -252,12 +269,8 @@ bool SQL_TABLE_user :: get_by_ssn(int32_t v)
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_by_ssn);
-        printf("SELECT get_by_ssn: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_by_ssn);
 
     r = sqlite3_step(pStmt_by_ssn);
     if (r == SQLITE_ROW)
@@ -276,6 +289,12 @@ bool SQL_TABLE_user :: get_by_lastname_like(
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
 
     if(pStmt_by_lastname_like == NULL)
     {
@@ -300,12 +319,8 @@ bool SQL_TABLE_user :: get_by_lastname_like(
         return false;
     }
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_by_lastname_like);
-        printf("SELECT get_by_lastname_like: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_by_lastname_like);
 
     r = sqlite3_step(pStmt_by_lastname_like);
     if (r == SQLITE_ROW)
@@ -325,7 +340,7 @@ bool SQL_TABLE_user :: get_next(void)
     int r;
     bool ret = false;
 
-    if (previous_get == NULL)
+    if (pdb == NULL || previous_get == NULL)
         return false;
 
     r = sqlite3_step(previous_get);
@@ -340,6 +355,12 @@ bool SQL_TABLE_user :: get_next(void)
 bool SQL_TABLE_user :: insert(void)
 {
     int r;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt INSERT before set_db\n");
+        return false;
+    }
 
     if (pStmt_insert == NULL)
     {
@@ -405,12 +426,8 @@ bool SQL_TABLE_user :: insert(void)
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_insert);
-        printf("INSERT: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_insert);
 
     r = sqlite3_step(pStmt_insert);
     if (r != SQLITE_DONE)
@@ -427,6 +444,12 @@ bool SQL_TABLE_user :: insert(void)
 bool SQL_TABLE_user :: update(void)
 {
     int r;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt UPDATE before set_db\n");
+        return false;
+    }
 
     if (pStmt_update == NULL)
     {
@@ -496,12 +519,8 @@ bool SQL_TABLE_user :: update(void)
     r = sqlite3_bind_int64(pStmt_update,
                            8, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_update);
-        printf("UPDATE: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update);
 
     r = sqlite3_step(pStmt_update);
     if (r != SQLITE_DONE)
@@ -517,6 +536,12 @@ bool SQL_TABLE_user :: delete_rowid(void)
 {
     int r;
 
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt DELETE before set_db\n");
+        return false;
+    }
+
     if (pStmt_delete_rowid == NULL)
     {
         r = sqlite3_prepare_v2(
@@ -531,12 +556,8 @@ bool SQL_TABLE_user :: delete_rowid(void)
     r = sqlite3_bind_int64(pStmt_delete_rowid,
                            1, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_delete_rowid);
-        printf("DELETE: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_delete_rowid);
 
     r = sqlite3_step(pStmt_delete_rowid);
     if (r != SQLITE_DONE)
@@ -549,10 +570,104 @@ bool SQL_TABLE_user :: delete_rowid(void)
     return true;
 }
 
+bool SQL_TABLE_user :: get_by_rowid(int64_t v1)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
+    if(pStmt_get_by_rowid == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,* FROM user WHERE rowid = ?",
+            -1, &pStmt_get_by_rowid, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building SELECT for "
+                   "get_by_rowid at line %d\n", __LINE__);
+    }
+
+    sqlite3_reset(pStmt_get_by_rowid);
+
+    r = sqlite3_bind_int64(pStmt_get_by_rowid,
+                             1, v1);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_user  :: get_by_rowid "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_by_rowid);
+
+    r = sqlite3_step(pStmt_get_by_rowid);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_get_by_rowid);
+        previous_get = pStmt_get_by_rowid;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+
+bool SQL_TABLE_user :: get_all(void)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
+    if(pStmt_get_all == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,* FROM user",
+            -1, &pStmt_get_all, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building SELECT for "
+                   "get_all at line %d\n", __LINE__);
+    }
+
+    sqlite3_reset(pStmt_get_all);
+
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_all);
+
+    r = sqlite3_step(pStmt_get_all);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_get_all);
+        previous_get = pStmt_get_all;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+
 bool SQL_TABLE_user :: get_great_balance(double v1)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
 
     if(pStmt_get_great_balance == NULL)
     {
@@ -578,12 +693,8 @@ bool SQL_TABLE_user :: get_great_balance(double v1)
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_get_great_balance);
-        printf("SELECT get_great_balance: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_great_balance);
 
     r = sqlite3_step(pStmt_get_great_balance);
     if (r == SQLITE_ROW)
@@ -601,6 +712,12 @@ bool SQL_TABLE_user :: get_founders(void)
     int r;
     bool ret = false;
 
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
     if(pStmt_get_founders == NULL)
     {
         r = sqlite3_prepare_v2(
@@ -616,12 +733,8 @@ bool SQL_TABLE_user :: get_founders(void)
 
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_get_founders);
-        printf("SELECT get_founders: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_founders);
 
     r = sqlite3_step(pStmt_get_founders);
     if (r == SQLITE_ROW)
@@ -638,6 +751,12 @@ bool SQL_TABLE_user :: get_firstlast(const std::string & v1, const std::string &
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
 
     if(pStmt_get_firstlast == NULL)
     {
@@ -674,12 +793,8 @@ bool SQL_TABLE_user :: get_firstlast(const std::string & v1, const std::string &
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_get_firstlast);
-        printf("SELECT get_firstlast: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_firstlast);
 
     r = sqlite3_step(pStmt_get_firstlast);
     if (r == SQLITE_ROW)
@@ -697,6 +812,12 @@ bool SQL_TABLE_user :: update_balance(void)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt UPDATE before set_db\n");
+        return false;
+    }
 
     if(pStmt_update_balance == NULL)
     {
@@ -724,12 +845,8 @@ bool SQL_TABLE_user :: update_balance(void)
     r = sqlite3_bind_int64(pStmt_update_balance,
                            2, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_update_balance);
-        printf("UPDATE update_balance: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update_balance);
 
     r = sqlite3_step(pStmt_update_balance);
     if (r != SQLITE_DONE)
@@ -746,6 +863,12 @@ bool SQL_TABLE_user :: update_firstlast(void)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt UPDATE before set_db\n");
+        return false;
+    }
 
     if(pStmt_update_firstlast == NULL)
     {
@@ -782,12 +905,8 @@ bool SQL_TABLE_user :: update_firstlast(void)
     r = sqlite3_bind_int64(pStmt_update_firstlast,
                            3, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_update_firstlast);
-        printf("UPDATE update_firstlast: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update_firstlast);
 
     r = sqlite3_step(pStmt_update_firstlast);
     if (r != SQLITE_DONE)
@@ -805,6 +924,12 @@ bool SQL_TABLE_user :: delete_ssn(int32_t v1)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt DELETE before set_db\n");
+        return false;
+    }
 
     if(pStmt_del_ssn == NULL)
     {
@@ -830,12 +955,8 @@ bool SQL_TABLE_user :: delete_ssn(int32_t v1)
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_del_ssn);
-        printf("DELETE delete_ssn: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_del_ssn);
 
     r = sqlite3_step(pStmt_del_ssn);
     if (r == SQLITE_ROW)
@@ -853,29 +974,63 @@ bool SQL_TABLE_user :: delete_ssn(int32_t v1)
 //static
 bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
 {
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt CREATE with null db\n");
+        return false;
+    }
+
     sqlite3_exec(pdb, "CREATE TABLE user "
         "(userid int64, firstname string, lastname string, mi string, ssn integer, balance double, proto blob)",
         NULL, NULL, NULL);
 
+    printf("CREATE TABLE: CREATE TABLE user "
+           "(userid int64, firstname string, lastname string, mi string, ssn integer, balance double, proto blob)\n");
+
     sqlite3_exec(pdb,"CREATE INDEX user_userid "
                  "ON user (userid)",
         NULL, NULL, NULL);
+    printf("CREATE INDEX: CREATE INDEX user_userid "
+           "ON user (userid)\n");
     sqlite3_exec(pdb,"CREATE INDEX user_ssn "
                  "ON user (ssn)",
         NULL, NULL, NULL);
+    printf("CREATE INDEX: CREATE INDEX user_ssn "
+           "ON user (ssn)\n");
 
 
     return true;
 }
 
-SQL_TABLE_book :: SQL_TABLE_book(sqlite3 *_pdb, bool _debug)
-    : pdb(_pdb), debug(_debug)
+//static
+void SQL_TABLE_user :: table_drop(sqlite3 *pdb)
 {
-    int r;
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt DROP with null db\n");
+        return;
+    }
 
+    sqlite3_exec(pdb, "DROP TABLE user",
+         NULL, NULL, NULL);
+
+    printf("DROP: DROP TABLE user\n");
+}
+
+
+//static
+sql_log_function_t SQL_TABLE_book :: log_upd_func = NULL;
+sql_log_function_t SQL_TABLE_book :: log_get_func = NULL;
+void *             SQL_TABLE_book :: log_arg  = NULL;
+
+SQL_TABLE_book :: SQL_TABLE_book(sqlite3 *_pdb)
+    : pdb(_pdb)
+{
     pStmt_insert = NULL;
     pStmt_update = NULL;
     pStmt_delete_rowid = NULL;
+    pStmt_get_by_rowid = NULL;
+    pStmt_get_all = NULL;
 
     pStmt_by_bookid = NULL;
     pStmt_by_isbn = NULL;
@@ -900,6 +1055,10 @@ SQL_TABLE_book :: ~SQL_TABLE_book(void)
         sqlite3_finalize(pStmt_update);
     if (pStmt_delete_rowid)
         sqlite3_finalize(pStmt_delete_rowid);
+    if (pStmt_get_by_rowid)
+        sqlite3_finalize(pStmt_get_by_rowid);
+    if (pStmt_get_all)
+        sqlite3_finalize(pStmt_get_all);
 
     if (pStmt_by_bookid)
         sqlite3_finalize(pStmt_by_bookid);
@@ -923,7 +1082,7 @@ SQL_TABLE_book :: ~SQL_TABLE_book(void)
 
 bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
 {
-    int got, want;
+    int got;
 
     rowid = sqlite3_column_int64(pStmt, 0);
 
@@ -999,6 +1158,12 @@ bool SQL_TABLE_book :: get_by_bookid(int64_t v)
     int r;
     bool ret = false;
 
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
     if (pStmt_by_bookid == NULL)
     {
         r = sqlite3_prepare_v2(
@@ -1021,12 +1186,8 @@ bool SQL_TABLE_book :: get_by_bookid(int64_t v)
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_by_bookid);
-        printf("SELECT get_by_bookid: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_by_bookid);
 
     r = sqlite3_step(pStmt_by_bookid);
     if (r == SQLITE_ROW)
@@ -1043,6 +1204,12 @@ bool SQL_TABLE_book :: get_by_isbn(const std::string & v)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
 
     if (pStmt_by_isbn == NULL)
     {
@@ -1068,12 +1235,8 @@ bool SQL_TABLE_book :: get_by_isbn(const std::string & v)
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_by_isbn);
-        printf("SELECT get_by_isbn: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_by_isbn);
 
     r = sqlite3_step(pStmt_by_isbn);
     if (r == SQLITE_ROW)
@@ -1092,6 +1255,12 @@ bool SQL_TABLE_book :: get_by_title_like(
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
 
     if(pStmt_by_title_like == NULL)
     {
@@ -1116,12 +1285,8 @@ bool SQL_TABLE_book :: get_by_title_like(
         return false;
     }
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_by_title_like);
-        printf("SELECT get_by_title_like: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_by_title_like);
 
     r = sqlite3_step(pStmt_by_title_like);
     if (r == SQLITE_ROW)
@@ -1141,7 +1306,7 @@ bool SQL_TABLE_book :: get_next(void)
     int r;
     bool ret = false;
 
-    if (previous_get == NULL)
+    if (pdb == NULL || previous_get == NULL)
         return false;
 
     r = sqlite3_step(previous_get);
@@ -1156,6 +1321,12 @@ bool SQL_TABLE_book :: get_next(void)
 bool SQL_TABLE_book :: insert(void)
 {
     int r;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt INSERT before set_db\n");
+        return false;
+    }
 
     if (pStmt_insert == NULL)
     {
@@ -1205,12 +1376,8 @@ bool SQL_TABLE_book :: insert(void)
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_insert);
-        printf("INSERT: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_insert);
 
     r = sqlite3_step(pStmt_insert);
     if (r != SQLITE_DONE)
@@ -1227,6 +1394,12 @@ bool SQL_TABLE_book :: insert(void)
 bool SQL_TABLE_book :: update(void)
 {
     int r;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt UPDATE before set_db\n");
+        return false;
+    }
 
     if (pStmt_update == NULL)
     {
@@ -1280,12 +1453,8 @@ bool SQL_TABLE_book :: update(void)
     r = sqlite3_bind_int64(pStmt_update,
                            6, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_update);
-        printf("UPDATE: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update);
 
     r = sqlite3_step(pStmt_update);
     if (r != SQLITE_DONE)
@@ -1301,6 +1470,12 @@ bool SQL_TABLE_book :: delete_rowid(void)
 {
     int r;
 
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt DELETE before set_db\n");
+        return false;
+    }
+
     if (pStmt_delete_rowid == NULL)
     {
         r = sqlite3_prepare_v2(
@@ -1315,12 +1490,8 @@ bool SQL_TABLE_book :: delete_rowid(void)
     r = sqlite3_bind_int64(pStmt_delete_rowid,
                            1, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_delete_rowid);
-        printf("DELETE: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_delete_rowid);
 
     r = sqlite3_step(pStmt_delete_rowid);
     if (r != SQLITE_DONE)
@@ -1333,10 +1504,104 @@ bool SQL_TABLE_book :: delete_rowid(void)
     return true;
 }
 
+bool SQL_TABLE_book :: get_by_rowid(int64_t v1)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
+    if(pStmt_get_by_rowid == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,* FROM book WHERE rowid = ?",
+            -1, &pStmt_get_by_rowid, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building SELECT for "
+                   "get_by_rowid at line %d\n", __LINE__);
+    }
+
+    sqlite3_reset(pStmt_get_by_rowid);
+
+    r = sqlite3_bind_int64(pStmt_get_by_rowid,
+                             1, v1);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_book  :: get_by_rowid "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_by_rowid);
+
+    r = sqlite3_step(pStmt_get_by_rowid);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_get_by_rowid);
+        previous_get = pStmt_get_by_rowid;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+
+bool SQL_TABLE_book :: get_all(void)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
+    if(pStmt_get_all == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,* FROM book",
+            -1, &pStmt_get_all, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building SELECT for "
+                   "get_all at line %d\n", __LINE__);
+    }
+
+    sqlite3_reset(pStmt_get_all);
+
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_all);
+
+    r = sqlite3_step(pStmt_get_all);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_get_all);
+        previous_get = pStmt_get_all;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+
 bool SQL_TABLE_book :: get_out_of_stock(void)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
 
     if(pStmt_get_out_of_stock == NULL)
     {
@@ -1353,12 +1618,8 @@ bool SQL_TABLE_book :: get_out_of_stock(void)
 
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_get_out_of_stock);
-        printf("SELECT get_out_of_stock: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_out_of_stock);
 
     r = sqlite3_step(pStmt_get_out_of_stock);
     if (r == SQLITE_ROW)
@@ -1376,6 +1637,12 @@ bool SQL_TABLE_book :: update_quantity(void)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt UPDATE before set_db\n");
+        return false;
+    }
 
     if(pStmt_update_quantity == NULL)
     {
@@ -1403,12 +1670,8 @@ bool SQL_TABLE_book :: update_quantity(void)
     r = sqlite3_bind_int64(pStmt_update_quantity,
                            2, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_update_quantity);
-        printf("UPDATE update_quantity: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update_quantity);
 
     r = sqlite3_step(pStmt_update_quantity);
     if (r != SQLITE_DONE)
@@ -1425,6 +1688,12 @@ bool SQL_TABLE_book :: update_price(void)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt UPDATE before set_db\n");
+        return false;
+    }
 
     if(pStmt_update_price == NULL)
     {
@@ -1452,12 +1721,8 @@ bool SQL_TABLE_book :: update_price(void)
     r = sqlite3_bind_int64(pStmt_update_price,
                            2, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_update_price);
-        printf("UPDATE update_price: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update_price);
 
     r = sqlite3_step(pStmt_update_price);
     if (r != SQLITE_DONE)
@@ -1476,29 +1741,63 @@ bool SQL_TABLE_book :: update_price(void)
 //static
 bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
 {
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt CREATE with null db\n");
+        return false;
+    }
+
     sqlite3_exec(pdb, "CREATE TABLE book "
         "(bookid int64, title string, isbn string, price double, quantity integer)",
         NULL, NULL, NULL);
 
+    printf("CREATE TABLE: CREATE TABLE book "
+           "(bookid int64, title string, isbn string, price double, quantity integer)\n");
+
     sqlite3_exec(pdb,"CREATE INDEX book_bookid "
                  "ON book (bookid)",
         NULL, NULL, NULL);
+    printf("CREATE INDEX: CREATE INDEX book_bookid "
+           "ON book (bookid)\n");
     sqlite3_exec(pdb,"CREATE INDEX book_isbn "
                  "ON book (isbn)",
         NULL, NULL, NULL);
+    printf("CREATE INDEX: CREATE INDEX book_isbn "
+           "ON book (isbn)\n");
 
 
     return true;
 }
 
-SQL_TABLE_checkouts :: SQL_TABLE_checkouts(sqlite3 *_pdb, bool _debug)
-    : pdb(_pdb), debug(_debug)
+//static
+void SQL_TABLE_book :: table_drop(sqlite3 *pdb)
 {
-    int r;
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt DROP with null db\n");
+        return;
+    }
 
+    sqlite3_exec(pdb, "DROP TABLE book",
+         NULL, NULL, NULL);
+
+    printf("DROP: DROP TABLE book\n");
+}
+
+
+//static
+sql_log_function_t SQL_TABLE_checkouts :: log_upd_func = NULL;
+sql_log_function_t SQL_TABLE_checkouts :: log_get_func = NULL;
+void *             SQL_TABLE_checkouts :: log_arg  = NULL;
+
+SQL_TABLE_checkouts :: SQL_TABLE_checkouts(sqlite3 *_pdb)
+    : pdb(_pdb)
+{
     pStmt_insert = NULL;
     pStmt_update = NULL;
     pStmt_delete_rowid = NULL;
+    pStmt_get_by_rowid = NULL;
+    pStmt_get_all = NULL;
 
     pStmt_by_bookid = NULL;
     pStmt_by_userid = NULL;
@@ -1520,6 +1819,10 @@ SQL_TABLE_checkouts :: ~SQL_TABLE_checkouts(void)
         sqlite3_finalize(pStmt_update);
     if (pStmt_delete_rowid)
         sqlite3_finalize(pStmt_delete_rowid);
+    if (pStmt_get_by_rowid)
+        sqlite3_finalize(pStmt_get_by_rowid);
+    if (pStmt_get_all)
+        sqlite3_finalize(pStmt_get_all);
 
     if (pStmt_by_bookid)
         sqlite3_finalize(pStmt_by_bookid);
@@ -1537,7 +1840,7 @@ SQL_TABLE_checkouts :: ~SQL_TABLE_checkouts(void)
 
 bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
 {
-    int got, want;
+    int got;
 
     rowid = sqlite3_column_int64(pStmt, 0);
 
@@ -1581,6 +1884,12 @@ bool SQL_TABLE_checkouts :: get_by_bookid(int64_t v)
     int r;
     bool ret = false;
 
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
     if (pStmt_by_bookid == NULL)
     {
         r = sqlite3_prepare_v2(
@@ -1603,12 +1912,8 @@ bool SQL_TABLE_checkouts :: get_by_bookid(int64_t v)
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_by_bookid);
-        printf("SELECT get_by_bookid: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_by_bookid);
 
     r = sqlite3_step(pStmt_by_bookid);
     if (r == SQLITE_ROW)
@@ -1625,6 +1930,12 @@ bool SQL_TABLE_checkouts :: get_by_userid(int64_t v)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
 
     if (pStmt_by_userid == NULL)
     {
@@ -1648,12 +1959,8 @@ bool SQL_TABLE_checkouts :: get_by_userid(int64_t v)
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_by_userid);
-        printf("SELECT get_by_userid: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_by_userid);
 
     r = sqlite3_step(pStmt_by_userid);
     if (r == SQLITE_ROW)
@@ -1674,7 +1981,7 @@ bool SQL_TABLE_checkouts :: get_next(void)
     int r;
     bool ret = false;
 
-    if (previous_get == NULL)
+    if (pdb == NULL || previous_get == NULL)
         return false;
 
     r = sqlite3_step(previous_get);
@@ -1689,6 +1996,12 @@ bool SQL_TABLE_checkouts :: get_next(void)
 bool SQL_TABLE_checkouts :: insert(void)
 {
     int r;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt INSERT before set_db\n");
+        return false;
+    }
 
     if (pStmt_insert == NULL)
     {
@@ -1722,12 +2035,8 @@ bool SQL_TABLE_checkouts :: insert(void)
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_insert);
-        printf("INSERT: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_insert);
 
     r = sqlite3_step(pStmt_insert);
     if (r != SQLITE_DONE)
@@ -1744,6 +2053,12 @@ bool SQL_TABLE_checkouts :: insert(void)
 bool SQL_TABLE_checkouts :: update(void)
 {
     int r;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt UPDATE before set_db\n");
+        return false;
+    }
 
     if (pStmt_update == NULL)
     {
@@ -1781,12 +2096,8 @@ bool SQL_TABLE_checkouts :: update(void)
     r = sqlite3_bind_int64(pStmt_update,
                            4, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_update);
-        printf("UPDATE: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update);
 
     r = sqlite3_step(pStmt_update);
     if (r != SQLITE_DONE)
@@ -1802,6 +2113,12 @@ bool SQL_TABLE_checkouts :: delete_rowid(void)
 {
     int r;
 
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt DELETE before set_db\n");
+        return false;
+    }
+
     if (pStmt_delete_rowid == NULL)
     {
         r = sqlite3_prepare_v2(
@@ -1816,12 +2133,8 @@ bool SQL_TABLE_checkouts :: delete_rowid(void)
     r = sqlite3_bind_int64(pStmt_delete_rowid,
                            1, rowid);
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_delete_rowid);
-        printf("DELETE: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_delete_rowid);
 
     r = sqlite3_step(pStmt_delete_rowid);
     if (r != SQLITE_DONE)
@@ -1834,10 +2147,104 @@ bool SQL_TABLE_checkouts :: delete_rowid(void)
     return true;
 }
 
+bool SQL_TABLE_checkouts :: get_by_rowid(int64_t v1)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
+    if(pStmt_get_by_rowid == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,* FROM checkouts WHERE rowid = ?",
+            -1, &pStmt_get_by_rowid, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building SELECT for "
+                   "get_by_rowid at line %d\n", __LINE__);
+    }
+
+    sqlite3_reset(pStmt_get_by_rowid);
+
+    r = sqlite3_bind_int64(pStmt_get_by_rowid,
+                             1, v1);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_checkouts  :: get_by_rowid "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_by_rowid);
+
+    r = sqlite3_step(pStmt_get_by_rowid);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_get_by_rowid);
+        previous_get = pStmt_get_by_rowid;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+
+bool SQL_TABLE_checkouts :: get_all(void)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
+    if(pStmt_get_all == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,* FROM checkouts",
+            -1, &pStmt_get_all, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building SELECT for "
+                   "get_all at line %d\n", __LINE__);
+    }
+
+    sqlite3_reset(pStmt_get_all);
+
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_all);
+
+    r = sqlite3_step(pStmt_get_all);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_get_all);
+        previous_get = pStmt_get_all;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+
 bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
 
     if(pStmt_get_due_now == NULL)
     {
@@ -1863,12 +2270,8 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
     }
 
 
-    if (debug)
-    {
-        char * sql = sqlite3_expanded_sql(pStmt_get_due_now);
-        printf("SELECT get_due_now: %s\n", sql);
-        sqlite3_free(sql);
-    }
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_due_now);
 
     r = sqlite3_step(pStmt_get_due_now);
     if (r == SQLITE_ROW)
@@ -1888,23 +2291,58 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
 //static
 bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
 {
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt CREATE with null db\n");
+        return false;
+    }
+
     sqlite3_exec(pdb, "CREATE TABLE checkouts "
         "(bookid int64, userid int64, duedate int64)",
         NULL, NULL, NULL);
 
+    printf("CREATE TABLE: CREATE TABLE checkouts "
+           "(bookid int64, userid int64, duedate int64)\n");
+
     sqlite3_exec(pdb,"CREATE INDEX checkouts_bookid "
                  "ON checkouts (bookid)",
         NULL, NULL, NULL);
+    printf("CREATE INDEX: CREATE INDEX checkouts_bookid "
+           "ON checkouts (bookid)\n");
     sqlite3_exec(pdb,"CREATE INDEX checkouts_userid "
                  "ON checkouts (userid)",
         NULL, NULL, NULL);
+    printf("CREATE INDEX: CREATE INDEX checkouts_userid "
+           "ON checkouts (userid)\n");
 
 
     return true;
 }
 
+//static
+void SQL_TABLE_checkouts :: table_drop(sqlite3 *pdb)
+{
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt DROP with null db\n");
+        return;
+    }
+
+    sqlite3_exec(pdb, "DROP TABLE checkouts",
+         NULL, NULL, NULL);
+
+    printf("DROP: DROP TABLE checkouts\n");
+}
+
+
 bool SQL_TABLE_ALL_TABLES :: table_create_all(sqlite3 *pdb)
 {
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt CREATE with null db\n");
+        return false;
+    }
+
     if (!SQL_TABLE_user::table_create(pdb))
         return false;
     if (!SQL_TABLE_book::table_create(pdb))
@@ -1914,3 +2352,18 @@ bool SQL_TABLE_ALL_TABLES :: table_create_all(sqlite3 *pdb)
 
     return true;
 }
+
+void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
+{
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt DROP with null db\n");
+        return;
+    }
+
+    SQL_TABLE_user::table_drop(pdb);
+    SQL_TABLE_book::table_drop(pdb);
+    SQL_TABLE_checkouts::table_drop(pdb);
+
+}
+

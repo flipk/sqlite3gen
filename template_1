@@ -26,6 +26,7 @@ class SQL_TABLE_@@tablename@@ {
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
     sqlite3_stmt * pStmt_get_by_rowid;
+    sqlite3_stmt * pStmt_get_all;
 @@stmt_by_decls@@
 @@stmt_by_decls_like@@
 @@stmt_custom_get_decls@@
@@ -41,8 +42,10 @@ protected:
     static void * log_arg;
 
 public:
-    SQL_TABLE_@@tablename@@(sqlite3 *_pdb);
+    SQL_TABLE_@@tablename@@(sqlite3 *_pdb = NULL);
     virtual ~SQL_TABLE_@@tablename@@(void);
+
+    void set_db(sqlite3 *_pdb) { pdb = _pdb; }
 
     sqlite3_int64 rowid;
 
@@ -55,6 +58,7 @@ public:
     bool update(void);
     bool delete_rowid(void); // delete by rowid
     bool get_by_rowid(int64_t v1);
+    bool get_all(void);
 @@table_custom_upd_method_protos@@
 @@table_custom_del_method_protos@@
 
@@ -157,6 +161,7 @@ SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
     pStmt_update = NULL;
     pStmt_delete_rowid = NULL;
     pStmt_get_by_rowid = NULL;
+    pStmt_get_all = NULL;
 
 @@prepare_queries@@
 @@prepare_like_queries@@
@@ -177,6 +182,8 @@ SQL_TABLE_@@tablename@@ :: ~SQL_TABLE_@@tablename@@(void)
         sqlite3_finalize(pStmt_delete_rowid);
     if (pStmt_get_by_rowid)
         sqlite3_finalize(pStmt_get_by_rowid);
+    if (pStmt_get_all)
+        sqlite3_finalize(pStmt_get_all);
 
 @@finalize_queries@@
 @@finalize_like_queries@@
@@ -205,7 +212,7 @@ bool SQL_TABLE_@@tablename@@ :: get_next(void)
     int r;
     bool ret = false;
 
-    if (previous_get == NULL)
+    if (pdb == NULL || previous_get == NULL)
         return false;
 
     r = sqlite3_step(previous_get);
@@ -220,6 +227,12 @@ bool SQL_TABLE_@@tablename@@ :: get_next(void)
 bool SQL_TABLE_@@tablename@@ :: insert(void)
 {
     int r;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt INSERT before set_db\n");
+        return false;
+    }
 
     if (pStmt_insert == NULL)
     {
@@ -253,6 +266,12 @@ bool SQL_TABLE_@@tablename@@ :: insert(void)
 bool SQL_TABLE_@@tablename@@ :: update(void)
 {
     int r;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt UPDATE before set_db\n");
+        return false;
+    }
 
     if (pStmt_update == NULL)
     {
@@ -289,6 +308,12 @@ bool SQL_TABLE_@@tablename@@ :: delete_rowid(void)
 {
     int r;
 
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt DELETE before set_db\n");
+        return false;
+    }
+
     if (pStmt_delete_rowid == NULL)
     {
         r = sqlite3_prepare_v2(
@@ -321,6 +346,12 @@ bool SQL_TABLE_@@tablename@@ :: get_by_rowid(int64_t v1)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
 
     if(pStmt_get_by_rowid == NULL)
     {
@@ -360,6 +391,45 @@ bool SQL_TABLE_@@tablename@@ :: get_by_rowid(int64_t v1)
     return ret;
 }
 
+bool SQL_TABLE_@@tablename@@ :: get_all(void)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
+    if(pStmt_get_all == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,* FROM @@tablename@@",
+            -1, &pStmt_get_all, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building SELECT for "
+                   "get_all at line %d\n", __LINE__);
+    }
+
+    sqlite3_reset(pStmt_get_all);
+
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_all);
+
+    r = sqlite3_step(pStmt_get_all);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_get_all);
+        previous_get = pStmt_get_all;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+
 @@custom_get_implementations@@
 @@custom_upd_implementations@@
 @@custom_del_implementations@@
@@ -367,6 +437,12 @@ bool SQL_TABLE_@@tablename@@ :: get_by_rowid(int64_t v1)
 //static
 bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
 {
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt CREATE with null db\n");
+        return false;
+    }
+
     sqlite3_exec(pdb, "CREATE TABLE @@tablename@@ "
         "(@@table_create_fields@@)",
         NULL, NULL, NULL);
@@ -382,6 +458,12 @@ bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
 //static
 void SQL_TABLE_@@tablename@@ :: table_drop(sqlite3 *pdb)
 {
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt DROP with null db\n");
+        return;
+    }
+
     sqlite3_exec(pdb, "DROP TABLE @@tablename@@",
          NULL, NULL, NULL);
 
@@ -473,6 +555,12 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@(@@fieldtype@@ v)
     int r;
     bool ret = false;
 
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
     if (pStmt_by_@@fieldname@@ == NULL)
     {
         r = sqlite3_prepare_v2(
@@ -515,7 +603,7 @@ ________ TABLE_query_bind_pod
 ________ END
 
 ________ TABLE_query_bind_string
-    r = @@sqlite_bind_func@@(pStmt_by_isbn, 1,
+    r = @@sqlite_bind_func@@(pStmt_by_@@fieldname@@, 1,
          v.c_str(), v.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
@@ -532,6 +620,12 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@_like(
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
 
     if(pStmt_by_@@fieldname@@_like == NULL)
     {
@@ -598,6 +692,12 @@ bool SQL_TABLE_@@tablename@@ :: get_@@customname@@(@@type_and_vX@@)
     int r;
     bool ret = false;
 
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt GET before set_db\n");
+        return false;
+    }
+
     if(pStmt_get_@@customname@@ == NULL)
     {
         r = sqlite3_prepare_v2(
@@ -660,6 +760,12 @@ bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
     int r;
     bool ret = false;
 
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt UPDATE before set_db\n");
+        return false;
+    }
+
     if(pStmt_update_@@customname@@ == NULL)
     {
         r = sqlite3_prepare_v2(
@@ -721,6 +827,12 @@ bool SQL_TABLE_@@tablename@@ :: delete_@@customname@@(@@type_and_vX@@)
 {
     int r;
     bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt DELETE before set_db\n");
+        return false;
+    }
 
     if(pStmt_del_@@customname@@ == NULL)
     {
@@ -790,12 +902,24 @@ ________ CLASS_ALL_TABELS_IMPL
 
 bool SQL_TABLE_ALL_TABLES :: table_create_all(sqlite3 *pdb)
 {
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt CREATE with null db\n");
+        return false;
+    }
+
 @@create_all_tables@@
     return true;
 }
 
 void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
 {
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt DROP with null db\n");
+        return;
+    }
+
 @@drop_all_tables@@
 }
 
