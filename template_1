@@ -357,7 +357,7 @@ bool SQL_TABLE_@@tablename@@ :: get_by_rowid(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM @@tablename@@ WHERE rowid = ?",
+            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ WHERE rowid = ?",
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -406,7 +406,7 @@ bool SQL_TABLE_@@tablename@@ :: get_all(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM @@tablename@@",
+            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@",
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -565,7 +565,7 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@(@@fieldtype@@ v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM @@tablename@@ WHERE @@fieldname@@ = ?",
+            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ WHERE @@fieldname@@ = ?",
             -1, &pStmt_by_@@fieldname@@, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for @@fieldname@@ at line %d\n",
@@ -631,7 +631,7 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@_like(
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM @@tablename@@ WHERE @@fieldname@@ like ?",
+            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ WHERE @@fieldname@@ like ?",
             -1, &pStmt_by_@@fieldname@@_like, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT LIKE for @@fieldname@@ at line %d\n",
@@ -702,7 +702,7 @@ bool SQL_TABLE_@@tablename@@ :: get_@@customname@@(@@type_and_vX@@)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM @@tablename@@ WHERE @@querystring@@",
+            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ WHERE @@querystring@@",
             -1, &pStmt_get_@@customname@@, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "

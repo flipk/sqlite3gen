@@ -65,6 +65,20 @@ void emit_source(const std::string &fname,
         patterns["tablename"] = td->name;
 
         int column = 1;
+        for (fd = td->fields; fd; fd = fd->next, column++)
+        {
+            fieldnames << fd->name;
+            if (fd->next)
+                fieldnames << ", ";
+        }
+
+        // this needs to be defined before processing any
+        // field getters, because we don't use "SELECT *"
+        // anymore. every SELECT must specify all field names
+        // to be future-proof against table changes.
+        SET_PATTERN(fieldnames);
+
+        column = 1;
         ostringstream column_index;
         for (fd = td->fields; fd; fd = fd->next, column++)
         {
@@ -80,7 +94,6 @@ void emit_source(const std::string &fname,
             column_index << column;
             SET_PATTERN(column_index);
 
-            fieldnames << fd->name;
             questionmarks << "?";
             table_create_fields << fd->name << " "
                                 << TypeDef_to_sqlite_create_type(t);
@@ -313,7 +326,6 @@ void emit_source(const std::string &fname,
 
         SET_PATTERN(prepare_queries);
         SET_PATTERN(prepare_like_queries);
-        SET_PATTERN(fieldnames);
         SET_PATTERN(questionmarks);
         SET_PATTERN(prepare_queries);
         SET_PATTERN(prepare_like_queries);

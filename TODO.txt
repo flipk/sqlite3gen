@@ -1,2 +1,5 @@
-- default values for fields
-- make aes_vfs which encrypts using aes
+- time to add init methods for initial values of fields.
+- look at implementing a sqlite3_vfs that does encryption
+- table for table versioning built in to the tool?
+- autogen protobuf msg
+  including marshalling between class and protobuf msg
