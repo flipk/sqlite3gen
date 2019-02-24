@@ -43,6 +43,7 @@ SQL_TABLE_user :: SQL_TABLE_user(sqlite3 *_pdb)
 
 
     previous_get = NULL;
+    init();
 }
 
 SQL_TABLE_user :: ~SQL_TABLE_user(void)
@@ -82,6 +83,20 @@ SQL_TABLE_user :: ~SQL_TABLE_user(void)
         sqlite3_finalize(pStmt_del_ssn);
 
 
+}
+
+void SQL_TABLE_user :: init(void)
+{
+    rowid = -1;
+    userid = -1;
+    firstname = "";
+    lastname = "";
+    mi = "";
+    ssn = 0;
+    balance = 0;
+    proto.clear();
+
+    previous_get = NULL;
 }
 
 bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
@@ -204,7 +219,7 @@ bool SQL_TABLE_user :: get_by_userid(int64_t v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM user WHERE userid = ?",
+            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE userid = ?",
             -1, &pStmt_by_userid, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for userid at line %d\n",
@@ -251,7 +266,7 @@ bool SQL_TABLE_user :: get_by_ssn(int32_t v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM user WHERE ssn = ?",
+            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE ssn = ?",
             -1, &pStmt_by_ssn, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for ssn at line %d\n",
@@ -300,7 +315,7 @@ bool SQL_TABLE_user :: get_by_lastname_like(
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM user WHERE lastname like ?",
+            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE lastname like ?",
             -1, &pStmt_by_lastname_like, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT LIKE for lastname at line %d\n",
@@ -585,7 +600,7 @@ bool SQL_TABLE_user :: get_by_rowid(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM user WHERE rowid = ?",
+            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE rowid = ?",
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -634,7 +649,7 @@ bool SQL_TABLE_user :: get_all(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM user",
+            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user",
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -673,7 +688,7 @@ bool SQL_TABLE_user :: get_great_balance(double v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM user WHERE balance > ?",
+            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE balance > ?",
             -1, &pStmt_get_great_balance, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -722,7 +737,7 @@ bool SQL_TABLE_user :: get_founders(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM user WHERE userid < 100",
+            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE userid < 100",
             -1, &pStmt_get_founders, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -762,7 +777,7 @@ bool SQL_TABLE_user :: get_firstlast(const std::string & v1, const std::string &
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM user WHERE firstname LIKE ? AND lastname LIKE ?",
+            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE firstname LIKE ? AND lastname LIKE ?",
             -1, &pStmt_get_firstlast, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -1045,6 +1060,7 @@ SQL_TABLE_book :: SQL_TABLE_book(sqlite3 *_pdb)
 
 
     previous_get = NULL;
+    init();
 }
 
 SQL_TABLE_book :: ~SQL_TABLE_book(void)
@@ -1078,6 +1094,18 @@ SQL_TABLE_book :: ~SQL_TABLE_book(void)
 
 
 
+}
+
+void SQL_TABLE_book :: init(void)
+{
+    rowid = -1;
+    bookid = 0;
+    title = "";
+    isbn = "";
+    price = 0;
+    quantity = 0;
+
+    previous_get = NULL;
 }
 
 bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
@@ -1168,7 +1196,7 @@ bool SQL_TABLE_book :: get_by_bookid(int64_t v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM book WHERE bookid = ?",
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM book WHERE bookid = ?",
             -1, &pStmt_by_bookid, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for bookid at line %d\n",
@@ -1215,7 +1243,7 @@ bool SQL_TABLE_book :: get_by_isbn(const std::string & v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM book WHERE isbn = ?",
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM book WHERE isbn = ?",
             -1, &pStmt_by_isbn, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for isbn at line %d\n",
@@ -1266,7 +1294,7 @@ bool SQL_TABLE_book :: get_by_title_like(
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM book WHERE title like ?",
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM book WHERE title like ?",
             -1, &pStmt_by_title_like, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT LIKE for title at line %d\n",
@@ -1519,7 +1547,7 @@ bool SQL_TABLE_book :: get_by_rowid(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM book WHERE rowid = ?",
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM book WHERE rowid = ?",
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -1568,7 +1596,7 @@ bool SQL_TABLE_book :: get_all(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM book",
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM book",
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -1607,7 +1635,7 @@ bool SQL_TABLE_book :: get_out_of_stock(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM book WHERE WHERE quantity == 0",
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM book WHERE WHERE quantity == 0",
             -1, &pStmt_get_out_of_stock, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -1809,6 +1837,7 @@ SQL_TABLE_checkouts :: SQL_TABLE_checkouts(sqlite3 *_pdb)
 
 
     previous_get = NULL;
+    init();
 }
 
 SQL_TABLE_checkouts :: ~SQL_TABLE_checkouts(void)
@@ -1836,6 +1865,16 @@ SQL_TABLE_checkouts :: ~SQL_TABLE_checkouts(void)
 
 
 
+}
+
+void SQL_TABLE_checkouts :: init(void)
+{
+    rowid = -1;
+    bookid = 0;
+    userid = 0;
+    duedate = 0;
+
+    previous_get = NULL;
 }
 
 bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
@@ -1894,7 +1933,7 @@ bool SQL_TABLE_checkouts :: get_by_bookid(int64_t v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM checkouts WHERE bookid = ?",
+            "SELECT rowid,bookid, userid, duedate FROM checkouts WHERE bookid = ?",
             -1, &pStmt_by_bookid, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for bookid at line %d\n",
@@ -1941,7 +1980,7 @@ bool SQL_TABLE_checkouts :: get_by_userid(int64_t v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM checkouts WHERE userid = ?",
+            "SELECT rowid,bookid, userid, duedate FROM checkouts WHERE userid = ?",
             -1, &pStmt_by_userid, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for userid at line %d\n",
@@ -2162,7 +2201,7 @@ bool SQL_TABLE_checkouts :: get_by_rowid(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM checkouts WHERE rowid = ?",
+            "SELECT rowid,bookid, userid, duedate FROM checkouts WHERE rowid = ?",
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -2211,7 +2250,7 @@ bool SQL_TABLE_checkouts :: get_all(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM checkouts",
+            "SELECT rowid,bookid, userid, duedate FROM checkouts",
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -2250,7 +2289,7 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,* FROM checkouts WHERE WHERE duedate > ?",
+            "SELECT rowid,bookid, userid, duedate FROM checkouts WHERE WHERE duedate > ?",
             -1, &pStmt_get_due_now, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "

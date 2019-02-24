@@ -48,6 +48,8 @@ public:
     SQL_TABLE_user(sqlite3 *_pdb = NULL);
     virtual ~SQL_TABLE_user(void);
 
+    void init(void);
+
     void set_db(sqlite3 *_pdb) { pdb = _pdb; }
 
     sqlite3_int64 rowid;
@@ -124,6 +126,8 @@ public:
     SQL_TABLE_book(sqlite3 *_pdb = NULL);
     virtual ~SQL_TABLE_book(void);
 
+    void init(void);
+
     void set_db(sqlite3 *_pdb) { pdb = _pdb; }
 
     sqlite3_int64 rowid;
@@ -191,6 +195,8 @@ protected:
 public:
     SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
     virtual ~SQL_TABLE_checkouts(void);
+
+    void init(void);
 
     void set_db(sqlite3 *_pdb) { pdb = _pdb; }
 
