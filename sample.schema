@@ -4,11 +4,17 @@
 TABLE user
 {
 	userid		INT64		INDEX	QUERY
+		DEFAULT -1
 	firstname	TEXT
+		DEFAULT ""
 	lastname	TEXT		LIKEQUERY
+		DEFAULT ""
 	mi		TEXT
+		DEFAULT ""
 	ssn		INT		INDEX	QUERY
+		DEFAULT 0
 	balance		DOUBLE
+		DEFAULT 0
 	proto		BLOB
 
 	CUSTOM-GET great_balance (DOUBLE)

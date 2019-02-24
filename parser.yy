@@ -28,8 +28,9 @@ static void validate_table(TableDef *tb);
     TableDef    * table;
     FieldDef    * field;
     TypeDefValue* type;
-    FieldAttrs    attrs;
-    int           integer;
+    FieldAttrs  * attrs;
+    int64_t       number_int;
+    double        number_double;
     CustomGetUpdList * getupdlist;
 }
 
@@ -37,14 +38,15 @@ static void validate_table(TableDef *tb);
 %token KW_INT KW_INT64 KW_TEXT KW_BLOB KW_DOUBLE
 %token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD
 %token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_DEL
-%token TOK_INTEGER TOK_STRING
+%token KW_DEFAULT TOK_INTEGER TOK_DOUBLE TOK_STRING
 
 %type <word>    KW_WORD
 %type <table>   TABLE
 %type <field>   FIELDS FIELD
 %type <type>    DATATYPE TYPELIST
 %type <attrs>   ATTRIBUTES
-%type <integer> TOK_INTEGER
+%type <number_int> TOK_INTEGER
+%type <number_double> TOK_DOUBLE;
 %type <word>    TOK_STRING
 %type <words>   WORDLIST
 %type <getupdlist> CUSTOMGET CUSTOMUPD CUSTOMDEL CUSTOMS
@@ -93,7 +95,8 @@ FIELD
 	: KW_WORD DATATYPE ATTRIBUTES
 	{
 		$$ = new FieldDef(*$1, *$2);
-		$$->attrs = $3;
+		$$->attrs = *$3;
+                delete $3;
                 delete $2;
 		delete $1;
 	}
@@ -207,22 +210,43 @@ DATATYPE
 ATTRIBUTES
 	: /*nothing*/
 	{
-		$$.init();
+		$$ = new FieldAttrs();
 	}
 	| ATTRIBUTES KW_INDEX
 	{
 		$$ = $1;
-		$$.index = true;
+		$$->index = true;
 	}
 	| ATTRIBUTES KW_QUERY
 	{
 		$$ = $1;
-		$$.query = true;
+		$$->query = true;
 	}
 	| ATTRIBUTES KW_LIKEQUERY
 	{
 		$$ = $1;
-		$$.likequery = true;
+		$$->likequery = true;
+	}
+	| ATTRIBUTES KW_DEFAULT TOK_STRING
+	{
+		$$ = $1;
+		$$->init_string = *$3;
+                delete $3;
+	}
+	| ATTRIBUTES KW_DEFAULT TOK_INTEGER
+	{
+		$$ = $1;
+                $$->init_int = $3;
+                // if the user makes a 'double' column type
+                // but enters a number without a decimal point,
+                // it could come in here as an int. to handle
+                // that situation, also fill out the double field.
+                $$->init_double = (double) $3;
+	}
+	| ATTRIBUTES KW_DEFAULT TOK_DOUBLE
+	{
+		$$ = $1;
+                $$->init_double = $3;
 	}
 	;
 

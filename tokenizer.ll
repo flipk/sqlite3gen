@@ -7,6 +7,8 @@
 
 %{
 
+#define __STDC_FORMAT_MACROS 1
+#include <inttypes.h>
 #include <string>
 #include "../parser.h"
 #include PARSER_YY_HDR
@@ -40,13 +42,19 @@ BLOB       { return KW_BLOB; }
 DOUBLE     { return KW_DOUBLE; }
 INDEX      { return KW_INDEX; }
 QUERY      { return KW_QUERY; }
+DEFAULT    { return KW_DEFAULT; }
 LIKEQUERY  { return KW_LIKEQUERY; }
 CUSTOM-GET { return KW_CUSTOM_GET; }
 CUSTOM-UPD { return KW_CUSTOM_UPD; }
 CUSTOM-DEL { return KW_CUSTOM_DEL; }
 
-(0x)?[0-9]+ {
-               yylval.integer = strtoul(yytext, NULL, 0);
+(-)?[0-9]+\.[0-9]+ {
+               yylval.number_double = strtod(yytext, NULL);
+               return TOK_DOUBLE;
+             }
+
+(-)?(0x)?[0-9]+ {
+               yylval.number_int = strtoll(yytext, NULL, 0);
                return TOK_INTEGER;
              }
 

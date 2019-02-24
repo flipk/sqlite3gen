@@ -41,6 +41,7 @@ void emit_source(const std::string &fname,
         ostringstream prepare_like_queries;
         ostringstream fieldnames;
         ostringstream questionmarks;
+        ostringstream initial_values;
         ostringstream prepare_custom_get_queries;
         ostringstream prepare_custom_upd;
         ostringstream prepare_custom_del;
@@ -141,6 +142,31 @@ void emit_source(const std::string &fname,
             if (fd->attrs.index)
             {
                 output_TABLE_create_index(index_creation, patterns);
+            }
+
+            initial_values << "    " << fd->name;
+
+            switch (t)
+            {
+            case TYPE_INT:
+            case TYPE_INT64:
+                initial_values << " = "
+                               << fd->attrs.init_int
+                               << ";\n";
+                break;
+            case TYPE_DOUBLE:
+                initial_values << " = "
+                               << fd->attrs.init_double
+                               << ";\n";
+                break;
+            case TYPE_TEXT:
+                initial_values << " = \""
+                               << fd->attrs.init_string
+                               << "\";\n";
+                break;
+            case TYPE_BLOB:
+                initial_values << ".clear();\n";
+                break;
             }
 
             switch (t)
@@ -327,6 +353,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(prepare_queries);
         SET_PATTERN(prepare_like_queries);
         SET_PATTERN(questionmarks);
+        SET_PATTERN(initial_values);
         SET_PATTERN(prepare_queries);
         SET_PATTERN(prepare_like_queries);
         SET_PATTERN(prepare_custom_get_queries);

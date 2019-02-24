@@ -45,6 +45,8 @@ public:
     SQL_TABLE_@@tablename@@(sqlite3 *_pdb = NULL);
     virtual ~SQL_TABLE_@@tablename@@(void);
 
+    void init(void);
+
     void set_db(sqlite3 *_pdb) { pdb = _pdb; }
 
     sqlite3_int64 rowid;
@@ -170,6 +172,7 @@ SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
 @@prepare_custom_del@@
 
     previous_get = NULL;
+    init();
 }
 
 SQL_TABLE_@@tablename@@ :: ~SQL_TABLE_@@tablename@@(void)
@@ -191,6 +194,13 @@ SQL_TABLE_@@tablename@@ :: ~SQL_TABLE_@@tablename@@(void)
 @@finalize_custom_upd@@
 @@finalize_custom_del@@
 
+}
+
+void SQL_TABLE_@@tablename@@ :: init(void)
+{
+    rowid = -1;
+@@initial_values@@
+    previous_get = NULL;
 }
 
 bool SQL_TABLE_@@tablename@@ :: get_columns(sqlite3_stmt * pStmt)

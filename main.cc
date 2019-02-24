@@ -16,14 +16,18 @@ main(int argc, char ** argv)
         return 1;
     }
 
-#if 0
-    print_tokenized_file(argv[1]);
-#else
-    TableDef * tds = parse_file(argv[1]);
-    print_tables(tds);
-    emit_source(argv[2], argv[3], tds);
-    emit_header(argv[3], tds);
-    delete tds;
-#endif
+    if (getenv("DEBUG_TOKENIZER") != NULL)
+    {
+        print_tokenized_file(argv[1]);
+    }
+    else
+    {
+        TableDef * tds = parse_file(argv[1]);
+        print_tables(tds);
+        emit_source(argv[2], argv[3], tds);
+        emit_header(argv[3], tds);
+        delete tds;
+    }
+
     return 0;
 }

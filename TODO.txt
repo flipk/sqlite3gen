@@ -1,4 +1,3 @@
-- time to add init methods for initial values of fields.
 - look at implementing a sqlite3_vfs that does encryption
 - table for table versioning built in to the tool?
 - autogen protobuf msg

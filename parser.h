@@ -16,7 +16,6 @@ struct TypeDefValue
 {
     struct TypeDefValue * next;
     TypeDef  type;
-// TODO initial value
     void init(TypeDef _type) {
         type = _type;
     }
@@ -90,10 +89,21 @@ struct FieldAttrs
     bool index;
     bool query;
     bool likequery;
+    std::string init_string;
+    int64_t init_int;
+    double init_double;
     void init(void) {
         index = false;
         query = false;
         likequery = false;
+        init_string.clear();
+        init_int = 0;
+        init_double = 0.0;
+    }
+    FieldAttrs(void) {
+        init();
+    }
+    ~FieldAttrs(void) {
     }
 };
 
