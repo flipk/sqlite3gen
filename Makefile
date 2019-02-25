@@ -13,7 +13,8 @@ template_to_c_CXXSRCS = template_to_c.cc
 sql3gen_TARGET = $(OBJDIR)/sql3gen
 sql3gen_LLSRCS = tokenizer.ll
 sql3gen_YYSRCS = parser.yy
-sql3gen_CXXSRCS = main.cc emit_header.cc emit_source.cc template_patterns.cc
+sql3gen_CXXSRCS = main.cc template_patterns.cc \
+	emit_header.cc emit_source.cc emit_proto.cc
 sql3gen_DEFS = -DPARSER_YY_HDR=\"$(sql3gen_parser.yy_HDR)\" \
 	-DYY_TYPEDEF_YY_SIZE_T=1 -Dyy_size_t=int
 sql3gen_LIBS = $(OBJDIR)/template_1.o
@@ -21,8 +22,9 @@ sql3gen_PREMAKE = $(template_to_c_TARGET) $(OBJDIR)/template_1.o
 
 sample_TARGET = $(OBJDIR)/sample
 sample_CXXSRCS = sample_test.cc
-sample_DEFS = -DSAMPLE_H_HDR=\"sample.h\"
-sample_LIBS = sqlite3/sqlite3.o $(OBJDIR)/sample.o -lpthread -ldl
+sample_DEFS = -DSAMPLE_H_HDR=\"sample.h\" -DSAMPLE_PB_HDR=\"sample.pb.h\"
+sample_LIBS = $(OBJDIR)/sample.pb.o sqlite3/sqlite3.o $(OBJDIR)/sample.o \
+	-lpthread -lprotobuf -ldl
 sample_INCS = -Isqlite3
 sample_PREMAKE = $(OBJDIR)/sample.o
 
@@ -42,15 +44,24 @@ $(OBJDIR)/template_1.cc $(OBJDIR)/template_1.h: $(template_to_c_TARGET) template
 	$(Q)mv $(OBJDIR)/template_1.cc.tmp $(OBJDIR)/template_1.cc
 	$(Q)mv $(OBJDIR)/template_1.h.tmp $(OBJDIR)/template_1.h
 
-$(sample_TARGET): $(OBJDIR)/sample.o
+$(sample_TARGET): $(OBJDIR)/sample.o $(OBJDIR)/sample.pb.o
 
-$(sample_CXXOBJS): $(OBJDIR)/sample.o
+$(sample_CXXOBJS): $(OBJDIR)/sample.o $(OBJDIR)/sample.pb.o
 
-$(OBJDIR)/sample.o: $(OBJDIR)/sample.cc
+$(OBJDIR)/sample.pb.o: $(OBJDIR)/sample.pb.cc
+	@echo compiling $(OBJDIR)/sample.pb.cc
+	$(Q)g++ $(sample_INCS) $(CXXFLAGS) -O3 -c $(OBJDIR)/sample.pb.cc -o $(OBJDIR)/sample.pb.o
+
+$(OBJDIR)/sample.pb.cc: $(sql3gen_TARGET) $(OBJDIR)/sample.proto
+	@echo generating $(OBJDIR)/sample.pb.cc
+	cd $(OBJDIR) ; protoc --cpp_out=. sample.proto
+
+$(OBJDIR)/sample.o: $(OBJDIR)/sample.cc $(OBJDIR)/sample.pb.cc
 	@echo compiling $(OBJDIR)/sample.cc
 	$(Q)g++ $(sample_INCS) $(CXXFLAGS) -O3 -c $(OBJDIR)/sample.cc -o $(OBJDIR)/sample.o
 
 $(OBJDIR)/sample.cc: $(sql3gen_TARGET) sample.schema
 	@echo generating $(OBJDIR)/sample.cc
-	$(Q)cd $(OBJDIR) ; ./sql3gen ../sample.schema sample.cc.tmp sample.h
+	$(Q)cd $(OBJDIR) ; ./sql3gen ../sample.schema \
+		sample.cc.tmp sample.h sample.proto
 	$(Q)mv $(OBJDIR)/sample.cc.tmp $(OBJDIR)/sample.cc

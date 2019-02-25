@@ -92,6 +92,7 @@ struct FieldAttrs
     std::string init_string;
     int64_t init_int;
     double init_double;
+    int protoid;
     void init(void) {
         index = false;
         query = false;
@@ -99,6 +100,7 @@ struct FieldAttrs
         init_string.clear();
         init_int = 0;
         init_double = 0.0;
+        protoid = -1;
     }
     FieldAttrs(void) {
         init();
@@ -150,7 +152,13 @@ struct TableDef
     }
 };
 
-TableDef * parse_file(const std::string &fname);
+struct SchemaDef
+{
+    std::string proto_package;
+    struct TableDef * tables;
+};
+
+SchemaDef * parse_file(const std::string &fname);
 void print_tokenized_file(const std::string &fname);
 void print_tables(TableDef * tds);
 

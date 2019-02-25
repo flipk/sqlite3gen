@@ -1,21 +1,24 @@
 
 # this is a comment.
 
+PROTOPKG "library"
+
 TABLE user
 {
 	userid		INT64		INDEX	QUERY
-		DEFAULT -1
+		PROTOID 1 DEFAULT -1
 	firstname	TEXT
-		DEFAULT ""
+		PROTOID 2 DEFAULT ""
 	lastname	TEXT		LIKEQUERY
-		DEFAULT ""
+		PROTOID 3 DEFAULT ""
 	mi		TEXT
-		DEFAULT ""
-	ssn		INT		INDEX	QUERY
-		DEFAULT 0
+		PROTOID 4 DEFAULT ""
+	SSN		INT		INDEX	QUERY
+		PROTOID 5 DEFAULT 0
 	balance		DOUBLE
-		DEFAULT 0
+		PROTOID 6 DEFAULT 0
 	proto		BLOB
+		PROTOID 7
 
 	CUSTOM-GET great_balance (DOUBLE)
 		   "balance > ?"
@@ -29,7 +32,7 @@ TABLE user
 	CUSTOM-UPD balance  (balance)
 	CUSTOM-UPD firstlast (firstname lastname)
 
-	CUSTOM-DEL ssn (INT)
+	CUSTOM-DEL SSN (INT)
 	           "ssn = ?"
 }
 

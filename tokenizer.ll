@@ -43,6 +43,8 @@ DOUBLE     { return KW_DOUBLE; }
 INDEX      { return KW_INDEX; }
 QUERY      { return KW_QUERY; }
 DEFAULT    { return KW_DEFAULT; }
+PROTOID    { return KW_PROTOID; }
+PROTOPKG   { return KW_PROTOPKG; }
 LIKEQUERY  { return KW_LIKEQUERY; }
 CUSTOM-GET { return KW_CUSTOM_GET; }
 CUSTOM-UPD { return KW_CUSTOM_UPD; }

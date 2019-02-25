@@ -64,10 +64,10 @@ public:
     }
     void print(void) {
         printf("row %" PRId64 " userid %" PRId64
-               " %s %s %s ssn %d %f proto (%d)\n",
+               " %s %s %s SSN %d %f proto (%d)\n",
                (int64_t) rowid, userid,
                firstname.c_str(), mi.c_str(), lastname.c_str(),
-               ssn, balance, (int) proto.length());
+               SSN, balance, (int) proto.length());
     }
 };
 
@@ -140,6 +140,29 @@ get_custom2(sqlite3 *pdb,
     } while (u.get_next());
 }
 
+void
+test_protobuf(sqlite3 *pdb, int64_t userid)
+{
+    if (u.get_by_userid(userid) == false)
+    {
+        printf("cannot get by userid\n");
+        return;
+    }
+    do {
+        library::TABLE_user_m  msg;
+        std::string binary;
+        u.CopyToProto(msg);
+        msg.SerializeToString(&binary);
+        printf("encoded user to protobuf %d bytes long\n",
+               (int) binary.size());
+        u.init();
+        msg.Clear();
+        msg.ParseFromString(binary);
+        u.CopyFromProto(msg);
+        u.print();
+    } while (u.get_next());
+}
+
 void log_sql_upd(void *arg, sqlite3_stmt *stmt)
 {
     char * sql = sqlite3_expanded_sql(stmt);
@@ -172,7 +195,7 @@ main()
         user.firstname = "flippy";
         user.lastname = "kadoodle";
         user.mi = "f";
-        user.ssn = 456789012;
+        user.SSN = 456789012;
         user.balance = 14.92;
         user.proto = "PROTOBUFS BABY";
 
@@ -187,8 +210,9 @@ main()
 #else
         user.update_balance();
 #endif
-
         printf("updated row %" PRId64 "\n", (int64_t) user.rowid);
+
+        test_protobuf(pdb, 4);
 
         get_row(pdb, user.rowid);
 
@@ -200,7 +224,7 @@ main()
         get_custom2(pdb, "flip%", "kad%");
 
 #if 1
-        user.delete_ssn(456789012);
+        user.delete_SSN(456789012);
 #else
         user.delete_rowid();
 #endif

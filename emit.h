@@ -5,10 +5,16 @@
 
 #include "parser.h"
 
-void emit_header(const std::string &fname, const TableDef *tds);
-void emit_source(const std::string &fname,
-                 const std::string &header_fname, const TableDef *tds);
+void emit_header(const std::string &fname,
+                 const std::string &proto_hdr_fname,
+                 const SchemaDef *schema);
 
+void emit_source(const std::string &fname,
+                 const std::string &header_fname,
+                 const SchemaDef *schema);
+
+void emit_proto(const std::string &fname,
+                const SchemaDef *schema);
 
 #define SET_PATTERN(x) patterns[#x] = x.str();
 

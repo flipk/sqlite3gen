@@ -7,26 +7,82 @@
 #include "tokenizer.h"
 #include "emit.h"
 
+using namespace std;
+
+void
+usage(void)
+{
+    fprintf(stderr,
+            "usage: sql3gen schema file.cc file.h [file.proto]\n"
+            "   note proto file is mandatory if schema contains\n"
+            "   PROTOPKG and will not be written if schema does not.\n");
+}
+
 int
 main(int argc, char ** argv)
 {
-    if (argc != 4)
+    if (argc != 4 && argc != 5)
     {
-        fprintf(stderr, "usage: sql3gen schema file.cc file.h\n");
+        usage();
         return 1;
     }
 
+    string schema_file(argv[1]);
+    string cc_file(argv[2]);
+    string h_file(argv[3]);
+    string proto_file;
+    string proto_h_file;
+
     if (getenv("DEBUG_TOKENIZER") != NULL)
     {
-        print_tokenized_file(argv[1]);
+        print_tokenized_file(schema_file);
     }
     else
     {
-        TableDef * tds = parse_file(argv[1]);
-        print_tables(tds);
-        emit_source(argv[2], argv[3], tds);
-        emit_header(argv[3], tds);
-        delete tds;
+        SchemaDef * schema = parse_file(schema_file);
+
+        if (schema->proto_package != "")
+        {
+            if (argc == 4)
+            {
+                fprintf(stderr,
+                        "ERROR: schema contains PROTOPKG, "
+                        "proto output file is required\n");
+                usage();
+                return 1;
+            }
+            proto_file = argv[4];
+            size_t filename_len = proto_file.size();
+            if (filename_len < 7)
+            {
+                printf("invalid proto file name\n");
+                return 1;
+            }
+            if (proto_file.compare (filename_len-6, string::npos,
+                                    ".proto") != 0)
+            {
+                printf("proto file doesn't end in \".proto\"\n");
+                return 1;
+            }
+            proto_h_file = proto_file.substr(0,filename_len-6) + ".pb.h";
+        }
+        else
+        {
+            if (argc == 5)
+            {
+                fprintf(stderr,
+                        "ERROR: schema does not contain PROTOPKG, "
+                        "proto output file should not be specified\n");
+                usage();
+                return 1;
+            }
+        }
+
+        print_tables(schema->tables);
+        emit_source(cc_file, h_file, schema);
+        emit_header(h_file, proto_h_file, schema);
+        emit_proto(proto_file, schema);
+        delete schema;
     }
 
     return 0;

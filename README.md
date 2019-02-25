@@ -47,9 +47,10 @@ TABLE <table-name>
 Keywords must be in upper case. Recognized keywords are:
 
 ```
+protobuf package name : PROTOPKG
 table starts with : TABLE
 types : INT INT64 TEXT DOUBLE BLOB
-column attributes : INDEX LIKEQUERY QUERY DEFAULT
+column attributes : INDEX LIKEQUERY QUERY DEFAULT PROTOID
 customs : CUSTOM-GET CUSTOM-UPD CUSTOM-DEL
 ```
 
@@ -62,13 +63,13 @@ the C++ class.
 The TYPE declares the SQL database data type. SQL
 data types map to C++ data types as such:
 
-| SQL type | C++ type |
-| -------- | -------- |
-|  INT     | int32_t  |
-|  INT64   | int64_t  |
-|  DOUBLE  | double   |
-|  TEXT    | std::string |
-|  BLOB    | std::string |
+| SQL type | C++ type | protobuf type |
+| -------- | -------- | ------------- |
+|  INT     | int32_t  | int32 |
+|  INT64   | int64_t  | int64 |
+|  DOUBLE  | double   | double |
+|  TEXT    | std::string | string |
+|  BLOB    | std::string | bytes |
 
 ### INDEX, QUERY, and LIKEQUERY attributes
 
@@ -117,6 +118,15 @@ values, including setting `rowid` to -1.
 
 NOTE: `BLOB` types cannot be defaulted; a BLOB field always defaults
 to zero-length.
+
+### PROTOID attribute
+
+Placing a `PROTOID` followed by an integer will cause a field to be
+added to the protobuf definition for this TABLE class's Message.  The
+integer specified with PROTOID is the field number in the Message.
+(This is to allow forwards and backwards compatibility across versions
+of a schema definition, as long as the PROTOID for a field doesn't
+change.)
 
 ### insert, update, get_by_rowid, delete_rowid methods
 
@@ -243,6 +253,28 @@ class SQL_TABLE_ALL_TABLES {
 public:
     static bool table_create_all(sqlite3 *pdb);
 };
+```
+
+## protobuf integration
+
+In the schema file, you may also specify at the top of the file:
+
+```
+PROTOPKG "package_name"
+```
+
+This tool will now emit a proto file suitable for feeding to google
+protobufs `protoc` tool. This proto file will contain a protobuf
+Message for each table class containing the fields marked in the `TABLE`
+definition with `PROTOID <number>`.  Fields which don't have the `PROTOID`
+attribute do not get added to the Message. If a TABLE definition has no
+PROTOID attributes on any fields, no Message is emitted for that TABLE.
+
+It will also emit the following functions in the table classes:
+
+```
+void CopyToProto(MessageName_m &msg);
+void CopyFromProto(const MessageName_m &msg);
 ```
 
 ## debug logging

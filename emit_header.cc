@@ -15,7 +15,9 @@
 
 using namespace std;
 
-void emit_header(const std::string &fname, const TableDef *tds)
+void emit_header(const std::string &fname,
+                 const std::string &proto_hdr_fname,
+                 const SchemaDef *schema)
 {
     ofstream  out(fname.c_str(), ios_base::out | ios_base::trunc);
     const TableDef *td;
@@ -27,9 +29,16 @@ void emit_header(const std::string &fname, const TableDef *tds)
         exit(1);
     }
     
+    ostringstream protobuf_header;
+    if (schema->proto_package != "")
+        protobuf_header << "#include \""
+                        << proto_hdr_fname
+                        << "\"\n";
+    SET_PATTERN(protobuf_header);
+
     output_HEADER_TOP(out, patterns);
 
-    for (td = tds; td; td = td->next)
+    for (td = schema->tables; td; td = td->next)
     {
         ostringstream stmt_by_decls;
         ostringstream stmt_by_decls_like;
@@ -42,8 +51,11 @@ void emit_header(const std::string &fname, const TableDef *tds)
         ostringstream table_custom_get_method_protos;
         ostringstream table_custom_upd_method_protos;
         ostringstream table_custom_del_method_protos;
+        ostringstream table_proto_copy_protos;
+
         const FieldDef *fd;
         const CustomGetUpdList * cust;
+        bool include_protos = false;
 
         patterns["tablename"] = td->name;
 
@@ -70,6 +82,8 @@ void emit_header(const std::string &fname, const TableDef *tds)
                 TypeDef_to_Ctype(fd->type.type, false);
             output_TABLE_CLASS_table_field_type_name_decls(
                 table_field_type_name_decls, patterns);
+            if (fd->attrs.protoid != -1)
+                include_protos = true;
         }
 
         for (cust = td->customs; cust; cust = cust->next)
@@ -110,6 +124,16 @@ void emit_header(const std::string &fname, const TableDef *tds)
             }
         }
 
+        if (include_protos && schema->proto_package != "")
+        {
+            patterns["protopkg"] = schema->proto_package;
+            output_TABLE_CLASS_proto_copy_proto(
+                table_proto_copy_protos, patterns);
+        }
+        else
+            table_proto_copy_protos
+                << "   // no proto IDs for this table\n";
+
         SET_PATTERN(stmt_by_decls);
         SET_PATTERN(stmt_by_decls_like);
         SET_PATTERN(stmt_custom_get_decls);
@@ -121,6 +145,7 @@ void emit_header(const std::string &fname, const TableDef *tds)
         SET_PATTERN(table_custom_get_method_protos);
         SET_PATTERN(table_custom_upd_method_protos);
         SET_PATTERN(table_custom_del_method_protos);
+        SET_PATTERN(table_proto_copy_protos);
 
         output_TABLE_CLASS_DEFN(out, patterns);
     }

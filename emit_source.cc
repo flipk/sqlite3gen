@@ -16,7 +16,8 @@
 using namespace std;
 
 void emit_source(const std::string &fname,
-                 const std::string &header_fname, const TableDef *tds)
+                 const std::string &header_fname,
+                 const SchemaDef *schema)
 {
     ofstream  out(fname.c_str(), ios_base::out | ios_base::trunc);
     const TableDef *td;
@@ -35,7 +36,9 @@ void emit_source(const std::string &fname,
     ostringstream create_all_tables;
     ostringstream drop_all_tables;
 
-    for (td = tds; td; td = td->next)
+    patterns["protopkg"] = schema->proto_package;
+
+    for (td = schema->tables; td; td = td->next)
     {
         ostringstream prepare_queries;
         ostringstream prepare_like_queries;
@@ -57,11 +60,15 @@ void emit_source(const std::string &fname,
         ostringstream custom_get_implementations;
         ostringstream custom_upd_implementations;
         ostringstream custom_del_implementations;
+        ostringstream table_proto_copy_funcs;
+        ostringstream proto_copy_to;
+        ostringstream proto_copy_from;
         ostringstream table_create_fields;
         ostringstream index_creation;
 
         const FieldDef * fd;
         const CustomGetUpdList * cust;
+        bool do_protobuf = false;
 
         patterns["tablename"] = td->name;
 
@@ -71,6 +78,8 @@ void emit_source(const std::string &fname,
             fieldnames << fd->name;
             if (fd->next)
                 fieldnames << ", ";
+            if (fd->attrs.protoid != -1)
+                do_protobuf = true;
         }
 
         // this needs to be defined before processing any
@@ -85,7 +94,13 @@ void emit_source(const std::string &fname,
         {
             TypeDef t = fd->type.type;
 
+            string fdnamelower = fd->name;
+            for (size_t p = 0; p < fdnamelower.size(); p++)
+                if (isupper(fdnamelower[p]))
+                    fdnamelower[p] = tolower(fdnamelower[p]);
+
             patterns["fieldname"]          = fd->name;
+            patterns["fieldname_lower"]    = fdnamelower;
             patterns["fieldtype"]          = TypeDef_to_Ctype(t, true);
             patterns["sqlite_column_func"] = TypeDef_to_sqlite_column(t);
             patterns["sqlite_bind_func"]   = TypeDef_to_sqlite_bind(t);
@@ -144,29 +159,41 @@ void emit_source(const std::string &fname,
                 output_TABLE_create_index(index_creation, patterns);
             }
 
-            initial_values << "    " << fd->name;
-
+            ostringstream initial_value;
+            initial_value << "    " << fd->name;
             switch (t)
             {
             case TYPE_INT:
             case TYPE_INT64:
-                initial_values << " = "
-                               << fd->attrs.init_int
-                               << ";\n";
+                initial_value
+                    << " = " << fd->attrs.init_int << ";\n";
                 break;
             case TYPE_DOUBLE:
-                initial_values << " = "
-                               << fd->attrs.init_double
-                               << ";\n";
+                initial_value
+                    << " = " << fd->attrs.init_double << ";\n";
                 break;
             case TYPE_TEXT:
-                initial_values << " = \""
-                               << fd->attrs.init_string
-                               << "\";\n";
+                initial_value
+                    << " = \"" << fd->attrs.init_string << "\";\n";
                 break;
             case TYPE_BLOB:
-                initial_values << ".clear();\n";
+                initial_value << ".clear();\n";
                 break;
+            }
+            initial_values << initial_value.str();
+
+            // reuse the initial value stuff for the protobuf
+            // copyFrom method too (for when a field is not
+            // populated in the Message).
+            if (do_protobuf && fd->attrs.protoid != -1)
+            {
+                output_TABLE_proto_copy_to_field(
+                    proto_copy_to, patterns);
+
+                SET_PATTERN(initial_value);
+
+                output_TABLE_proto_copy_from_field(
+                    proto_copy_from, patterns);
             }
 
             switch (t)
@@ -350,6 +377,15 @@ void emit_source(const std::string &fname,
             }
         }
 
+        if (do_protobuf && schema->proto_package != "")
+        {
+            SET_PATTERN(proto_copy_to);
+            SET_PATTERN(proto_copy_from);
+
+            output_TABLE_proto_copy_funcs(
+                table_proto_copy_funcs, patterns);
+        }
+
         SET_PATTERN(prepare_queries);
         SET_PATTERN(prepare_like_queries);
         SET_PATTERN(questionmarks);
@@ -371,6 +407,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(custom_get_implementations);
         SET_PATTERN(custom_upd_implementations);
         SET_PATTERN(custom_del_implementations);
+        SET_PATTERN(table_proto_copy_funcs);
         SET_PATTERN(table_create_fields);
         SET_PATTERN(index_creation);
 
