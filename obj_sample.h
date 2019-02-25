@@ -11,6 +11,8 @@
 #include <inttypes.h>
 #include <string>
 #include "sqlite3.h"
+#include "sample.pb.h"
+
 
 typedef void (*sql_log_function_t)(void *arg, sqlite3_stmt *);
 
@@ -22,7 +24,7 @@ class SQL_TABLE_user {
     sqlite3_stmt * pStmt_get_by_rowid;
     sqlite3_stmt * pStmt_get_all;
     sqlite3_stmt * pStmt_by_userid;
-    sqlite3_stmt * pStmt_by_ssn;
+    sqlite3_stmt * pStmt_by_SSN;
 
     sqlite3_stmt * pStmt_by_lastname_like;
 
@@ -33,7 +35,7 @@ class SQL_TABLE_user {
     sqlite3_stmt * pStmt_update_balance;
     sqlite3_stmt * pStmt_update_firstlast;
 
-    sqlite3_stmt * pStmt_del_ssn;
+    sqlite3_stmt * pStmt_del_SSN;
 
 
 protected:
@@ -58,12 +60,12 @@ public:
     std::string firstname;
     std::string lastname;
     std::string mi;
-    int32_t ssn;
+    int32_t SSN;
     double balance;
     std::string proto;
 
     bool get_by_userid(int64_t v);
-    bool get_by_ssn(int32_t v);
+    bool get_by_SSN(int32_t v);
 
     bool get_by_lastname_like(const std::string &patt);
 
@@ -80,7 +82,10 @@ public:
     bool update_balance(void);
     bool update_firstlast(void);
 
-    bool delete_ssn(int32_t v1);
+    bool delete_SSN(int32_t v1);
+
+    void CopyToProto(library::TABLE_user_m &msg);
+    void CopyFromProto(const library::TABLE_user_m &msg);
 
 
     static void register_log_funcs(sql_log_function_t _upd_func,
@@ -155,6 +160,8 @@ public:
     bool update_price(void);
 
 
+   // no proto IDs for this table
+
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
@@ -219,6 +226,8 @@ public:
     bool get_by_rowid(int64_t v1);
     bool get_all(void);
 
+
+   // no proto IDs for this table
 
 
     static void register_log_funcs(sql_log_function_t _upd_func,

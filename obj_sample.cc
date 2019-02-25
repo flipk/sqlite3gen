@@ -28,7 +28,7 @@ SQL_TABLE_user :: SQL_TABLE_user(sqlite3 *_pdb)
     pStmt_get_all = NULL;
 
     pStmt_by_userid = NULL;
-    pStmt_by_ssn = NULL;
+    pStmt_by_SSN = NULL;
 
     pStmt_by_lastname_like = NULL;
 
@@ -39,7 +39,7 @@ SQL_TABLE_user :: SQL_TABLE_user(sqlite3 *_pdb)
     pStmt_update_balance = NULL;
     pStmt_update_firstlast = NULL;
 
-    pStmt_del_ssn = NULL;
+    pStmt_del_SSN = NULL;
 
 
     previous_get = NULL;
@@ -61,8 +61,8 @@ SQL_TABLE_user :: ~SQL_TABLE_user(void)
 
     if (pStmt_by_userid)
         sqlite3_finalize(pStmt_by_userid);
-    if (pStmt_by_ssn)
-        sqlite3_finalize(pStmt_by_ssn);
+    if (pStmt_by_SSN)
+        sqlite3_finalize(pStmt_by_SSN);
 
     if (pStmt_by_lastname_like)
         sqlite3_finalize(pStmt_by_lastname_like);
@@ -79,8 +79,8 @@ SQL_TABLE_user :: ~SQL_TABLE_user(void)
     if (pStmt_update_firstlast)
         sqlite3_finalize(pStmt_update_firstlast);
 
-    if (pStmt_del_ssn)
-        sqlite3_finalize(pStmt_del_ssn);
+    if (pStmt_del_SSN)
+        sqlite3_finalize(pStmt_del_SSN);
 
 
 }
@@ -92,7 +92,7 @@ void SQL_TABLE_user :: init(void)
     firstname = "";
     lastname = "";
     mi = "";
-    ssn = 0;
+    SSN = 0;
     balance = 0;
     proto.clear();
 
@@ -167,12 +167,12 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
     if (got != SQLITE_INTEGER)
     {
         fprintf(stderr, "SQL_TABLE_user :: get_columns "
-                "(ssn) : "
+                "(SSN) : "
                 "column 5 wrong type (%d %d)\n",
                 got, SQLITE_INTEGER);
         return false;
     }
-    ssn = sqlite3_column_int(pStmt, 5);
+    SSN = sqlite3_column_int(pStmt, 5);
     got = sqlite3_column_type(pStmt, 6);
     if (got != SQLITE_FLOAT)
     {
@@ -219,7 +219,7 @@ bool SQL_TABLE_user :: get_by_userid(int64_t v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE userid = ?",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto FROM user WHERE userid = ?",
             -1, &pStmt_by_userid, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for userid at line %d\n",
@@ -251,7 +251,7 @@ bool SQL_TABLE_user :: get_by_userid(int64_t v)
 
     return ret;
 }
-bool SQL_TABLE_user :: get_by_ssn(int32_t v)
+bool SQL_TABLE_user :: get_by_SSN(int32_t v)
 {
     int r;
     bool ret = false;
@@ -262,36 +262,36 @@ bool SQL_TABLE_user :: get_by_ssn(int32_t v)
         return false;
     }
 
-    if (pStmt_by_ssn == NULL)
+    if (pStmt_by_SSN == NULL)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE ssn = ?",
-            -1, &pStmt_by_ssn, NULL);
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto FROM user WHERE SSN = ?",
+            -1, &pStmt_by_SSN, NULL);
         if (r != SQLITE_OK)
-            printf("ERROR building SELECT for ssn at line %d\n",
+            printf("ERROR building SELECT for SSN at line %d\n",
                    __LINE__);
     }
 
-    sqlite3_reset(pStmt_by_ssn);
+    sqlite3_reset(pStmt_by_SSN);
 
-    r = sqlite3_bind_int(pStmt_by_ssn, 1, v);
+    r = sqlite3_bind_int(pStmt_by_SSN, 1, v);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_user :: get_by_ssn "
+        fprintf(stderr, "SQL_TABLE_user :: get_by_SSN "
                 ": bind: r = %d\n", r);
         return false;
     }
 
 
     if (log_get_func)
-        log_get_func(log_arg, pStmt_by_ssn);
+        log_get_func(log_arg, pStmt_by_SSN);
 
-    r = sqlite3_step(pStmt_by_ssn);
+    r = sqlite3_step(pStmt_by_SSN);
     if (r == SQLITE_ROW)
     {
-        ret = get_columns(pStmt_by_ssn);
-        previous_get = pStmt_by_ssn;
+        ret = get_columns(pStmt_by_SSN);
+        previous_get = pStmt_by_SSN;
     }
     else if (r == SQLITE_DONE)
         previous_get = NULL;
@@ -315,7 +315,7 @@ bool SQL_TABLE_user :: get_by_lastname_like(
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE lastname like ?",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto FROM user WHERE lastname like ?",
             -1, &pStmt_by_lastname_like, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT LIKE for lastname at line %d\n",
@@ -381,7 +381,7 @@ bool SQL_TABLE_user :: insert(void)
     {
         r = sqlite3_prepare_v2(
             pdb, "INSERT INTO user "
-            "(userid, firstname, lastname, mi, ssn, balance, proto) "
+            "(userid, firstname, lastname, mi, SSN, balance, proto) "
             "values (?,?,?,?,?,?,?)",
             -1, &pStmt_insert, NULL);
         if (r != SQLITE_OK)
@@ -419,11 +419,11 @@ bool SQL_TABLE_user :: insert(void)
         fprintf(stderr, "SQL_TABLE_user :: insert: "
                 "bind mi: r = %d\n", r);
     }
-    r = sqlite3_bind_int(pStmt_insert, 5, ssn);
+    r = sqlite3_bind_int(pStmt_insert, 5, SSN);
     if (r != SQLITE_OK)
     {
         fprintf(stderr, "SQL_TABLE_user :: insert: "
-                "bind ssn: r = %d\n", r);
+                "bind SSN: r = %d\n", r);
     }
     r = sqlite3_bind_double(pStmt_insert, 6, balance);
     if (r != SQLITE_OK)
@@ -470,7 +470,7 @@ bool SQL_TABLE_user :: update(void)
     {
         r = sqlite3_prepare_v2(
             pdb, "UPDATE user SET "
-            "(userid, firstname, lastname, mi, ssn, balance, proto) "
+            "(userid, firstname, lastname, mi, SSN, balance, proto) "
             "= (?,?,?,?,?,?,?) WHERE rowid = ?",
             -1, &pStmt_update, NULL);
         if (r != SQLITE_OK)
@@ -509,11 +509,11 @@ bool SQL_TABLE_user :: update(void)
         fprintf(stderr, "SQL_TABLE_user :: insert: "
                 "bind mi: r = %d\n", r);
     }
-    r = sqlite3_bind_int(pStmt_insert, 5, ssn);
+    r = sqlite3_bind_int(pStmt_insert, 5, SSN);
     if (r != SQLITE_OK)
     {
         fprintf(stderr, "SQL_TABLE_user :: insert: "
-                "bind ssn: r = %d\n", r);
+                "bind SSN: r = %d\n", r);
     }
     r = sqlite3_bind_double(pStmt_insert, 6, balance);
     if (r != SQLITE_OK)
@@ -600,7 +600,7 @@ bool SQL_TABLE_user :: get_by_rowid(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE rowid = ?",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto FROM user WHERE rowid = ?",
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -649,7 +649,7 @@ bool SQL_TABLE_user :: get_all(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto FROM user",
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -688,7 +688,7 @@ bool SQL_TABLE_user :: get_great_balance(double v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE balance > ?",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto FROM user WHERE balance > ?",
             -1, &pStmt_get_great_balance, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -737,7 +737,7 @@ bool SQL_TABLE_user :: get_founders(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE userid < 100",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto FROM user WHERE userid < 100",
             -1, &pStmt_get_founders, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -777,7 +777,7 @@ bool SQL_TABLE_user :: get_firstlast(const std::string & v1, const std::string &
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, ssn, balance, proto FROM user WHERE firstname LIKE ? AND lastname LIKE ?",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto FROM user WHERE firstname LIKE ? AND lastname LIKE ?",
             -1, &pStmt_get_firstlast, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -935,7 +935,7 @@ bool SQL_TABLE_user :: update_firstlast(void)
     return ret;
 }
 
-bool SQL_TABLE_user :: delete_ssn(int32_t v1)
+bool SQL_TABLE_user :: delete_SSN(int32_t v1)
 {
     int r;
     bool ret = false;
@@ -946,43 +946,99 @@ bool SQL_TABLE_user :: delete_ssn(int32_t v1)
         return false;
     }
 
-    if(pStmt_del_ssn == NULL)
+    if(pStmt_del_SSN == NULL)
     {
         r = sqlite3_prepare_v2(
             pdb,
             "DELETE FROM user WHERE ssn = ?",
-            -1, &pStmt_del_ssn, NULL);
+            -1, &pStmt_del_SSN, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building DELETE for "
-                   "CUSTOM-DEL ssn at line %d\n", __LINE__);
+                   "CUSTOM-DEL SSN at line %d\n", __LINE__);
     }
 
-    sqlite3_reset(pStmt_del_ssn);
+    sqlite3_reset(pStmt_del_SSN);
 
-    r = sqlite3_bind_int(pStmt_del_ssn,
+    r = sqlite3_bind_int(pStmt_del_SSN,
                              1, v1);
     if (r != SQLITE_OK)
     {
         fprintf(stderr,
-                "SQL_TABLE_user :: delete_ssn "\
+                "SQL_TABLE_user :: delete_SSN "\
                 ": bind: r = %d\n", r);
         return false;
     }
 
 
     if (log_upd_func)
-        log_upd_func(log_arg, pStmt_del_ssn);
+        log_upd_func(log_arg, pStmt_del_SSN);
 
-    r = sqlite3_step(pStmt_del_ssn);
+    r = sqlite3_step(pStmt_del_SSN);
     if (r == SQLITE_ROW)
     {
-        ret = get_columns(pStmt_del_ssn);
-        previous_get = pStmt_del_ssn;
+        ret = get_columns(pStmt_del_SSN);
+        previous_get = pStmt_del_SSN;
     }
     else if (r == SQLITE_DONE)
         previous_get = NULL;
 
     return ret;
+}
+
+void
+SQL_TABLE_user :: CopyToProto(
+              library::TABLE_user_m &msg)
+{
+    msg.set_userid(userid);
+    msg.set_firstname(firstname);
+    msg.set_lastname(lastname);
+    msg.set_mi(mi);
+    msg.set_ssn(SSN);
+    msg.set_balance(balance);
+    msg.set_proto(proto);
+
+}
+
+void
+SQL_TABLE_user :: CopyFromProto(
+              const library::TABLE_user_m &msg)
+{
+    if (msg.has_userid())
+        userid = msg.userid();
+    else
+        userid = -1;
+
+    if (msg.has_firstname())
+        firstname = msg.firstname();
+    else
+        firstname = "";
+
+    if (msg.has_lastname())
+        lastname = msg.lastname();
+    else
+        lastname = "";
+
+    if (msg.has_mi())
+        mi = msg.mi();
+    else
+        mi = "";
+
+    if (msg.has_ssn())
+        SSN = msg.ssn();
+    else
+        SSN = 0;
+
+    if (msg.has_balance())
+        balance = msg.balance();
+    else
+        balance = 0;
+
+    if (msg.has_proto())
+        proto = msg.proto();
+    else
+        proto.clear();
+
+
 }
 
 
@@ -996,22 +1052,22 @@ bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
     }
 
     sqlite3_exec(pdb, "CREATE TABLE user "
-        "(userid int64, firstname string, lastname string, mi string, ssn integer, balance double, proto blob)",
+        "(userid int64, firstname string, lastname string, mi string, SSN integer, balance double, proto blob)",
         NULL, NULL, NULL);
 
     printf("CREATE TABLE: CREATE TABLE user "
-           "(userid int64, firstname string, lastname string, mi string, ssn integer, balance double, proto blob)\n");
+           "(userid int64, firstname string, lastname string, mi string, SSN integer, balance double, proto blob)\n");
 
     sqlite3_exec(pdb,"CREATE INDEX user_userid "
                  "ON user (userid)",
         NULL, NULL, NULL);
     printf("CREATE INDEX: CREATE INDEX user_userid "
            "ON user (userid)\n");
-    sqlite3_exec(pdb,"CREATE INDEX user_ssn "
-                 "ON user (ssn)",
+    sqlite3_exec(pdb,"CREATE INDEX user_SSN "
+                 "ON user (SSN)",
         NULL, NULL, NULL);
-    printf("CREATE INDEX: CREATE INDEX user_ssn "
-           "ON user (ssn)\n");
+    printf("CREATE INDEX: CREATE INDEX user_SSN "
+           "ON user (SSN)\n");
 
 
     return true;
@@ -1766,6 +1822,7 @@ bool SQL_TABLE_book :: update_price(void)
 
 
 
+
 //static
 bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
 {
@@ -2323,6 +2380,7 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
 
     return ret;
 }
+
 
 
 
