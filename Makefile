@@ -3,9 +3,25 @@ PROG_TARGETS = template_to_c sql3gen sample
 
 export TARGET=native
 
+ifneq ($(wildcard /etc/fedora-release),)
+PROTOC= protoc
+PROTOINC=
+PROTOLIB= -lprotobuf
+else
+ifneq ($(wildcard /etc/redhat-release),)
+PROTOC= /shared/mh_tools/tools/protobuf/2.5.0/rhel_5_4/bin/protoc
+PROTOINC= -I/shared/mh_tools/tools/protobuf/2.5.0/rhel_5_4/include
+PROTOLIB= -L/shared/mh_tools/tools/protobuf/2.5.0/rhel_5_4/lib -lprotobuf
+else
+PROTOC= protoc
+PROTOINC=
+PROTOLIB= -lprotobuf
+endif
+endif
+
 OBJDIR = build_$(TARGET)
 
-CXXFLAGS = -Wall -Werror
+CXXFLAGS = -Wall -Werror $(PROTOINC)
 
 template_to_c_TARGET = $(OBJDIR)/template_to_c
 template_to_c_CXXSRCS = template_to_c.cc
@@ -24,7 +40,7 @@ sample_TARGET = $(OBJDIR)/sample
 sample_CXXSRCS = sample_test.cc
 sample_DEFS = -DSAMPLE_H_HDR=\"sample.h\" -DSAMPLE_PB_HDR=\"sample.pb.h\"
 sample_LIBS = $(OBJDIR)/sample.pb.o sqlite3/sqlite3.o $(OBJDIR)/sample.o \
-	-lpthread -lprotobuf -ldl
+	-lpthread $(PROTOLIB) -ldl
 sample_INCS = -Isqlite3
 sample_PREMAKE = $(OBJDIR)/sample.o
 
@@ -52,9 +68,11 @@ $(OBJDIR)/sample.pb.o: $(OBJDIR)/sample.pb.cc
 	@echo compiling $(OBJDIR)/sample.pb.cc
 	$(Q)g++ $(sample_INCS) $(CXXFLAGS) -O3 -c $(OBJDIR)/sample.pb.cc -o $(OBJDIR)/sample.pb.o
 
-$(OBJDIR)/sample.pb.cc: $(sql3gen_TARGET) $(OBJDIR)/sample.proto
+# making this depend on sample.cc makes it depend on sample.schema
+# and running sql3gen, which is what we want
+$(OBJDIR)/sample.pb.cc: $(sql3gen_TARGET) $(OBJDIR)/sample.cc
 	@echo generating $(OBJDIR)/sample.pb.cc
-	cd $(OBJDIR) ; protoc --cpp_out=. sample.proto
+	cd $(OBJDIR) ; $(PROTOC) --cpp_out=. sample.proto
 
 $(OBJDIR)/sample.o: $(OBJDIR)/sample.cc $(OBJDIR)/sample.pb.cc
 	@echo compiling $(OBJDIR)/sample.cc

@@ -45,7 +45,7 @@ TABLE book
 	quantity	INT
 
 	CUSTOM-GET out_of_stock ()
-		   "WHERE quantity == 0"
+		   "quantity == 0"
 
 	CUSTOM-UPD quantity (quantity)
 	CUSTOM-UPD price (price)
@@ -58,6 +58,6 @@ TABLE checkouts
 	duedate		INT64
 
 	CUSTOM-GET due_now (INT64)
-		   "WHERE duedate > ?"
+		   "WHERE duedate < ?"
 
 }

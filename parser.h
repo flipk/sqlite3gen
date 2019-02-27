@@ -3,6 +3,8 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__ 1
 
+#include <inttypes.h>
+
 enum TypeDef
 {
     TYPE_INT    = 1,

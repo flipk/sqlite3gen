@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <string>
+#include <stdlib.h>
 
 #include "parser.h"
 #include PARSER_YY_HDR
