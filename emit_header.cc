@@ -40,6 +40,7 @@ void emit_header(const std::string &fname,
 
     for (td = schema->tables; td; td = td->next)
     {
+        ostringstream tableversion;
         ostringstream stmt_by_decls;
         ostringstream stmt_by_decls_like;
         ostringstream stmt_custom_get_decls;
@@ -58,6 +59,7 @@ void emit_header(const std::string &fname,
         bool include_protos = false;
 
         patterns["tablename"] = td->name;
+        tableversion << td->version;
 
         for (fd = td->fields; fd; fd = fd->next)
         {
@@ -134,6 +136,7 @@ void emit_header(const std::string &fname,
             table_proto_copy_protos
                 << "   // no proto IDs for this table\n";
 
+        SET_PATTERN(tableversion);
         SET_PATTERN(stmt_by_decls);
         SET_PATTERN(stmt_by_decls_like);
         SET_PATTERN(stmt_custom_get_decls);

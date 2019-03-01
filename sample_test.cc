@@ -177,6 +177,13 @@ void log_sql_get(void *arg, sqlite3_stmt *stmt)
     sqlite3_free(sql);
 }
 
+void table_callback(const std::string &table_name,
+                    int before, int after)
+{
+    printf("table '%s' goes from version %d to %d\n",
+           table_name.c_str(), before, after);
+}
+
 int
 main()
 {
@@ -187,7 +194,7 @@ main()
     user.set_db(pdb);
     u.set_db(pdb);
 
-    SQL_TABLE_ALL_TABLES::table_create_all(pdb);
+    SQL_TABLE_ALL_TABLES::init_all(pdb, &table_callback);
     SQL_TABLE_user::register_log_funcs(&log_sql_upd, &log_sql_get, NULL);
     {
 
@@ -229,7 +236,10 @@ main()
         user.delete_rowid();
 #endif
     }
-    SQL_TABLE_ALL_TABLES::table_drop_all(pdb);
+
+//    SQL_TABLE_user::table_drop(pdb);
+    if (getenv("RETAIN_TABLES") == NULL)
+        SQL_TABLE_ALL_TABLES::table_drop_all(pdb);
     sqlite3_close(pdb);
     return 0;
 }

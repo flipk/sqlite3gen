@@ -46,6 +46,7 @@ DEFAULT    { return KW_DEFAULT; }
 PROTOID    { return KW_PROTOID; }
 PROTOPKG   { return KW_PROTOPKG; }
 LIKEQUERY  { return KW_LIKEQUERY; }
+VERSION    { return KW_VERSION; }
 CUSTOM-GET { return KW_CUSTOM_GET; }
 CUSTOM-UPD { return KW_CUSTOM_UPD; }
 CUSTOM-DEL { return KW_CUSTOM_DEL; }

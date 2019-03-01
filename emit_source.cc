@@ -40,6 +40,7 @@ void emit_source(const std::string &fname,
 
     for (td = schema->tables; td; td = td->next)
     {
+        ostringstream tableversion;
         ostringstream prepare_queries;
         ostringstream prepare_like_queries;
         ostringstream fieldnames;
@@ -71,6 +72,7 @@ void emit_source(const std::string &fname,
         bool do_protobuf = false;
 
         patterns["tablename"] = td->name;
+        tableversion << td->version;
 
         int column = 1;
         for (fd = td->fields; fd; fd = fd->next, column++)
@@ -386,6 +388,7 @@ void emit_source(const std::string &fname,
                 table_proto_copy_funcs, patterns);
         }
 
+        SET_PATTERN(tableversion);
         SET_PATTERN(prepare_queries);
         SET_PATTERN(prepare_like_queries);
         SET_PATTERN(questionmarks);

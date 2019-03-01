@@ -134,6 +134,7 @@ struct TableDef
 {
     struct TableDef * next;
     std::string name;
+    int version;
     FieldDef * fields;
     CustomGetUpdList * customs;
     TableDef(const std::string &_name)

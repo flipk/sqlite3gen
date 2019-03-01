@@ -27,7 +27,7 @@ remainder of a line beginning with this character is ignored.
 Tables are demarked with curly braces. The format for a table is thus:
 
 ```
-TABLE <table-name>
+TABLE <table-name> VERSION <number>
 {
      <column-name>  TYPE  ATTRIBUTES
      <repeat the above for each column>
@@ -244,16 +244,27 @@ See the file `sample.schema` in this repository for a sample schema.
 See the file `obj_sample.h` and `obj_sample.cc` in this repository
 for the C++ header file and source file generated from this schema.
 
-Note also the tool emits the following class, which invokes the
-`table_create` method for every SQL_TABLE specified in the schema.
-This is useful to initialize an empty database with all tables needed:
+The tool also emits the following class:
 
 ```C++
 class SQL_TABLE_ALL_TABLES {
 public:
-    static bool table_create_all(sqlite3 *pdb);
+    static bool init_all(sqlite3 *pdb, table_version_callback cb);
+    static void table_drop_all(sqlite3 *pdb);
 };
 ```
+
+The `init_all` method examines the `tables` table to check whether all
+tables specified in the schema exist or not. If they don't exist, they
+are created (along with all required indexes). If they exist, it also
+checks their version numbers. The `table_version_callback` is invoked
+for every table in the schema.  It informs the user the version number
+present in the database file, and the version number compiled into
+this code (NB: even if they are equal!). This gives the user the
+opportunity to perform modifications on the table data structures as
+required to make tables conform to new (or old!) versions.
+
+The `table_drop_all` method deletes all tables from the database.
 
 ## protobuf integration
 

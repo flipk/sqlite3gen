@@ -17,6 +17,10 @@ ________ HEADER_TOP
 @@protobuf_header@@
 
 typedef void (*sql_log_function_t)(void *arg, sqlite3_stmt *);
+typedef void (*table_version_callback)(
+    const std::string &table_name,
+    int version_in_file,
+    int version_in_code);
 
 ________ END
 
@@ -46,6 +50,8 @@ public:
     SQL_TABLE_@@tablename@@(sqlite3 *_pdb = NULL);
     virtual ~SQL_TABLE_@@tablename@@(void);
 
+    static const int TABLE_VERSION = @@tableversion@@;
+
     void init(void);
 
     void set_db(sqlite3 *_pdb) { pdb = _pdb; }
@@ -74,6 +80,7 @@ public:
         log_get_func = _get_func;
         log_arg  = _arg;
     }
+    static bool init(sqlite3 *pdb, table_version_callback cb);
     static bool table_create(sqlite3 *pdb);
     static void table_drop(sqlite3 *pdb);
 };
@@ -133,7 +140,7 @@ ________ CLASS_ALL_TABELS_DEFN
 
 class SQL_TABLE_ALL_TABLES {
 public:
-    static bool table_create_all(sqlite3 *pdb);
+    static bool init_all(sqlite3 *pdb, table_version_callback cb);
     static void table_drop_all(sqlite3 *pdb);
 };
 
@@ -453,6 +460,46 @@ bool SQL_TABLE_@@tablename@@ :: get_all(void)
 @@table_proto_copy_funcs@@
 
 //static
+bool SQL_TABLE_@@tablename@@ :: init(sqlite3 *pdb, table_version_callback cb)
+{
+    bool ret = true;
+    sqlite3_stmt * s;
+    sqlite3_prepare_v2(pdb,
+        "select version from tables where name = \"@@tablename@@\"",
+        -1, &s, NULL);
+    sqlite3_reset(s);
+    int r = sqlite3_step(s);
+
+    if (r == SQLITE_DONE)
+    {
+        if (!table_create(pdb))
+            ret = false;
+        sqlite3_exec(
+            pdb,
+            "INSERT INTO tables (name,version) "
+            "values (\"@@tablename@@\",@@tableversion@@)",
+            NULL, NULL, NULL);
+    }
+    else if (r == SQLITE_ROW)
+    {
+        int v = sqlite3_column_int(s,0);
+        cb("@@tablename@@", v, @@tableversion@@);
+        sqlite3_exec(
+            pdb,
+            "UPDATE tables SET (version) = (@@tableversion@@) "
+            "WHERE name = \"@@tablename@@\"",
+            NULL, NULL, NULL);
+    }
+    else
+    {
+        printf("ERROR r = %d\n", r);
+        ret = false;
+    }
+    sqlite3_finalize(s);
+    return ret;
+}
+
+//static
 bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
 {
     if (pdb == NULL)
@@ -482,10 +529,22 @@ void SQL_TABLE_@@tablename@@ :: table_drop(sqlite3 *pdb)
         return;
     }
 
+    char * errmsg = NULL;
     sqlite3_exec(pdb, "DROP TABLE @@tablename@@",
-         NULL, NULL, NULL);
+         NULL, NULL, &errmsg);
+    if (errmsg != NULL)
+    {
+        // if you get error 6 tables is locked, some prepared
+        // statement is still in a SQLITE_ROW state.
+        printf("DROP TABLE @@tablename@@ ERROR: %s\n", errmsg);
+        sqlite3_free(errmsg);
+    }
 
     printf("DROP: DROP TABLE @@tablename@@\n");
+
+    sqlite3_exec(pdb, "delete from tables "
+                 "where name = \"user\"",
+                 NULL, NULL, NULL);
 }
 
 ________ END
@@ -945,15 +1004,26 @@ ________ END
 
 ________ CLASS_ALL_TABELS_IMPL
 
-bool SQL_TABLE_ALL_TABLES :: table_create_all(sqlite3 *pdb)
+bool SQL_TABLE_ALL_TABLES :: init_all(sqlite3 *pdb, table_version_callback cb)
 {
-    if (pdb == NULL)
+    sqlite3_stmt * s;
+    sqlite3_prepare_v2(pdb,
+        "select * from sqlite_master "
+        "where name = \"tables\" and type = \"table\"",
+        -1, &s, NULL);
+    sqlite3_reset(s);
+    int r = sqlite3_step(s);
+    if (r == SQLITE_DONE)
     {
-        printf("ERROR: attempt CREATE with null db\n");
-        return false;
+        // the table does NOT exist, create it
+        sqlite3_exec(pdb,
+                     "CREATE TABLE tables (name text, version int)",
+                     NULL, NULL, NULL);
     }
+    sqlite3_finalize(s);
 
 @@create_all_tables@@
+
     return true;
 }
 
@@ -966,12 +1036,16 @@ void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
     }
 
 @@drop_all_tables@@
+
+    sqlite3_exec(pdb,
+                 "DROP TABLE tables",
+                 NULL, NULL, NULL);
 }
 
 ________ END
 
 ________ CLASS_ALL_TABLES_create_a_table
-    if (!SQL_TABLE_@@tablename@@::table_create(pdb))
+    if (!SQL_TABLE_@@tablename@@::init(pdb, cb))
         return false;
 ________ END
 

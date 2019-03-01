@@ -3,61 +3,45 @@
 
 PROTOPKG "library"
 
-TABLE user
+TABLE user VERSION 19
 {
-	userid		INT64		INDEX	QUERY
-		PROTOID 1 DEFAULT -1
-	firstname	TEXT
-		PROTOID 2 DEFAULT ""
-	lastname	TEXT		LIKEQUERY
-		PROTOID 3 DEFAULT ""
-	mi		TEXT
-		PROTOID 4 DEFAULT ""
-	SSN		INT		INDEX	QUERY
-		PROTOID 5 DEFAULT 0
-	balance		DOUBLE
-		PROTOID 6 DEFAULT 0
-	proto		BLOB
-		PROTOID 7
+    userid          INT64   INDEX   QUERY PROTOID 1 DEFAULT -1
+    firstname       TEXT                  PROTOID 2 DEFAULT ""
+    lastname        TEXT    LIKEQUERY     PROTOID 3 DEFAULT ""
+    mi              TEXT                  PROTOID 4 DEFAULT ""
+    SSN             INT     INDEX   QUERY PROTOID 5 DEFAULT 0
+    balance         DOUBLE                PROTOID 6 DEFAULT 0
+    proto           BLOB                  PROTOID 7
 
-	CUSTOM-GET great_balance (DOUBLE)
-		   "balance > ?"
+    CUSTOM-GET great_balance (DOUBLE) "balance > ?"
+    CUSTOM-GET founders      ()       "userid < 100"
+    CUSTOM-GET firstlast  (TEXT TEXT) "firstname LIKE ? AND lastname LIKE ?"
 
-	CUSTOM-GET founders      ()
-		   "userid < 100"
+    CUSTOM-UPD balance   (balance)
+    CUSTOM-UPD firstlast (firstname lastname)
 
-	CUSTOM-GET firstlast (TEXT TEXT)
-		   "firstname LIKE ? AND lastname LIKE ?"
-
-	CUSTOM-UPD balance  (balance)
-	CUSTOM-UPD firstlast (firstname lastname)
-
-	CUSTOM-DEL SSN (INT)
-	           "ssn = ?"
+    CUSTOM-DEL SSN (INT)  "ssn = ?"
 }
 
-TABLE book
+TABLE book VERSION 1
 {
-	bookid		INT64		INDEX	QUERY
-	title		TEXT		LIKEQUERY
-	isbn		TEXT		INDEX	QUERY
-	price		DOUBLE
-	quantity	INT
+    bookid          INT64           INDEX   QUERY
+    title           TEXT            LIKEQUERY
+    isbn            TEXT            INDEX   QUERY
+    price           DOUBLE
+    quantity        INT
 
-	CUSTOM-GET out_of_stock ()
-		   "quantity == 0"
+    CUSTOM-GET out_of_stock ()  "quantity == 0"
 
-	CUSTOM-UPD quantity (quantity)
-	CUSTOM-UPD price (price)
+    CUSTOM-UPD quantity (quantity)
+    CUSTOM-UPD price    (price)
 }
 
-TABLE checkouts
+TABLE checkouts VERSION 1
 {
-	bookid		INT64		INDEX QUERY
-	userid		INT64		INDEX QUERY
-	duedate		INT64
+    bookid          INT64           INDEX QUERY
+    userid          INT64           INDEX QUERY
+    duedate         INT64
 
-	CUSTOM-GET due_now (INT64)
-		   "WHERE duedate < ?"
-
+    CUSTOM-GET due_now (INT64)  "WHERE duedate < ?"
 }

@@ -38,7 +38,7 @@ static void validate_table(TableDef *tb);
 %token KW_INT KW_INT64 KW_TEXT KW_BLOB KW_DOUBLE
 %token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD
 %token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_DEL
-%token KW_DEFAULT KW_PROTOID KW_PROTOPKG
+%token KW_DEFAULT KW_PROTOID KW_PROTOPKG KW_VERSION
 %token TOK_INTEGER TOK_DOUBLE TOK_STRING
 
 %type <word>    KW_WORD
@@ -83,11 +83,13 @@ TABLES
 	;
 
 TABLE
-	: KW_TABLE KW_WORD L_CURLY FIELDS CUSTOMS R_CURLY
+	: KW_TABLE KW_WORD KW_VERSION TOK_INTEGER
+          L_CURLY FIELDS CUSTOMS R_CURLY
 	{
 		$$ = new TableDef(*$2);
-		$$->fields = $4;
-                $$->customs = $5;
+                $$->version = $4;
+                $$->fields = $6;
+                $$->customs = $7;
 		delete $2;
                 validate_table($$);
 	}
