@@ -196,6 +196,10 @@ main()
     sqlite3 * pdb;
     SQL_TABLE_user  user;
 
+    printf("UPDATE_BALANCE = '%s'\n",  getenv("UPDATE_BALANCE"));
+    printf("DELETE_BY_ROWID = '%s'\n", getenv("DELETE_BY_ROWID"));
+    printf("RETAIN_TABLES = '%s'\n",   getenv("RETAIN_TABLES"));
+
     sqlite3_open("build_native/sample_test.db", &pdb);
     user.set_db(pdb);
     u.set_db(pdb);
@@ -218,11 +222,12 @@ main()
         get_all(pdb);
 
         user.balance = 15.44;
-#if 0
-        user.update(); // test both
-#else
-        user.update_balance();
-#endif
+
+        if (getenv("UPDATE_BALANCE") == NULL)
+            user.update(); // test both
+        else
+            user.update_balance();
+
         printf("updated row %" PRId64 "\n", (int64_t) user.rowid);
 
         test_protobuf(pdb, 4);
@@ -236,11 +241,10 @@ main()
         get_custom1(pdb, 15.00);
         get_custom2(pdb, "flip%", "kad%");
 
-#if 1
-        user.delete_SSN(456789012);
-#else
-        user.delete_rowid();
-#endif
+        if (getenv("DELETE_BY_ROWID") == NULL)
+            user.delete_SSN(456789012);
+        else
+            user.delete_rowid();
     }
 
 //    SQL_TABLE_user::table_drop(pdb);
