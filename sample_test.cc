@@ -76,6 +76,7 @@ SQL_TABLE_user_custom u;
 void
 get_all(sqlite3 *pdb)
 {
+    u.init();
     if (u.get_all() == false)
     {
         printf("get failed\n");
@@ -89,6 +90,7 @@ get_all(sqlite3 *pdb)
 void
 get_row(sqlite3 *pdb, int64_t row)
 {
+    u.init();
     if (u.get_by_rowid(row) == false)
     {
         printf("get failed\n");
@@ -102,6 +104,7 @@ get_row(sqlite3 *pdb, int64_t row)
 void
 get_like(sqlite3 *pdb, const std::string &patt)
 {
+    u.init();
     if (u.get_by_lastname_like(patt) == false)
     {
         printf("get like failed\n");
@@ -115,6 +118,7 @@ get_like(sqlite3 *pdb, const std::string &patt)
 void
 get_custom1(sqlite3 *pdb, double thresh)
 {
+    u.init();
     if (u.get_great_balance(thresh) == false)
     {
         printf("get by great threshold returned no users\n");
@@ -130,6 +134,7 @@ get_custom2(sqlite3 *pdb,
             const std::string &first,
             const std::string &last)
 {
+    u.init();
     if (u.get_firstlast(first, last) == false)
     {
         printf("get by firstlast returned no users\n");
@@ -143,11 +148,13 @@ get_custom2(sqlite3 *pdb,
 void
 test_protobuf(sqlite3 *pdb, int64_t userid)
 {
+    u.init();
     if (u.get_by_userid(userid) == false)
     {
         printf("cannot get by userid\n");
         return;
     }
+    SQL_TABLE_user_custom  t(pdb);
     do {
         library::TABLE_user_m  msg;
         std::string binary;
@@ -155,11 +162,10 @@ test_protobuf(sqlite3 *pdb, int64_t userid)
         msg.SerializeToString(&binary);
         printf("encoded user to protobuf %d bytes long\n",
                (int) binary.size());
-        u.init();
         msg.Clear();
         msg.ParseFromString(binary);
-        u.CopyFromProto(msg);
-        u.print();
+        t.CopyFromProto(msg);
+        t.print();
     } while (u.get_next());
 }
 
