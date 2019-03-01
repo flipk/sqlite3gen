@@ -247,6 +247,10 @@ main()
             user.delete_rowid();
     }
 
+    // if every query completes until SQLITE_DONE,
+    // these aren't needed.
+//    user.finalize();
+//    u.finalize();
 //    SQL_TABLE_user::table_drop(pdb);
     if (getenv("RETAIN_TABLES") == NULL)
         SQL_TABLE_ALL_TABLES::table_drop_all(pdb);

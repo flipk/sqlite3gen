@@ -53,8 +53,13 @@ public:
     static const int TABLE_VERSION = @@tableversion@@;
 
     void init(void);
+    void init_statements(void);
+    void finalize(void);
 
-    void set_db(sqlite3 *_pdb) { pdb = _pdb; }
+    void set_db(sqlite3 *_pdb) {
+        finalize();
+        pdb = _pdb;
+    }
 
     sqlite3_int64 rowid;
 
@@ -173,6 +178,12 @@ void *             SQL_TABLE_@@tablename@@ :: log_arg  = NULL;
 SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
     : pdb(_pdb)
 {
+    init_statements();
+}
+
+void
+SQL_TABLE_@@tablename@@ :: init_statements(void)
+{
     pStmt_insert = NULL;
     pStmt_update = NULL;
     pStmt_delete_rowid = NULL;
@@ -191,6 +202,12 @@ SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
 
 SQL_TABLE_@@tablename@@ :: ~SQL_TABLE_@@tablename@@(void)
 {
+    finalize();
+}
+
+void
+SQL_TABLE_@@tablename@@ :: finalize(void)
+{
     if (pStmt_insert)
         sqlite3_finalize(pStmt_insert);
     if (pStmt_update)
@@ -208,6 +225,7 @@ SQL_TABLE_@@tablename@@ :: ~SQL_TABLE_@@tablename@@(void)
 @@finalize_custom_upd@@
 @@finalize_custom_del@@
 
+    init_statements();
 }
 
 void SQL_TABLE_@@tablename@@ :: init(void)
