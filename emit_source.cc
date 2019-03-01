@@ -58,6 +58,7 @@ void emit_source(const std::string &fname,
         ostringstream query_implementations;
         ostringstream query_like_implementations;
         ostringstream insert_binders;
+        ostringstream update_binders;
         ostringstream custom_get_implementations;
         ostringstream custom_upd_implementations;
         ostringstream custom_del_implementations;
@@ -203,12 +204,18 @@ void emit_source(const std::string &fname,
             case TYPE_INT:
             case TYPE_INT64:
             case TYPE_DOUBLE:
+                patterns["stmt"] = "insert";
                 output_TABLE_insert_binder_pod(insert_binders, patterns);
+                patterns["stmt"] = "update";
+                output_TABLE_insert_binder_pod(update_binders, patterns);
                 output_TABLE_get_column_pod(get_columns, patterns);
                 break;
             case TYPE_TEXT:
             case TYPE_BLOB:
+                patterns["stmt"] = "insert";
                 output_TABLE_insert_binder_string(insert_binders, patterns);
+                patterns["stmt"] = "update";
+                output_TABLE_insert_binder_string(update_binders, patterns);
                 output_TABLE_get_column_string(get_columns, patterns);
                 break;
             }
@@ -407,6 +414,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(query_implementations);
         SET_PATTERN(query_like_implementations);
         SET_PATTERN(insert_binders);
+        SET_PATTERN(update_binders);
         SET_PATTERN(custom_get_implementations);
         SET_PATTERN(custom_upd_implementations);
         SET_PATTERN(custom_del_implementations);

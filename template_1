@@ -328,7 +328,7 @@ bool SQL_TABLE_@@tablename@@ :: update(void)
 
     sqlite3_reset(pStmt_update);
 
-@@insert_binders@@
+@@update_binders@@
 
     r = sqlite3_bind_int64(pStmt_update,
                            @@column_index@@, rowid);
@@ -762,21 +762,21 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@_like(
 ________ END
 
 ________ TABLE_insert_binder_pod
-    r = @@sqlite_bind_func@@(pStmt_insert, @@column_index@@, @@fieldname@@);
+    r = @@sqlite_bind_func@@(pStmt_@@stmt@@, @@column_index@@, @@fieldname@@);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: insert: "
+        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: @@stmt@@: "
                 "bind @@fieldname@@: r = %d\n", r);
     }
 ________ END
 
 ________ TABLE_insert_binder_string
-    r = @@sqlite_bind_func@@(pStmt_insert, @@column_index@@,
+    r = @@sqlite_bind_func@@(pStmt_@@stmt@@, @@column_index@@,
          @@fieldname@@.c_str(), @@fieldname@@.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: insert: "
+        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: @@stmt@@: "
                 "bind @@fieldname@@: r = %d\n", r);
     }
 ________ END
