@@ -19,19 +19,21 @@ void emit_proto(const std::string &fname,
 #define SET_PATTERN(x) patterns[#x] = x.str();
 
 static inline std::string
-TypeDef_to_Ctype(TypeDef t, bool do_const)
+TypeDef_to_Ctype(const TypeDefValue *t, bool do_const)
 {
-    switch (t)
+    switch (t->type)
     {
     case TYPE_INT:     return "int32_t";
     case TYPE_INT64:   return "int64_t";
     case TYPE_DOUBLE:  return "double";
+    case TYPE_BOOL:    return "bool";
     case TYPE_TEXT:
     case TYPE_BLOB:
         if (do_const)
             return "const std::string &";
         // else
         return "std::string";
+
     }
     return "UNKNOWN_TYPE";
 }
@@ -42,6 +44,7 @@ TypeDef_to_sqlite_macro(TypeDef t)
     switch (t)
     {
     case TYPE_INT:     return "INTEGER";
+    case TYPE_BOOL:    return "INTEGER";
     case TYPE_INT64:   return "INTEGER";
     case TYPE_DOUBLE:  return "FLOAT";
     case TYPE_TEXT:    return "TEXT";
@@ -56,6 +59,7 @@ TypeDef_to_sqlite_type(TypeDef t)
     switch (t)
     {
     case TYPE_INT:     return "int";
+    case TYPE_BOOL:    return "int";
     case TYPE_INT64:   return "int64";
     case TYPE_DOUBLE:  return "double";
     case TYPE_TEXT:    return "text";
@@ -74,6 +78,7 @@ TypeDef_to_sqlite_create_type(TypeDef t)
     case TYPE_DOUBLE:  return "double";
     case TYPE_TEXT:    return "string";
     case TYPE_BLOB:    return "blob";
+    case TYPE_BOOL:    return "integer";
     }
     return "UNKNOWN_TYPE";
 }
@@ -104,7 +109,7 @@ make_custom_get_arglist(const CustomGetUpdList * cust)
              type;
              type = type->next, count++)
         {
-            arglist << TypeDef_to_Ctype(type->type, true);
+            arglist << TypeDef_to_Ctype(type, true);
             arglist << " v";
             arglist << count;
             if (type->next)

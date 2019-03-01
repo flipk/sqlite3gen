@@ -35,6 +35,7 @@ static string * strvec(const char * w, int len);
 	       return TOK_STRING;
 	   }
 TABLE      { return KW_TABLE; }
+BOOL       { return KW_BOOL; }
 INT        { return KW_INT; }
 INT64      { return KW_INT64; }
 TEXT       { return KW_TEXT; }

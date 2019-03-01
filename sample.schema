@@ -12,6 +12,7 @@ TABLE user VERSION 19
     SSN             INT     INDEX   QUERY PROTOID 5 DEFAULT 0
     balance         DOUBLE                PROTOID 6 DEFAULT 0
     proto           BLOB                  PROTOID 7
+    test2           BOOL                  PROTOID 8 DEFAULT 0
 
     CUSTOM-GET great_balance (DOUBLE) "balance > ?"
     CUSTOM-GET founders      ()       "userid < 100"

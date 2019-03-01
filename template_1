@@ -625,6 +625,22 @@ ________ TABLE_get_column_pod
     @@fieldname@@ = @@sqlite_column_func@@(pStmt, @@column_index@@);
 ________ END
 
+________ TABLE_get_column_bool
+    got = sqlite3_column_type(pStmt, @@column_index@@);
+    if (got != SQLITE_@@sqlite_type@@)
+    {
+        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: get_columns "
+                "(@@fieldname@@) : "
+                "column @@column_index@@ wrong type (%d %d)\n",
+                got, SQLITE_@@sqlite_type@@);
+        return false;
+    }
+    if (@@sqlite_column_func@@(pStmt, @@column_index@@))
+        @@fieldname@@ = true;
+    else
+        @@fieldname@@ = false;
+________ END
+
 ________ TABLE_get_column_string
     got = sqlite3_column_type(pStmt, @@column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
@@ -762,7 +778,18 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@_like(
 ________ END
 
 ________ TABLE_insert_binder_pod
-    r = @@sqlite_bind_func@@(pStmt_@@stmt@@, @@column_index@@, @@fieldname@@);
+    r = @@sqlite_bind_func@@(pStmt_@@stmt@@, @@column_index@@,
+                             @@fieldname@@);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: @@stmt@@: "
+                "bind @@fieldname@@: r = %d\n", r);
+    }
+________ END
+
+________ TABLE_insert_binder_bool
+    r = @@sqlite_bind_func@@(pStmt_@@stmt@@, @@column_index@@,
+                             @@fieldname@@ ? 1 : 0);
     if (r != SQLITE_OK)
     {
         fprintf(stderr, "SQL_TABLE_@@tablename@@ :: @@stmt@@: "
@@ -1008,6 +1035,13 @@ ________ END
 ________ TABLE_proto_copy_from_field
     if (msg.has_@@fieldname_lower@@())
         @@fieldname@@ = msg.@@fieldname_lower@@();
+    else
+    @@initial_value@@
+________ END
+
+________ TABLE_proto_copy_from_field_bool
+    if (msg.has_@@fieldname_lower@@())
+        @@fieldname@@ = msg.@@fieldname_lower@@() ? true : false;
     else
     @@initial_value@@
 ________ END

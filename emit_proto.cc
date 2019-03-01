@@ -89,6 +89,9 @@ emit_proto(const std::string &fname, const SchemaDef *schema)
             case TYPE_BLOB:
                 patterns["fieldtype"] = "bytes";
                 break;
+            case TYPE_BOOL:
+                patterns["fieldtype"] = "bool";
+                break;
             }
 
             ostringstream fieldnum;

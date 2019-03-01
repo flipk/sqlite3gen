@@ -1,4 +1,4 @@
-- add BOOL and ENUM type support to schema and protobuf.
+- add ENUM type support to schema and protobuf.
    - enum should be declared at top level, outside table.
 - PROTOPKG should implement a namespace.
 - implement a sqlite3_vfs that does encryption.

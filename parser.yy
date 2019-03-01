@@ -36,7 +36,7 @@ static void validate_table(TableDef *tb);
 
 %token L_CURLY R_CURLY L_PAREN R_PAREN KW_TABLE
 %token KW_INT KW_INT64 KW_TEXT KW_BLOB KW_DOUBLE
-%token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD
+%token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD KW_BOOL
 %token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_DEL
 %token KW_DEFAULT KW_PROTOID KW_PROTOPKG KW_VERSION
 %token TOK_INTEGER TOK_DOUBLE TOK_STRING
@@ -221,6 +221,11 @@ DATATYPE
             $$ = new TypeDefValue;
             $$->init(TYPE_BLOB);
         }
+	| KW_BOOL
+        {
+            $$ = new TypeDefValue;
+            $$->init(TYPE_BOOL);
+        }
 	;
 
 ATTRIBUTES
@@ -333,6 +338,7 @@ get_type(TypeDef type)
     case TYPE_TEXT:   return "text";
     case TYPE_BLOB:   return "blob";
     case TYPE_DOUBLE: return "double";
+    case TYPE_BOOL:   return "bool";
     }
     return "UNKNOWN";
 }

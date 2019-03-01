@@ -104,7 +104,7 @@ void emit_source(const std::string &fname,
 
             patterns["fieldname"]          = fd->name;
             patterns["fieldname_lower"]    = fdnamelower;
-            patterns["fieldtype"]          = TypeDef_to_Ctype(t, true);
+            patterns["fieldtype"]          = TypeDef_to_Ctype(&fd->type, true);
             patterns["sqlite_column_func"] = TypeDef_to_sqlite_column(t);
             patterns["sqlite_bind_func"]   = TypeDef_to_sqlite_bind(t);
             patterns["sqlite_type"]        = TypeDef_to_sqlite_macro(t);
@@ -133,6 +133,7 @@ void emit_source(const std::string &fname,
                 switch (t)
                 {
                 case TYPE_INT:
+                case TYPE_BOOL:
                 case TYPE_INT64:
                 case TYPE_DOUBLE:
                     output_TABLE_query_bind_pod(query_bind, patterns);
@@ -182,6 +183,11 @@ void emit_source(const std::string &fname,
             case TYPE_BLOB:
                 initial_value << ".clear();\n";
                 break;
+            case TYPE_BOOL:
+                initial_value
+                    << " = "
+                    << (fd->attrs.init_int ? "true" : "false")
+                    << ";\n";
             }
             initial_values << initial_value.str();
 
@@ -195,8 +201,12 @@ void emit_source(const std::string &fname,
 
                 SET_PATTERN(initial_value);
 
-                output_TABLE_proto_copy_from_field(
-                    proto_copy_from, patterns);
+                if (fd->type.type != TYPE_BOOL)
+                    output_TABLE_proto_copy_from_field(
+                        proto_copy_from, patterns);
+                else
+                    output_TABLE_proto_copy_from_field_bool(
+                        proto_copy_from, patterns);
             }
 
             switch (t)
@@ -217,6 +227,13 @@ void emit_source(const std::string &fname,
                 patterns["stmt"] = "update";
                 output_TABLE_insert_binder_string(update_binders, patterns);
                 output_TABLE_get_column_string(get_columns, patterns);
+                break;
+            case TYPE_BOOL:
+                patterns["stmt"] = "insert";
+                output_TABLE_insert_binder_bool(insert_binders, patterns);
+                patterns["stmt"] = "update";
+                output_TABLE_insert_binder_bool(update_binders, patterns);
+                output_TABLE_get_column_bool(get_columns, patterns);
                 break;
             }
         }
@@ -255,6 +272,7 @@ void emit_source(const std::string &fname,
                     switch (t)
                     {
                     case TYPE_INT:
+                    case TYPE_BOOL:
                     case TYPE_INT64:
                     case TYPE_DOUBLE:
                         output_TABLE_custom_get_binder_pod(
@@ -310,6 +328,7 @@ void emit_source(const std::string &fname,
                     switch (t)
                     {
                     case TYPE_INT:
+                    case TYPE_BOOL:
                     case TYPE_INT64:
                     case TYPE_DOUBLE:
                         output_TABLE_custom_upd_binder_pod(
@@ -362,6 +381,7 @@ void emit_source(const std::string &fname,
                     switch (t)
                     {
                     case TYPE_INT:
+                    case TYPE_BOOL:
                     case TYPE_INT64:
                     case TYPE_DOUBLE:
                         output_TABLE_custom_del_binder_pod(

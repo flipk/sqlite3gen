@@ -11,7 +11,8 @@ enum TypeDef
     TYPE_INT64  = 2,
     TYPE_TEXT   = 3,
     TYPE_BLOB   = 4,
-    TYPE_DOUBLE = 5
+    TYPE_DOUBLE = 5,
+    TYPE_BOOL   = 6
 };
 
 struct TypeDefValue
