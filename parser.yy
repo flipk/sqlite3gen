@@ -109,13 +109,13 @@ BLOCKBODY
 	}
 	| TOK_STRING BLOCKBODY
 	{
-	    $2->append(*$1);
-	    delete $1;
-	    $$ = $2;
+            $1->append(*$2);
+	    delete $2;
+	    $$ = $1;
 	}
 	| TOK_NL BLOCKBODY
 	{
-	    $2->append("\n");
+	    $2->insert(0,"\n");
 	    $$ = $2;
 	}
 	;
