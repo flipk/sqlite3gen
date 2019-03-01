@@ -16,6 +16,10 @@ ________ HEADER_TOP
 #include "sqlite3.h"
 @@protobuf_header@@
 
+namespace @@package@@ {
+
+@@headertop_block@@
+
 typedef void (*sql_log_function_t)(void *arg, sqlite3_stmt *);
 typedef void (*table_version_callback)(
     const std::string &table_name,
@@ -137,8 +141,8 @@ ________ TABLE_CLASS_table_custom_del_method_protos
 ________ END
 
 ________ TABLE_CLASS_proto_copy_proto
-    void CopyToProto(@@protopkg@@::TABLE_@@tablename@@_m &msg);
-    void CopyFromProto(const @@protopkg@@::TABLE_@@tablename@@_m &msg);
+    void CopyToProto(@@package@@::TABLE_@@tablename@@_m &msg);
+    void CopyFromProto(const @@package@@::TABLE_@@tablename@@_m &msg);
 ________ END
 
 ________ CLASS_ALL_TABELS_DEFN
@@ -148,6 +152,10 @@ public:
     static bool init_all(sqlite3 *pdb, table_version_callback cb);
     static void table_drop_all(sqlite3 *pdb);
 };
+
+@@headerbottom_block@@
+
+}; // namespace @@package@@
 
 ________ END
 
@@ -165,6 +173,10 @@ ________ SOURCE_TOP
 #include "@@headerfile@@"
 #include <string.h>
 #include <stdio.h>
+
+namespace @@package@@ {
+
+@@sourcetop_block@@
 
 ________ END
 
@@ -1015,14 +1027,14 @@ ________ END
 ________ TABLE_proto_copy_funcs
 void
 SQL_TABLE_@@tablename@@ :: CopyToProto(
-              @@protopkg@@::TABLE_@@tablename@@_m &msg)
+              @@package@@::TABLE_@@tablename@@_m &msg)
 {
 @@proto_copy_to@@
 }
 
 void
 SQL_TABLE_@@tablename@@ :: CopyFromProto(
-              const @@protopkg@@::TABLE_@@tablename@@_m &msg)
+              const @@package@@::TABLE_@@tablename@@_m &msg)
 {
 @@proto_copy_from@@
 }
@@ -1094,6 +1106,10 @@ void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
                  NULL, NULL, NULL);
 }
 
+@@sourcebottom_block@@
+
+}; // namespace @@package@@
+
 ________ END
 
 ________ CLASS_ALL_TABLES_create_a_table
@@ -1118,9 +1134,13 @@ ________ PROTO_TOP
 
 syntax = "proto2";
 
-package @@package_name@@;
+package @@package@@;
+
+@@prototop_block@@
 
 ________ END
+
+// note, @@protobottom_block@@ is inserted by the code.
 
 ________ PROTO_message
 

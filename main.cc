@@ -14,15 +14,13 @@ void
 usage(void)
 {
     fprintf(stderr,
-            "usage: sql3gen schema file.cc file.h [file.proto]\n"
-            "   note proto file is mandatory if schema contains\n"
-            "   PROTOPKG and will not be written if schema does not.\n");
+            "usage: sql3gen schema file.cc file.h file.proto\n");
 }
 
 int
 main(int argc, char ** argv)
 {
-    if (argc != 4 && argc != 5)
+    if (argc != 5)
     {
         usage();
         return 1;
@@ -42,16 +40,8 @@ main(int argc, char ** argv)
     {
         SchemaDef * schema = parse_file(schema_file);
 
-        if (schema->proto_package != "")
+        if (schema->package != "")
         {
-            if (argc == 4)
-            {
-                fprintf(stderr,
-                        "ERROR: schema contains PROTOPKG, "
-                        "proto output file is required\n");
-                usage();
-                return 1;
-            }
             proto_file = argv[4];
             size_t filename_len = proto_file.size();
             if (filename_len < 7)
@@ -69,14 +59,9 @@ main(int argc, char ** argv)
         }
         else
         {
-            if (argc == 5)
-            {
-                fprintf(stderr,
-                        "ERROR: schema does not contain PROTOPKG, "
-                        "proto output file should not be specified\n");
-                usage();
-                return 1;
-            }
+            fprintf(stderr,
+                    "ERROR: schema does not contain PROTOPKG\n");
+            return 1;
         }
 
         print_tables(schema->tables);

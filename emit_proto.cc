@@ -18,12 +18,6 @@ using namespace std;
 void
 emit_proto(const std::string &fname, const SchemaDef *schema)
 {
-    if (schema->proto_package == "")
-    {
-        printf("no PROTOPKG in schema, skipping protobuf output\n");
-        return;
-    }
-
     ofstream  out(fname.c_str(), ios_base::out | ios_base::trunc);
     const TableDef *td;
     pattern_value_map  patterns;
@@ -34,7 +28,8 @@ emit_proto(const std::string &fname, const SchemaDef *schema)
         exit(1);
     }
 
-    patterns["package_name"] = schema->proto_package;
+    patterns["package"] = schema->package;
+    patterns["prototop_block"] = schema->prototop;
 
     output_PROTO_TOP(out, patterns);
 
@@ -105,4 +100,6 @@ emit_proto(const std::string &fname, const SchemaDef *schema)
 
         output_PROTO_message(out, patterns);
     }
+
+    out << schema->protobottom;
 }

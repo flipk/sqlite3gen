@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-class SQL_TABLE_user_custom : public SQL_TABLE_user {
+class SQL_TABLE_user_custom : public library::SQL_TABLE_user {
     sqlite3_stmt * pStmt_by_great_balance;
 public:
     SQL_TABLE_user_custom(sqlite3 *_pdb = NULL)
@@ -194,7 +194,7 @@ int
 main()
 {
     sqlite3 * pdb;
-    SQL_TABLE_user  user;
+    library::SQL_TABLE_user  user;
 
     printf("UPDATE_BALANCE = '%s'\n",  getenv("UPDATE_BALANCE"));
     printf("DELETE_BY_ROWID = '%s'\n", getenv("DELETE_BY_ROWID"));
@@ -204,8 +204,9 @@ main()
     user.set_db(pdb);
     u.set_db(pdb);
 
-    SQL_TABLE_ALL_TABLES::init_all(pdb, &table_callback);
-    SQL_TABLE_user::register_log_funcs(&log_sql_upd, &log_sql_get, NULL);
+    library::SQL_TABLE_ALL_TABLES::init_all(pdb, &table_callback);
+    library::SQL_TABLE_user::register_log_funcs(
+        &log_sql_upd, &log_sql_get, NULL);
     {
 
         user.userid = 4;
@@ -251,9 +252,9 @@ main()
     // these aren't needed.
 //    user.finalize();
 //    u.finalize();
-//    SQL_TABLE_user::table_drop(pdb);
+//    library::SQL_TABLE_user::table_drop(pdb);
     if (getenv("RETAIN_TABLES") == NULL)
-        SQL_TABLE_ALL_TABLES::table_drop_all(pdb);
+        library::SQL_TABLE_ALL_TABLES::table_drop_all(pdb);
     sqlite3_close(pdb);
     return 0;
 }

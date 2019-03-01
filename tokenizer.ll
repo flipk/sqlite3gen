@@ -19,11 +19,24 @@ static string * strvec(const char * w, int len);
 
 %}
 
+%s BLOCK
+
 %%
 
-(\r|\n)    { /* skip nl */ }
-#.*(\r|\n)+ { /* skip comments */ }
-[ \t]+ { /* skip whitespace */ }
+<BLOCK>%\}      { BEGIN(INITIAL); return KW_CLOSEBLOCK; }
+<BLOCK>.*       { yylval.word = strvec(yytext, yyleng); return TOK_STRING; }
+<BLOCK>(\r|\n)  { return TOK_NL; }
+
+<INITIAL>(\r|\n)         { /* skip nl */ }
+<INITIAL>#.*(\r|\n)+     { /* skip comments */ }
+<INITIAL>[ \t]+          { /* skip whitespace */ }
+
+%PROTOTOP\{       { BEGIN(BLOCK); return KW_PROTOTOP; }
+%HEADERTOP\{      { BEGIN(BLOCK); return KW_HEADERTOP; }
+%SOURCETOP\{      { BEGIN(BLOCK); return KW_SOURCETOP; }
+%PROTOBOTTOM\{    { BEGIN(BLOCK); return KW_PROTOBOTTOM; }
+%HEADERBOTTOM\{   { BEGIN(BLOCK); return KW_HEADERBOTTOM; }
+%SOURCEBOTTOM\{   { BEGIN(BLOCK); return KW_SOURCEBOTTOM; }
 
 \{         { return L_CURLY; }
 \}         { return R_CURLY; }
@@ -45,7 +58,7 @@ INDEX      { return KW_INDEX; }
 QUERY      { return KW_QUERY; }
 DEFAULT    { return KW_DEFAULT; }
 PROTOID    { return KW_PROTOID; }
-PROTOPKG   { return KW_PROTOPKG; }
+PACKAGE    { return KW_PACKAGE; }
 LIKEQUERY  { return KW_LIKEQUERY; }
 VERSION    { return KW_VERSION; }
 CUSTOM-GET { return KW_CUSTOM_GET; }

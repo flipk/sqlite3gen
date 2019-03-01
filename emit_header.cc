@@ -29,8 +29,12 @@ void emit_header(const std::string &fname,
         exit(1);
     }
     
+    patterns["package"] = schema->package;
+    patterns["headertop_block"] = schema->headertop;
+    patterns["headerbottom_block"] = schema->headerbottom;
+
     ostringstream protobuf_header;
-    if (schema->proto_package != "")
+    if (schema->package != "")
         protobuf_header << "#include \""
                         << proto_hdr_fname
                         << "\"\n";
@@ -126,9 +130,8 @@ void emit_header(const std::string &fname,
             }
         }
 
-        if (include_protos && schema->proto_package != "")
+        if (include_protos)
         {
-            patterns["protopkg"] = schema->proto_package;
             output_TABLE_CLASS_proto_copy_proto(
                 table_proto_copy_protos, patterns);
         }

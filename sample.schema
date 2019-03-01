@@ -1,7 +1,22 @@
 
 # this is a comment.
 
-PROTOPKG "library"
+PACKAGE "library"
+
+%PROTOTOP{
+// proto top line 1
+// proto top line 2
+%}
+
+%HEADERTOP{
+/* header top line 1 */
+/* header top line 2 */
+%}
+
+%SOURCETOP{
+/* source top line 1 */
+/* source top line 2 */
+%}
 
 TABLE user VERSION 19
 {
@@ -46,3 +61,18 @@ TABLE checkouts VERSION 1
 
     CUSTOM-GET due_now (INT64)  "WHERE duedate < ?"
 }
+
+%PROTOBOTTOM{
+// proto bottom line 1
+// proto bottom line 2
+%}
+
+%HEADERBOTTOM{
+/* header bottom line 1 */
+/* header bottom line 2 */
+%}
+
+%SOURCEBOTTOM{
+/* source bottom line 1 */
+/* source bottom line 2 */
+%}

@@ -29,14 +29,16 @@ void emit_source(const std::string &fname,
         exit(1);
     }
 
+    patterns["package"] = schema->package;
     patterns["headerfile"] = header_fname;
+    patterns["sourcetop_block"] = schema->sourcetop;
+    patterns["sourcebottom_block"] = schema->sourcebottom;
 
     output_SOURCE_TOP(out, patterns);
 
     ostringstream create_all_tables;
     ostringstream drop_all_tables;
 
-    patterns["protopkg"] = schema->proto_package;
 
     for (td = schema->tables; td; td = td->next)
     {
@@ -406,7 +408,7 @@ void emit_source(const std::string &fname,
             }
         }
 
-        if (do_protobuf && schema->proto_package != "")
+        if (do_protobuf && schema->package != "")
         {
             SET_PATTERN(proto_copy_to);
             SET_PATTERN(proto_copy_from);

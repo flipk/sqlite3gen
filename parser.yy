@@ -38,10 +38,16 @@ static void validate_table(TableDef *tb);
 %token KW_INT KW_INT64 KW_TEXT KW_BLOB KW_DOUBLE
 %token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD KW_BOOL
 %token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_DEL
-%token KW_DEFAULT KW_PROTOID KW_PROTOPKG KW_VERSION
-%token TOK_INTEGER TOK_DOUBLE TOK_STRING
+%token KW_DEFAULT KW_PROTOID KW_PACKAGE KW_VERSION
 
-%type <word>    KW_WORD
+%token KW_PROTOTOP  KW_PROTOBOTTOM
+%token KW_HEADERTOP KW_HEADERBOTTOM
+%token KW_SOURCETOP KW_SOURCEBOTTOM
+%token KW_CLOSEBLOCK
+
+%token TOK_INTEGER TOK_DOUBLE TOK_STRING TOK_NL
+
+%type <word>    KW_WORD BLOCKBODY
 %type <table>   TABLE
 %type <field>   FIELDS FIELD
 %type <type>    DATATYPE TYPELIST
@@ -57,30 +63,70 @@ static void validate_table(TableDef *tb);
 %%
 
 SCHEMA_FILE
-	: PACKAGE TABLES
-	| TABLES
+	: /*nothing*/
+	| PACKAGE SCHEMA_FILE
+	| TABLE SCHEMA_FILE
+	| BLOCK SCHEMA_FILE
+	;
+
+BLOCK
+	: KW_PROTOTOP     BLOCKBODY KW_CLOSEBLOCK
+        {
+            schema_def->prototop = *$2;
+            delete $2;
+        }
+	| KW_PROTOBOTTOM  BLOCKBODY KW_CLOSEBLOCK
+        {
+            schema_def->protobottom = *$2;
+            delete $2;
+        }
+	| KW_SOURCETOP    BLOCKBODY KW_CLOSEBLOCK
+        {
+            schema_def->sourcetop = *$2;
+            delete $2;
+        }
+	| KW_SOURCEBOTTOM BLOCKBODY KW_CLOSEBLOCK
+        {
+            schema_def->sourcebottom = *$2;
+            delete $2;
+        }
+	| KW_HEADERTOP    BLOCKBODY KW_CLOSEBLOCK
+        {
+            schema_def->headertop = *$2;
+            delete $2;
+        }
+	| KW_HEADERBOTTOM BLOCKBODY KW_CLOSEBLOCK
+        {
+            schema_def->headerbottom = *$2;
+            delete $2;
+        }
+	;
+
+BLOCKBODY
+	: /* nothing */
+	{
+	    $$ = new std::string;
+	}
+	| TOK_STRING BLOCKBODY
+	{
+	    $2->append(*$1);
+	    delete $1;
+	    $$ = $2;
+	}
+	| TOK_NL BLOCKBODY
+	{
+	    $2->append("\n");
+	    $$ = $2;
+	}
 	;
 
 PACKAGE
-	: KW_PROTOPKG TOK_STRING
+	: KW_PACKAGE TOK_STRING
 	{
-            schema_def->proto_package = *$2;
+            schema_def->package = *$2;
             delete $2;
 	}
         ;
-
-TABLES
-	: TABLE
-	{
-		$1->next = schema_def->tables;
-		schema_def->tables = $1;
-	}
-	| TABLE TABLES
-	{
-		$1->next = schema_def->tables;
-		schema_def->tables = $1;
-	}
-	;
 
 TABLE
 	: KW_TABLE KW_WORD KW_VERSION TOK_INTEGER
@@ -92,6 +138,8 @@ TABLE
                 $$->customs = $7;
 		delete $2;
                 validate_table($$);
+                $$->next = schema_def->tables;
+                schema_def->tables = $$;
 	}
 	;
 

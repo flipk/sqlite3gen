@@ -158,7 +158,13 @@ struct TableDef
 
 struct SchemaDef
 {
-    std::string proto_package;
+    std::string package;
+    std::string headertop;
+    std::string headerbottom;
+    std::string sourcetop;
+    std::string sourcebottom;
+    std::string prototop;
+    std::string protobottom;
     struct TableDef * tables;
 };
 
