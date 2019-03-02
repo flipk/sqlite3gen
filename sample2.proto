@@ -1,0 +1,9 @@
+
+syntax = "proto2";
+
+package sample.library2;
+
+enum EnumField_t {
+   ENUM_ONE = 1;
+   ENUM_TWO = 2;
+};

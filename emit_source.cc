@@ -135,6 +135,7 @@ void emit_source(const std::string &fname,
                 switch (t)
                 {
                 case TYPE_INT:
+                case TYPE_ENUM:
                 case TYPE_INT64:
                 case TYPE_DOUBLE:
                     output_TABLE_query_bind_pod(query_bind, patterns);
@@ -192,6 +193,13 @@ void emit_source(const std::string &fname,
                     << " = "
                     << (fd->attrs.init_int ? "true" : "false")
                     << ";\n";
+                break;
+            case TYPE_ENUM:
+                initial_value
+                    << " = "
+                    << Dots_to_Colons(fd->attrs.init_string)
+                    << ";\n";
+                break;
             }
             initial_values << initial_value.str();
 
@@ -200,17 +208,44 @@ void emit_source(const std::string &fname,
             // populated in the Message).
             if (do_protobuf && fd->attrs.protoid != -1)
             {
-                output_TABLE_proto_copy_to_field(
-                    proto_copy_to, patterns);
-
                 SET_PATTERN(initial_value);
 
-                if (fd->type.type != TYPE_BOOL)
+                switch (fd->type.type)
+                {
+                case TYPE_INT:
+                case TYPE_INT64:
+                case TYPE_TEXT:
+                case TYPE_BLOB:
+                case TYPE_DOUBLE:
+                    output_TABLE_proto_copy_to_field(
+                        proto_copy_to, patterns);
+                    break;
+                case TYPE_BOOL:
+                    output_TABLE_proto_copy_to_field_bool(
+                        proto_copy_to, patterns);
+                    break;
+                case TYPE_ENUM:
+                    output_TABLE_proto_copy_to_field_enum(
+                        proto_copy_to, patterns);
+                    break;
+                }
+
+                switch (fd->type.type)
+                {
+                case TYPE_INT:
+                case TYPE_INT64:
+                case TYPE_TEXT:
+                case TYPE_BLOB:
+                case TYPE_DOUBLE:
+                case TYPE_ENUM:
                     output_TABLE_proto_copy_from_field(
                         proto_copy_from, patterns);
-                else
+                    break;
+                case TYPE_BOOL:
                     output_TABLE_proto_copy_from_field_bool(
                         proto_copy_from, patterns);
+                    break;
+                }
             }
 
             switch (t)
@@ -238,6 +273,13 @@ void emit_source(const std::string &fname,
                 patterns["stmt"] = "update";
                 output_TABLE_insert_binder_bool(update_binders, patterns);
                 output_TABLE_get_column_bool(get_columns, patterns);
+                break;
+            case TYPE_ENUM:
+                patterns["stmt"] = "insert";
+                output_TABLE_insert_binder_enum(insert_binders, patterns);
+                patterns["stmt"] = "update";
+                output_TABLE_insert_binder_enum(update_binders, patterns);
+                output_TABLE_get_column_enum(get_columns, patterns);
                 break;
             }
         }
@@ -276,7 +318,6 @@ void emit_source(const std::string &fname,
                     switch (t)
                     {
                     case TYPE_INT:
-                    case TYPE_BOOL:
                     case TYPE_INT64:
                     case TYPE_DOUBLE:
                         output_TABLE_custom_get_binder_pod(
@@ -285,6 +326,14 @@ void emit_source(const std::string &fname,
                     case TYPE_TEXT:
                     case TYPE_BLOB:
                         output_TABLE_custom_get_binder_string(
+                            custom_get_binders, patterns);
+                        break;
+                    case TYPE_BOOL:
+                        output_TABLE_custom_get_binder_bool(
+                            custom_get_binders, patterns);
+                        break;
+                    case TYPE_ENUM:
+                        output_TABLE_custom_get_binder_enum(
                             custom_get_binders, patterns);
                         break;
                     }
@@ -332,7 +381,6 @@ void emit_source(const std::string &fname,
                     switch (t)
                     {
                     case TYPE_INT:
-                    case TYPE_BOOL:
                     case TYPE_INT64:
                     case TYPE_DOUBLE:
                         output_TABLE_custom_upd_binder_pod(
@@ -341,6 +389,14 @@ void emit_source(const std::string &fname,
                     case TYPE_TEXT:
                     case TYPE_BLOB:
                         output_TABLE_custom_upd_binder_string(
+                            custom_update_binders, patterns);
+                        break;
+                    case TYPE_BOOL:
+                        output_TABLE_custom_upd_binder_bool(
+                            custom_update_binders, patterns);
+                        break;
+                    case TYPE_ENUM:
+                        output_TABLE_custom_upd_binder_enum(
                             custom_update_binders, patterns);
                         break;
                     }
@@ -385,7 +441,6 @@ void emit_source(const std::string &fname,
                     switch (t)
                     {
                     case TYPE_INT:
-                    case TYPE_BOOL:
                     case TYPE_INT64:
                     case TYPE_DOUBLE:
                         output_TABLE_custom_del_binder_pod(
@@ -394,6 +449,14 @@ void emit_source(const std::string &fname,
                     case TYPE_TEXT:
                     case TYPE_BLOB:
                         output_TABLE_custom_del_binder_string(
+                            custom_del_binders, patterns);
+                        break;
+                    case TYPE_BOOL:
+                        output_TABLE_custom_del_binder_bool(
+                            custom_del_binders, patterns);
+                        break;
+                    case TYPE_ENUM:
+                        output_TABLE_custom_del_binder_enum(
                             custom_del_binders, patterns);
                         break;
                     }

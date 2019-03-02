@@ -87,6 +87,9 @@ emit_proto(const std::string &fname, const SchemaDef *schema)
             case TYPE_BOOL:
                 patterns["fieldtype"] = "bool";
                 break;
+            case TYPE_ENUM:
+                patterns["fieldtype"] = fd->type.enum_name;
+                break;
             }
 
             ostringstream fieldnum;

@@ -4,7 +4,7 @@
 PACKAGE "library"
 
 %PROTOTOP{
-// proto top line 1
+import "sample2.proto";
 // proto top line 2
 %}
 
@@ -20,14 +20,16 @@ PACKAGE "library"
 
 TABLE user VERSION 19
 {
-    userid          INT64   INDEX   QUERY PROTOID 1 DEFAULT -1
-    firstname       TEXT                  PROTOID 2 DEFAULT ""
-    lastname        TEXT    LIKEQUERY     PROTOID 3 DEFAULT ""
-    mi              TEXT                  PROTOID 4 DEFAULT ""
-    SSN             INT     INDEX   QUERY PROTOID 5 DEFAULT 0
-    balance         DOUBLE                PROTOID 6 DEFAULT 0
-    proto           BLOB                  PROTOID 7
-    test2           BOOL            QUERY PROTOID 8 DEFAULT 0
+    userid    INT64         INDEX   QUERY PROTOID 1 DEFAULT -1
+    firstname TEXT                        PROTOID 2 DEFAULT ""
+    lastname  TEXT          LIKEQUERY     PROTOID 3 DEFAULT ""
+    mi        TEXT                        PROTOID 4 DEFAULT ""
+    SSN       INT           INDEX   QUERY PROTOID 5 DEFAULT 0
+    balance   DOUBLE                      PROTOID 6 DEFAULT 0
+    proto     BLOB                        PROTOID 7
+    test2     BOOL                  QUERY PROTOID 8 DEFAULT 0
+    test3     ENUM sample.library2.EnumField_t QUERY PROTOID 9 \
+    	      DEFAULT sample.library2.ENUM_TWO
 
     CUSTOM-GET great_balance (DOUBLE) "balance > ?"
     CUSTOM-GET founders      ()       "userid < 100"

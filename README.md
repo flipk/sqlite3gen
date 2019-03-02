@@ -12,8 +12,9 @@ features found only in C++11 or newer).
 ## samples
 
 Refer to the file `sample.schema` in this source, and reference
-`obj_sample.h` and `obj_sample.cc` to see what this tool produces.
-`sample_test.cc` shows what code can do with these classes.
+`obj_sample.h`, `obj_sample.cc`, and `obj_sample.proto` to see what
+this tool produces.  `sample_test.cc` shows what code can do with
+these classes.
 
 ## format of schema file
 
@@ -22,6 +23,26 @@ remainder of a line beginning with this character is ignored.
 
 ```
 # this is a comment.
+```
+
+Schema files must name a PACKAGE. This puts all code in a C++ namespace,
+and is also used for the protobuf file package name.
+
+```
+PACKAGE "library"
+```
+
+Schema files may include literal data in the proto files, header files,
+and source files. Note in headers and source files, the code is outside
+the 'namespace' declaration. You may add one if you wish.  You may also
+include literal text at both the top and bottom of each file.
+
+```
+%PROTOTOP{
+  import "sample2.proto";
+%}
+%PROTOBOTTOM{
+%}
 ```
 
 Tables are demarked with curly braces. The format for a table is thus:
@@ -47,11 +68,14 @@ TABLE <table-name> VERSION <number>
 Keywords must be in upper case. Recognized keywords are:
 
 ```
-protobuf package name : PROTOPKG
-table starts with : TABLE
-types : INT INT64 TEXT DOUBLE BLOB
+protobuf package name : PACKAGE
+tables : TABLE VERSION
+types : INT INT64 TEXT DOUBLE BLOB BOOL ENUM
 column attributes : INDEX LIKEQUERY QUERY DEFAULT PROTOID
 customs : CUSTOM-GET CUSTOM-UPD CUSTOM-DEL
+literal text : %PROTOTOP{ %}    %PROTOBOTTOM{ %}
+               %HEADERTOP{ %}   %HEADERBOTTOM{ %}
+	       %SOURCETOP{ %}   %SOURCEBOTTOM{ %}
 ```
 
 The `table-name` will be used to complete a C++ class of the form
@@ -63,13 +87,15 @@ the C++ class.
 The TYPE declares the SQL database data type. SQL
 data types map to C++ data types as such:
 
-| SQL type | C++ type | protobuf type |
+| SQLGEN type | C++ type | protobuf type |
 | -------- | -------- | ------------- |
 |  INT     | int32_t  | int32 |
 |  INT64   | int64_t  | int64 |
 |  DOUBLE  | double   | double |
 |  TEXT    | std::string | string |
 |  BLOB    | std::string | bytes |
+|  BOOL    | bool | bool |
+|  ENUM    | enum | enum |
 
 ### INDEX, QUERY, and LIKEQUERY attributes
 

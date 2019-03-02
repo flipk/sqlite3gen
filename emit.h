@@ -19,6 +19,18 @@ void emit_proto(const std::string &fname,
 #define SET_PATTERN(x) patterns[#x] = x.str();
 
 static inline std::string
+Dots_to_Colons(const std::string &in)
+{
+    std::string out;
+    for (size_t ind = 0; ind < in.size(); ind++)
+        if (in[ind] == '.')
+            out += "::";
+        else
+            out += in[ind];
+    return out;
+}
+
+static inline std::string
 TypeDef_to_Ctype(const TypeDefValue *t, bool do_const)
 {
     switch (t->type)
@@ -33,7 +45,7 @@ TypeDef_to_Ctype(const TypeDefValue *t, bool do_const)
             return "const std::string &";
         // else
         return "std::string";
-
+    case TYPE_ENUM:   return Dots_to_Colons(t->enum_name);
     }
     return "UNKNOWN_TYPE";
 }
@@ -49,6 +61,7 @@ TypeDef_to_sqlite_macro(TypeDef t)
     case TYPE_DOUBLE:  return "FLOAT";
     case TYPE_TEXT:    return "TEXT";
     case TYPE_BLOB:    return "BLOB";
+    case TYPE_ENUM:    return "INTEGER";
     }
     return "UNKNOWN_TYPE";
 }
@@ -64,6 +77,7 @@ TypeDef_to_sqlite_type(TypeDef t)
     case TYPE_DOUBLE:  return "double";
     case TYPE_TEXT:    return "text";
     case TYPE_BLOB:    return "blob";
+    case TYPE_ENUM:    return "int";
     }
     return "UNKNOWN_TYPE";
 }
@@ -79,6 +93,7 @@ TypeDef_to_sqlite_create_type(TypeDef t)
     case TYPE_TEXT:    return "string";
     case TYPE_BLOB:    return "blob";
     case TYPE_BOOL:    return "integer";
+    case TYPE_ENUM:    return "integer";
     }
     return "UNKNOWN_TYPE";
 }

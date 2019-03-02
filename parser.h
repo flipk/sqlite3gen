@@ -12,13 +12,15 @@ enum TypeDef
     TYPE_TEXT   = 3,
     TYPE_BLOB   = 4,
     TYPE_DOUBLE = 5,
-    TYPE_BOOL   = 6
+    TYPE_BOOL   = 6,
+    TYPE_ENUM   = 7
 };
 
 struct TypeDefValue
 {
     struct TypeDefValue * next;
     TypeDef  type;
+    std::string enum_name;
     void init(TypeDef _type) {
         type = _type;
     }

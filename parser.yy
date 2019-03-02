@@ -35,7 +35,7 @@ static void validate_table(TableDef *tb);
 }
 
 %token L_CURLY R_CURLY L_PAREN R_PAREN KW_TABLE
-%token KW_INT KW_INT64 KW_TEXT KW_BLOB KW_DOUBLE
+%token KW_INT KW_INT64 KW_TEXT KW_BLOB KW_DOUBLE KW_ENUM
 %token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD KW_BOOL
 %token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_DEL
 %token KW_DEFAULT KW_PROTOID KW_PACKAGE KW_VERSION
@@ -274,6 +274,13 @@ DATATYPE
             $$ = new TypeDefValue;
             $$->init(TYPE_BOOL);
         }
+	| KW_ENUM KW_WORD
+        {
+            $$ = new TypeDefValue;
+            $$->init(TYPE_ENUM);
+            $$->enum_name = *$2;
+            delete $2;
+        }
 	;
 
 ATTRIBUTES
@@ -297,6 +304,12 @@ ATTRIBUTES
 		$$->likequery = true;
 	}
 	| ATTRIBUTES KW_DEFAULT TOK_STRING
+	{
+		$$ = $1;
+		$$->init_string = *$3;
+                delete $3;
+	}
+	| ATTRIBUTES KW_DEFAULT KW_WORD
 	{
 		$$ = $1;
 		$$->init_string = *$3;
@@ -376,10 +389,10 @@ print_tokenized_file(const std::string &fname)
     fclose(f);
 }
 
-const char *
-get_type(TypeDef type)
+std::string
+get_type(const TypeDefValue &type)
 {
-    switch (type)
+    switch (type.type)
     {
     case TYPE_INT:    return "int";
     case TYPE_INT64:  return "int64";
@@ -387,6 +400,7 @@ get_type(TypeDef type)
     case TYPE_BLOB:   return "blob";
     case TYPE_DOUBLE: return "double";
     case TYPE_BOOL:   return "bool";
+    case TYPE_ENUM:   return type.enum_name;
     }
     return "UNKNOWN";
 }
@@ -396,7 +410,7 @@ print_field(FieldDef *fd)
     printf("  field %s i %d q %d lq %d type %s\n",
            fd->name.c_str(),
            fd->attrs.index, fd->attrs.query, fd->attrs.likequery,
-           get_type(fd->type.type));
+           get_type(fd->type).c_str());
 }
 
 void
@@ -418,7 +432,7 @@ print_table(TableDef *td)
             TypeDefValue * type;
             for (type = cust->typelist; type; type = type->next)
             {
-                printf("%s", get_type(type->type));
+                printf("%s", get_type(*type).c_str());
                 if (type->next)
                     printf(", ");
             }

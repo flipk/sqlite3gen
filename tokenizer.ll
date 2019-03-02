@@ -43,14 +43,11 @@ static string * strvec(const char * w, int len);
 \(         { return L_PAREN; }
 \)         { return R_PAREN; }
 
-\".*\"     {
-	       yylval.word = strvec(yytext+1, yyleng-2);
-	       return TOK_STRING;
-	   }
 TABLE      { return KW_TABLE; }
 BOOL       { return KW_BOOL; }
 INT        { return KW_INT; }
 INT64      { return KW_INT64; }
+ENUM       { return KW_ENUM; }
 TEXT       { return KW_TEXT; }
 BLOB       { return KW_BLOB; }
 DOUBLE     { return KW_DOUBLE; }
@@ -64,6 +61,10 @@ VERSION    { return KW_VERSION; }
 CUSTOM-GET { return KW_CUSTOM_GET; }
 CUSTOM-UPD { return KW_CUSTOM_UPD; }
 CUSTOM-DEL { return KW_CUSTOM_DEL; }
+\".*\"     {
+	       yylval.word = strvec(yytext+1, yyleng-2);
+	       return TOK_STRING;
+	   }
 
 (-)?[0-9]+\.[0-9]+ {
                yylval.number_double = strtod(yytext, NULL);
@@ -75,7 +76,7 @@ CUSTOM-DEL { return KW_CUSTOM_DEL; }
                return TOK_INTEGER;
              }
 
-[a-zA-Z_][a-zA-Z0-9_]+ {
+[a-zA-Z_][a-zA-Z0-9_\.]+ {
               yylval.word = strvec(yytext, yyleng);
               return KW_WORD;
            }

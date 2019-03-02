@@ -14,28 +14,33 @@
 #include "sample.pb.h"
 
 
+
+/* header top line 1 */
+/* header top line 2 */
+
+
+namespace library {
+
 typedef void (*sql_log_function_t)(void *arg, sqlite3_stmt *);
+typedef void (*table_version_callback)(
+    const std::string &table_name,
+    int version_in_file,
+    int version_in_code);
 
 
-class SQL_TABLE_user {
+class SQL_TABLE_checkouts {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
     sqlite3_stmt * pStmt_get_by_rowid;
     sqlite3_stmt * pStmt_get_all;
+    sqlite3_stmt * pStmt_by_bookid;
     sqlite3_stmt * pStmt_by_userid;
-    sqlite3_stmt * pStmt_by_SSN;
 
-    sqlite3_stmt * pStmt_by_lastname_like;
 
-    sqlite3_stmt * pStmt_get_great_balance;
-    sqlite3_stmt * pStmt_get_founders;
-    sqlite3_stmt * pStmt_get_firstlast;
+    sqlite3_stmt * pStmt_get_due_now;
 
-    sqlite3_stmt * pStmt_update_balance;
-    sqlite3_stmt * pStmt_update_firstlast;
 
-    sqlite3_stmt * pStmt_del_SSN;
 
 
 protected:
@@ -47,31 +52,31 @@ protected:
     static void * log_arg;
 
 public:
-    SQL_TABLE_user(sqlite3 *_pdb = NULL);
-    virtual ~SQL_TABLE_user(void);
+    SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
+    virtual ~SQL_TABLE_checkouts(void);
+
+    static const int TABLE_VERSION = 1;
 
     void init(void);
+    void init_statements(void);
+    void finalize(void);
 
-    void set_db(sqlite3 *_pdb) { pdb = _pdb; }
+    void set_db(sqlite3 *_pdb) {
+        finalize();
+        pdb = _pdb;
+    }
 
     sqlite3_int64 rowid;
 
+    int64_t bookid;
     int64_t userid;
-    std::string firstname;
-    std::string lastname;
-    std::string mi;
-    int32_t SSN;
-    double balance;
-    std::string proto;
+    int64_t duedate;
 
+    bool get_by_bookid(int64_t v);
     bool get_by_userid(int64_t v);
-    bool get_by_SSN(int32_t v);
 
-    bool get_by_lastname_like(const std::string &patt);
 
-    bool get_great_balance(double v1);
-    bool get_founders(void);
-    bool get_firstlast(const std::string & v1, const std::string & v2);
+    bool get_due_now(int64_t v1);
 
     bool get_next(void);
     bool insert(void); // updates rowid
@@ -79,13 +84,9 @@ public:
     bool delete_rowid(void); // delete by rowid
     bool get_by_rowid(int64_t v1);
     bool get_all(void);
-    bool update_balance(void);
-    bool update_firstlast(void);
 
-    bool delete_SSN(int32_t v1);
 
-    void CopyToProto(library::TABLE_user_m &msg);
-    void CopyFromProto(const library::TABLE_user_m &msg);
+   // no proto IDs for this table
 
 
     static void register_log_funcs(sql_log_function_t _upd_func,
@@ -96,6 +97,7 @@ public:
         log_get_func = _get_func;
         log_arg  = _arg;
     }
+    static bool init(sqlite3 *pdb, table_version_callback cb);
     static bool table_create(sqlite3 *pdb);
     static void table_drop(sqlite3 *pdb);
 };
@@ -131,9 +133,16 @@ public:
     SQL_TABLE_book(sqlite3 *_pdb = NULL);
     virtual ~SQL_TABLE_book(void);
 
-    void init(void);
+    static const int TABLE_VERSION = 1;
 
-    void set_db(sqlite3 *_pdb) { pdb = _pdb; }
+    void init(void);
+    void init_statements(void);
+    void finalize(void);
+
+    void set_db(sqlite3 *_pdb) {
+        finalize();
+        pdb = _pdb;
+    }
 
     sqlite3_int64 rowid;
 
@@ -171,24 +180,33 @@ public:
         log_get_func = _get_func;
         log_arg  = _arg;
     }
+    static bool init(sqlite3 *pdb, table_version_callback cb);
     static bool table_create(sqlite3 *pdb);
     static void table_drop(sqlite3 *pdb);
 };
 
 
-class SQL_TABLE_checkouts {
+class SQL_TABLE_user {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
     sqlite3_stmt * pStmt_get_by_rowid;
     sqlite3_stmt * pStmt_get_all;
-    sqlite3_stmt * pStmt_by_bookid;
     sqlite3_stmt * pStmt_by_userid;
+    sqlite3_stmt * pStmt_by_SSN;
+    sqlite3_stmt * pStmt_by_test2;
+    sqlite3_stmt * pStmt_by_test3;
 
+    sqlite3_stmt * pStmt_by_lastname_like;
 
-    sqlite3_stmt * pStmt_get_due_now;
+    sqlite3_stmt * pStmt_get_great_balance;
+    sqlite3_stmt * pStmt_get_founders;
+    sqlite3_stmt * pStmt_get_firstlast;
 
+    sqlite3_stmt * pStmt_update_balance;
+    sqlite3_stmt * pStmt_update_firstlast;
 
+    sqlite3_stmt * pStmt_del_SSN;
 
 
 protected:
@@ -200,24 +218,42 @@ protected:
     static void * log_arg;
 
 public:
-    SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
-    virtual ~SQL_TABLE_checkouts(void);
+    SQL_TABLE_user(sqlite3 *_pdb = NULL);
+    virtual ~SQL_TABLE_user(void);
+
+    static const int TABLE_VERSION = 19;
 
     void init(void);
+    void init_statements(void);
+    void finalize(void);
 
-    void set_db(sqlite3 *_pdb) { pdb = _pdb; }
+    void set_db(sqlite3 *_pdb) {
+        finalize();
+        pdb = _pdb;
+    }
 
     sqlite3_int64 rowid;
 
-    int64_t bookid;
     int64_t userid;
-    int64_t duedate;
+    std::string firstname;
+    std::string lastname;
+    std::string mi;
+    int32_t SSN;
+    double balance;
+    std::string proto;
+    bool test2;
+    sample::library2::EnumField_t test3;
 
-    bool get_by_bookid(int64_t v);
     bool get_by_userid(int64_t v);
+    bool get_by_SSN(int32_t v);
+    bool get_by_test2(bool v);
+    bool get_by_test3(sample::library2::EnumField_t v);
 
+    bool get_by_lastname_like(const std::string &patt);
 
-    bool get_due_now(int64_t v1);
+    bool get_great_balance(double v1);
+    bool get_founders(void);
+    bool get_firstlast(const std::string & v1, const std::string & v2);
 
     bool get_next(void);
     bool insert(void); // updates rowid
@@ -225,9 +261,13 @@ public:
     bool delete_rowid(void); // delete by rowid
     bool get_by_rowid(int64_t v1);
     bool get_all(void);
+    bool update_balance(void);
+    bool update_firstlast(void);
 
+    bool delete_SSN(int32_t v1);
 
-   // no proto IDs for this table
+    void CopyToProto(library::TABLE_user_m &msg);
+    void CopyFromProto(const library::TABLE_user_m &msg);
 
 
     static void register_log_funcs(sql_log_function_t _upd_func,
@@ -238,6 +278,7 @@ public:
         log_get_func = _get_func;
         log_arg  = _arg;
     }
+    static bool init(sqlite3 *pdb, table_version_callback cb);
     static bool table_create(sqlite3 *pdb);
     static void table_drop(sqlite3 *pdb);
 };
@@ -245,7 +286,14 @@ public:
 
 class SQL_TABLE_ALL_TABLES {
 public:
-    static bool table_create_all(sqlite3 *pdb);
+    static bool init_all(sqlite3 *pdb, table_version_callback cb);
     static void table_drop_all(sqlite3 *pdb);
 };
+
+}; // namespace library
+
+
+/* header bottom line 1 */
+/* header bottom line 2 */
+
 

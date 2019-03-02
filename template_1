@@ -16,9 +16,9 @@ ________ HEADER_TOP
 #include "sqlite3.h"
 @@protobuf_header@@
 
-namespace @@package@@ {
-
 @@headertop_block@@
+
+namespace @@package@@ {
 
 typedef void (*sql_log_function_t)(void *arg, sqlite3_stmt *);
 typedef void (*table_version_callback)(
@@ -153,9 +153,9 @@ public:
     static void table_drop_all(sqlite3 *pdb);
 };
 
-@@headerbottom_block@@
-
 }; // namespace @@package@@
+
+@@headerbottom_block@@
 
 ________ END
 
@@ -174,9 +174,9 @@ ________ SOURCE_TOP
 #include <string.h>
 #include <stdio.h>
 
-namespace @@package@@ {
-
 @@sourcetop_block@@
+
+namespace @@package@@ {
 
 ________ END
 
@@ -637,6 +637,20 @@ ________ TABLE_get_column_pod
     @@fieldname@@ = @@sqlite_column_func@@(pStmt, @@column_index@@);
 ________ END
 
+________ TABLE_get_column_enum
+    got = sqlite3_column_type(pStmt, @@column_index@@);
+    if (got != SQLITE_@@sqlite_type@@)
+    {
+        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: get_columns "
+                "(@@fieldname@@) : "
+                "column @@column_index@@ wrong type (%d %d)\n",
+                got, SQLITE_@@sqlite_type@@);
+        return false;
+    }
+    @@fieldname@@ = (@@fieldtype@@) @@sqlite_column_func@@(
+        pStmt, @@column_index@@);
+________ END
+
 ________ TABLE_get_column_bool
     got = sqlite3_column_type(pStmt, @@column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
@@ -820,6 +834,16 @@ ________ TABLE_insert_binder_bool
     }
 ________ END
 
+________ TABLE_insert_binder_enum
+    r = @@sqlite_bind_func@@(pStmt_@@stmt@@, @@column_index@@,
+                             (int) @@fieldname@@);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: @@stmt@@: "
+                "bind @@fieldname@@: r = %d\n", r);
+    }
+________ END
+
 ________ TABLE_insert_binder_string
     r = @@sqlite_bind_func@@(pStmt_@@stmt@@, @@column_index@@,
          @@fieldname@@.c_str(), @@fieldname@@.length(),
@@ -877,6 +901,30 @@ ________ END
 ________ TABLE_custom_get_binder_pod
     r = @@sqlite_bind_func@@(pStmt_get_@@customname@@,
                              @@arg_index@@, v@@arg_index@@);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr, 
+                "SQL_TABLE_@@tablename@@ :: get_@@customname@@ "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_get_binder_bool
+    r = @@sqlite_bind_func@@(pStmt_get_@@customname@@,
+                             @@arg_index@@, v@@arg_index@@ ? 1 : 0);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr, 
+                "SQL_TABLE_@@tablename@@ :: get_@@customname@@ "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_get_binder_enum
+    r = @@sqlite_bind_func@@(pStmt_get_@@customname@@,
+                             @@arg_index@@, (int) v@@arg_index@@);
     if (r != SQLITE_OK)
     {
         fprintf(stderr, 
@@ -956,6 +1004,26 @@ ________ TABLE_custom_upd_binder_pod
     }
 ________ END
 
+________ TABLE_custom_upd_binder_bool
+    r = @@sqlite_bind_func@@(pStmt_update_@@customname@@,
+                             @@fieldindex@@, @@fieldname@@ ? 1 : 0);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
+                "update_@@customname@@: bind @@fieldname@@: r = %d\n", r);
+    }
+________ END
+
+________ TABLE_custom_upd_binder_enum
+    r = @@sqlite_bind_func@@(pStmt_update_@@customname@@,
+                             @@fieldindex@@, (int) @@fieldname@@);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
+                "update_@@customname@@: bind @@fieldname@@: r = %d\n", r);
+    }
+________ END
+
 ________ TABLE_custom_upd_binder_string
     r = @@sqlite_bind_func@@(pStmt_update_@@customname@@, @@fieldindex@@, 
          @@fieldname@@.c_str(), @@fieldname@@.length(),
@@ -1022,6 +1090,30 @@ ________ TABLE_custom_del_binder_pod
     }
 ________ END
 
+________ TABLE_custom_del_binder_bool
+    r = @@sqlite_bind_func@@(pStmt_del_@@customname@@,
+                             @@arg_index@@, v@@arg_index@@ ? 1 : 0);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_@@tablename@@ :: delete_@@customname@@ "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_del_binder_enum
+    r = @@sqlite_bind_func@@(pStmt_del_@@customname@@,
+                             @@arg_index@@, (int) v@@arg_index@@);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_@@tablename@@ :: delete_@@customname@@ "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+________ END
+
 ________ TABLE_custom_del_binder_string
     r = @@sqlite_bind_func@@(pStmt_del_@@customname@@, @@arg_index@@,
                           v@@arg_index@@.c_str(), v@@arg_index@@.length(),
@@ -1052,6 +1144,16 @@ SQL_TABLE_@@tablename@@ :: CopyFromProto(
 ________ END
 
 ________ TABLE_proto_copy_to_field
+    msg.set_@@fieldname_lower@@(@@fieldname@@);
+________ END
+
+________ TABLE_proto_copy_to_field_bool
+    msg.set_@@fieldname_lower@@(@@fieldname@@ ? true : false);
+________ END
+
+________ TABLE_proto_copy_to_field_enum
+    if (!@@fieldtype@@_IsValid(@@fieldname@@))
+    @@initial_value@@
     msg.set_@@fieldname_lower@@(@@fieldname@@);
 ________ END
 
@@ -1117,9 +1219,9 @@ void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
                  NULL, NULL, NULL);
 }
 
-@@sourcebottom_block@@
-
 }; // namespace @@package@@
+
+@@sourcebottom_block@@
 
 ________ END
 
