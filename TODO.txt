@@ -1,2 +1,1 @@
 - implement a sqlite3_vfs that does encryption.
-- BUG: template_to_c can't handle @@one@@@@two@@

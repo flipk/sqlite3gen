@@ -18,7 +18,9 @@ string template_body;
 #define BOUNDARY "________"
 #define BOUNDARY_LEN 8
 
+#ifndef ECHO_OUTPUT
 #define ECHO_OUTPUT 0
+#endif
 
 vector<int> ats;
 struct pattern_info {
@@ -42,7 +44,6 @@ escape(const string &in)
         }
         else if (in[ind] == 10)
         {
-//            out += "\\n\"\n        << \"";
             out += "\" << std::endl\n        << \"";
             continue;
         }
@@ -69,7 +70,11 @@ add_template(ostream &cc_out, ostream &h_out,
     // now to identify all the @@patterns@@
     for (int ind = 0; ind < (int) body.length() - 2; ind++)
         if (body[ind] == '@' && body[ind+1] == '@')
-            ats.push_back(ind);
+            ats.push_back(ind++);
+
+    if (ECHO_OUTPUT)
+        for (int ind = 0; ind < (int) ats.size(); ind++)
+            printf("ats[%d] = %d\n", ind, ats[ind]);
 
     for (int ind = 0; ind < (int) ats.size(); ind += 2)
     {
@@ -187,7 +192,7 @@ main(int argc, char ** argv)
 
     cc_out << "\n"
            << "#include <iostream>\n"
-           << "#include \"template_1.h\"\n"
+           << "#include \"" << argv[3] << "\"\n"
            << "\n";
 
     h_out << "\n"
