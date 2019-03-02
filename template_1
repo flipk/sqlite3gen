@@ -725,6 +725,17 @@ ________ TABLE_query_bind_pod
     }
 ________ END
 
+________ TABLE_query_bind_bool
+    r = @@sqlite_bind_func@@(pStmt_by_@@fieldname@@, 1,
+                             v ? 1 : 0);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@ "
+                ": bind: r = %d\n", r);
+        return false;
+    }
+________ END
+
 ________ TABLE_query_bind_string
     r = @@sqlite_bind_func@@(pStmt_by_@@fieldname@@, 1,
          v.c_str(), v.length(),

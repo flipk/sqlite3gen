@@ -135,7 +135,6 @@ void emit_source(const std::string &fname,
                 switch (t)
                 {
                 case TYPE_INT:
-                case TYPE_BOOL:
                 case TYPE_INT64:
                 case TYPE_DOUBLE:
                     output_TABLE_query_bind_pod(query_bind, patterns);
@@ -143,6 +142,9 @@ void emit_source(const std::string &fname,
                 case TYPE_TEXT:
                 case TYPE_BLOB:
                     output_TABLE_query_bind_string(query_bind, patterns);
+                    break;
+                case TYPE_BOOL:
+                    output_TABLE_query_bind_bool(query_bind, patterns);
                     break;
                 }
 
