@@ -88,3 +88,8 @@ $(OBJDIR)/sample.cc: $(sql3gen_TARGET) sample.schema
 	cp $(OBJDIR)/sample.cc    obj_sample.cc
 	cp $(OBJDIR)/sample.h     obj_sample.h
 	cp $(OBJDIR)/sample.proto obj_sample.proto
+
+bundle:
+	git bundle create sqlite3gen.bundle --all
+	git bundle verify sqlite3gen.bundle
+

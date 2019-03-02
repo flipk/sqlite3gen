@@ -39,3 +39,5 @@
 # subdirs that may or may not exist
 /sqlite3
 /build_*
+
+*.bundle
