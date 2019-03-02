@@ -57,9 +57,7 @@ $(OBJDIR)/template_1.o: $(OBJDIR)/template_1.cc
 
 $(OBJDIR)/template_1.cc $(OBJDIR)/template_1.h: $(template_to_c_TARGET) template_1
 	@echo generating $(OBJDIR)/template_1.cc
-	$(Q)./$(OBJDIR)/template_to_c template_1 $(OBJDIR)/template_1.cc.tmp $(OBJDIR)/template_1.h.tmp
-	$(Q)mv $(OBJDIR)/template_1.cc.tmp $(OBJDIR)/template_1.cc
-	$(Q)mv $(OBJDIR)/template_1.h.tmp $(OBJDIR)/template_1.h
+	$(Q)./$(OBJDIR)/template_to_c template_1 $(OBJDIR)/template_1.cc $(OBJDIR)/template_1.h || ( rm -f $(OBJDIR)/template_1.cc $(OBJDIR)/template_1.h ; exit 1 )
 
 $(sample_TARGET): $(OBJDIR)/sample.o $(OBJDIR)/sample.pb.o
 
