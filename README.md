@@ -58,6 +58,9 @@ TABLE <table-name> VERSION <number>
 
      CUSTOM-UPD  <update-method-name>  (<list-of-column-names>)
 
+     CUSTOM-UPDBY <update-method-name>  (<list-of-column-names>)
+                 (<list-of-types>) "<where-clause-for-custom-update-by>"
+
      CUSTOM-DEL  <delete-method-name>  (<list-of-types>)
                  "<where-clause-for-custom-delete>"
 }
@@ -71,8 +74,8 @@ Keywords must be in upper case. Recognized keywords are:
 protobuf package name : PACKAGE
 tables : TABLE VERSION
 types : INT INT64 TEXT DOUBLE BLOB BOOL ENUM
-column attributes : INDEX LIKEQUERY QUERY DEFAULT PROTOID
-customs : CUSTOM-GET CUSTOM-UPD CUSTOM-DEL
+column attributes : INDEX LIKEQUERY QUERY DEFAULT PROTOID UPDATE
+customs : CUSTOM-GET CUSTOM-UPD CUSTOM-UPDBY CUSTOM-DEL
 literal text : %PROTOTOP{ %}    %PROTOBOTTOM{ %}
                %HEADERTOP{ %}   %HEADERBOTTOM{ %}
 	       %SOURCETOP{ %}   %SOURCEBOTTOM{ %}
@@ -87,15 +90,15 @@ the C++ class.
 The TYPE declares the SQL database data type. SQL
 data types map to C++ data types as such:
 
-| SQLGEN type | C++ type | protobuf type |
-| -------- | -------- | ------------- |
-|  INT     | int32_t  | int32 |
-|  INT64   | int64_t  | int64 |
-|  DOUBLE  | double   | double |
-|  TEXT    | std::string | string |
-|  BLOB    | std::string | bytes |
-|  BOOL    | bool | bool |
-|  ENUM    | enum | enum |
+| SQL3GEN | SQLITE3 | C++         | protobuf |
+| --------| --------| ----------- | ---------|
+| INT     | int     | int32_t     | int32    |
+| INT64   | int64   | int64_t     | int64    |
+| DOUBLE  | double  | double      | double   |
+| TEXT    | text    | std::string | string   |
+| BLOB    | blob    | std::string | bytes    |
+| BOOL    | int     | bool        | bool     |
+| ENUM    | int     | enum        | enum     |
 
 ### INDEX, QUERY, and LIKEQUERY attributes
 
@@ -124,11 +127,19 @@ for more information on the LIKE keyword).  This will add a method
 that looks like this:
 
 ```C++
-bool get_by_<column-name>_like(std::string v);
+bool get_by_<column-name>_like(const std::string &patt);
 ```
 
-Note the argument of `v` for a `_like` method will always
+Note the argument of `patt` for a `_like` method will always
 be `std::string`.
+
+Placing the `UPDATE` keyword after a column TYPE instructs the
+tool to add a method to the C++ class for upading a row back to
+the database, using the named field as the WHERE clause.
+
+```C+++
+void update_by_<column-name>(void);
+```
 
 ### DEFAULT attribute
 
@@ -201,7 +212,7 @@ SELECT * FROM users WHERE uid = ? AND lastname LIKE ?
 ```
 
 `CUSTOM-GET` results in a method of the following form. Note the
-arguments are numbered and the TYPEs follow the order in the parenthesis.
+arguments are numbered and the `TYPE`s follow the order in the parenthesis.
 Also NOTE you must put exactly as many "?" in the where-clause as you put
 types in parenthesis.
 
@@ -209,10 +220,23 @@ types in parenthesis.
 bool get_<get-method-name>(TYPE v1, TYPE v2, [etc]);
 ```
 
-`CUSTOM-UPD` results in a method of the form:
+`CUSTOM-UPD` results in a method of the following form. The CUSTOM-UPD
+uses `rowid` to select the proper row to perform the update.
 
 ```C++
 bool update_<update-method-name>(void);
+```
+
+`CUSTOM-UPDBY` results in a method of the following form. The
+CUSTOM-UPDBY uses the `WHERE` clause to select the proper row(s) to
+perform the update. Note this query may update the specified column of
+every row which matches the WHERE clause. Note the arguments are
+numbered and the TYPEs follow the order in the parenthesis.  Also NOTE
+you must put exactly as many "?" in the where-clause as you put types
+in parenthesis.
+
+```C++
+bool update_by_<update-method-name>(TYPE v1, TYPE v2, [etc]);
 ```
 
 `CUSTOM-DEL` results in a method of the following form. Note the

@@ -112,6 +112,10 @@ ________ TABLE_CLASS_stmt_custom_upd_decl
     sqlite3_stmt * pStmt_update_@@customname@@;
 ________ END
 
+________ TABLE_CLASS_stmt_custom_updby_decl
+    sqlite3_stmt * pStmt_update_by_@@customname@@;
+________ END
+
 ________ TABLE_CLASS_stmt_custom_del_decl
     sqlite3_stmt * pStmt_del_@@customname@@;
 ________ END
@@ -134,6 +138,10 @@ ________ END
 
 ________ TABLE_CLASS_table_custom_upd_method_protos
     bool update_@@customname@@(void);
+________ END
+
+________ TABLE_CLASS_table_custom_updby_method_protos
+    bool update_by_@@customname@@(@@type_and_vX@@);
 ________ END
 
 ________ TABLE_CLASS_table_custom_del_method_protos
@@ -425,7 +433,7 @@ bool SQL_TABLE_@@tablename@@ :: get_by_rowid(int64_t v1)
     if (r != SQLITE_OK)
     {
         fprintf(stderr,
-                "SQL_TABLE_@@tablename@@  :: get_by_rowid "\
+                "SQL_TABLE_@@tablename@@  :: get_by_rowid "
                 ": bind: r = %d\n", r);
         return false;
     }
@@ -595,6 +603,10 @@ ________ TABLE_prepare_custom_upd
     pStmt_update_@@customname@@ = NULL;
 ________ END
 
+________ TABLE_prepare_custom_updby
+    pStmt_update_by_@@customname@@ = NULL;
+________ END
+
 ________ TABLE_prepare_custom_del
     pStmt_del_@@customname@@ = NULL;
 ________ END
@@ -617,6 +629,11 @@ ________ END
 ________ TABLE_finalize_custom_upd
     if (pStmt_update_@@customname@@)
         sqlite3_finalize(pStmt_update_@@customname@@);
+________ END
+
+________ TABLE_finalize_custom_updby
+    if (pStmt_update_by_@@customname@@)
+        sqlite3_finalize(pStmt_update_by_@@customname@@);
 ________ END
 
 ________ TABLE_finalize_custom_del
@@ -871,7 +888,8 @@ bool SQL_TABLE_@@tablename@@ :: get_@@customname@@(@@type_and_vX@@)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ WHERE @@querystring@@",
+            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ "
+            "WHERE @@querystring@@",
             -1, &pStmt_get_@@customname@@, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -964,7 +982,7 @@ bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
         r = sqlite3_prepare_v2(
             pdb,
             "UPDATE @@tablename@@ SET (@@custom_fieldlist@@) = "
-            "(@@custom_questionmarks@@) where rowid = ?",
+            "(@@custom_questionmarks@@) WHERE rowid = ?",
             -1, &pStmt_update_@@customname@@, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building CUSTOM-UPD "
@@ -994,44 +1012,138 @@ bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
 }
 ________ END
 
+________ TABLE_custom_updby_implementation
+bool SQL_TABLE_@@tablename@@ :: update_by_@@customname@@(@@type_and_vX@@)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt UPDATE before set_db\n");
+        return false;
+    }
+
+    if(pStmt_update_by_@@customname@@ == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "UPDATE @@tablename@@ SET (@@custom_fieldlist@@) = "
+            "(@@custom_questionmarks@@) WHERE @@querystring@@",
+            -1, &pStmt_update_by_@@customname@@, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building CUSTOM-UPDBY "
+                   "@@customname@@ at line %d\n", __LINE__);
+    }
+
+    sqlite3_reset(pStmt_update_by_@@customname@@);
+
+@@custom_update_binders@@
+
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update_by_@@customname@@);
+
+    r = sqlite3_step(pStmt_update_by_@@customname@@);
+    if (r != SQLITE_DONE)
+    {
+        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: update "
+                "@@customname@@: r = %d\n", r);
+        return false;
+    }
+    previous_get = NULL;
+
+    return ret;
+}
+________ END
+
 ________ TABLE_custom_upd_binder_pod
-    r = @@sqlite_bind_func@@(pStmt_update_@@customname@@,
+    r = @@sqlite_bind_func@@(pStmt_@@by@@_@@customname@@,
                              @@fieldindex@@, @@fieldname@@);
     if (r != SQLITE_OK)
     {
         fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
-                "update_@@customname@@: bind @@fieldname@@: r = %d\n", r);
+             "@@by@@_@@customname@@: bind @@fieldname@@: r = %d\n", r);
     }
 ________ END
 
 ________ TABLE_custom_upd_binder_bool
-    r = @@sqlite_bind_func@@(pStmt_update_@@customname@@,
+    r = @@sqlite_bind_func@@(pStmt_@@by@@_@@customname@@,
                              @@fieldindex@@, @@fieldname@@ ? 1 : 0);
     if (r != SQLITE_OK)
     {
         fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
-                "update_@@customname@@: bind @@fieldname@@: r = %d\n", r);
+            "@@by@@_@@customname@@: bind @@fieldname@@: r = %d\n", r);
     }
 ________ END
 
 ________ TABLE_custom_upd_binder_enum
-    r = @@sqlite_bind_func@@(pStmt_update_@@customname@@,
+    r = @@sqlite_bind_func@@(pStmt_@@by@@_@@customname@@,
                              @@fieldindex@@, (int) @@fieldname@@);
     if (r != SQLITE_OK)
     {
         fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
-                "update_@@customname@@: bind @@fieldname@@: r = %d\n", r);
+            "@@by@@_@@customname@@: bind @@fieldname@@: r = %d\n", r);
     }
 ________ END
 
 ________ TABLE_custom_upd_binder_string
-    r = @@sqlite_bind_func@@(pStmt_update_@@customname@@, @@fieldindex@@, 
+    r = @@sqlite_bind_func@@(
+        pStmt_@@by@@_@@customname@@, @@fieldindex@@,
          @@fieldname@@.c_str(), @@fieldname@@.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
         fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
-                "update_@@customname@@: bind @@fieldname@@: r = %d\n", r);
+            "@@by@@_@@customname@@: bind @@fieldname@@: r = %d\n", r);
+    }
+________ END
+
+________ TABLE_custom_updby_binder_pod
+    r = @@sqlite_bind_func@@(pStmt_update_by_@@customname@@,
+                             @@arg_index@@, v@@fieldindex@@);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_@@tablename@@ :: update_by_@@customname@@ "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_updby_binder_bool
+    r = @@sqlite_bind_func@@(pStmt_update_by_@@customname@@,
+                             @@arg_index@@, v@@fieldindex@@ ? 1 : 0);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_@@tablename@@ :: update_by_@@customname@@ "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_updby_binder_enum
+    r = @@sqlite_bind_func@@(pStmt_update_by_@@customname@@,
+                             @@arg_index@@, (int) v@@fieldindex@@);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_@@tablename@@ :: update_by_@@customname@@ "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_updby_binder_string
+    r = @@sqlite_bind_func@@(pStmt_update_by_@@customname@@, @@arg_index@@,
+                          v@@fieldindex@@.c_str(), v@@fieldindex@@.length(),
+                          SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_@@tablename@@ :: update_by_@@customname@@ : "
+                "bind: r = %d\n", r);
+        return false;
     }
 ________ END
 

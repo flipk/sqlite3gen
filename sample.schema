@@ -37,6 +37,8 @@ TABLE user VERSION 19
 
     CUSTOM-UPD balance   (balance)
     CUSTOM-UPD firstlast (firstname lastname)
+    CUSTOM-UPDBY   userid_stuff   (proto test2 test3 balance)
+                   (INT64 TEXT) "userid = ? and lastname = ?"
 
     CUSTOM-DEL SSN (INT)  "ssn = ?"
 }
@@ -61,7 +63,7 @@ TABLE checkouts VERSION 1
     userid          INT64           INDEX QUERY
     duedate         INT64
 
-    CUSTOM-GET due_now (INT64)  "WHERE duedate < ?"
+    CUSTOM-GET due_now (INT64)  "duedate < ?"
 }
 
 %PROTOBOTTOM{

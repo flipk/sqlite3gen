@@ -441,7 +441,7 @@ bool SQL_TABLE_checkouts :: get_by_rowid(int64_t v1)
     if (r != SQLITE_OK)
     {
         fprintf(stderr,
-                "SQL_TABLE_checkouts  :: get_by_rowid "\
+                "SQL_TABLE_checkouts  :: get_by_rowid "
                 ": bind: r = %d\n", r);
         return false;
     }
@@ -515,7 +515,8 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, userid, duedate FROM checkouts WHERE WHERE duedate < ?",
+            "SELECT rowid,bookid, userid, duedate FROM checkouts "
+            "WHERE duedate < ?",
             -1, &pStmt_get_due_now, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -1200,7 +1201,7 @@ bool SQL_TABLE_book :: get_by_rowid(int64_t v1)
     if (r != SQLITE_OK)
     {
         fprintf(stderr,
-                "SQL_TABLE_book  :: get_by_rowid "\
+                "SQL_TABLE_book  :: get_by_rowid "
                 ": bind: r = %d\n", r);
         return false;
     }
@@ -1274,7 +1275,8 @@ bool SQL_TABLE_book :: get_out_of_stock(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, title, isbn, price, quantity FROM book WHERE quantity == 0",
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM book "
+            "WHERE quantity == 0",
             -1, &pStmt_get_out_of_stock, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -1316,7 +1318,7 @@ bool SQL_TABLE_book :: update_quantity(void)
         r = sqlite3_prepare_v2(
             pdb,
             "UPDATE book SET (quantity) = "
-            "(?) where rowid = ?",
+            "(?) WHERE rowid = ?",
             -1, &pStmt_update_quantity, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building CUSTOM-UPD "
@@ -1330,7 +1332,7 @@ bool SQL_TABLE_book :: update_quantity(void)
     if (r != SQLITE_OK)
     {
         fprintf(stderr, "SQL_TABLE_book :: "
-                "update_quantity: bind quantity: r = %d\n", r);
+             "update_quantity: bind quantity: r = %d\n", r);
     }
 
 
@@ -1367,7 +1369,7 @@ bool SQL_TABLE_book :: update_price(void)
         r = sqlite3_prepare_v2(
             pdb,
             "UPDATE book SET (price) = "
-            "(?) where rowid = ?",
+            "(?) WHERE rowid = ?",
             -1, &pStmt_update_price, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building CUSTOM-UPD "
@@ -1381,7 +1383,7 @@ bool SQL_TABLE_book :: update_price(void)
     if (r != SQLITE_OK)
     {
         fprintf(stderr, "SQL_TABLE_book :: "
-                "update_price: bind price: r = %d\n", r);
+             "update_price: bind price: r = %d\n", r);
     }
 
 
@@ -1538,6 +1540,7 @@ SQL_TABLE_user :: init_statements(void)
 
     pStmt_update_balance = NULL;
     pStmt_update_firstlast = NULL;
+    pStmt_update_by_userid_stuff = NULL;
 
     pStmt_del_SSN = NULL;
 
@@ -1588,6 +1591,8 @@ SQL_TABLE_user :: finalize(void)
         sqlite3_finalize(pStmt_update_balance);
     if (pStmt_update_firstlast)
         sqlite3_finalize(pStmt_update_firstlast);
+    if (pStmt_update_by_userid_stuff)
+        sqlite3_finalize(pStmt_update_by_userid_stuff);
 
     if (pStmt_del_SSN)
         sqlite3_finalize(pStmt_del_SSN);
@@ -2280,7 +2285,7 @@ bool SQL_TABLE_user :: get_by_rowid(int64_t v1)
     if (r != SQLITE_OK)
     {
         fprintf(stderr,
-                "SQL_TABLE_user  :: get_by_rowid "\
+                "SQL_TABLE_user  :: get_by_rowid "
                 ": bind: r = %d\n", r);
         return false;
     }
@@ -2354,7 +2359,8 @@ bool SQL_TABLE_user :: get_great_balance(double v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user WHERE balance > ?",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user "
+            "WHERE balance > ?",
             -1, &pStmt_get_great_balance, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -2403,7 +2409,8 @@ bool SQL_TABLE_user :: get_founders(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user WHERE userid < 100",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user "
+            "WHERE userid < 100",
             -1, &pStmt_get_founders, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -2443,7 +2450,8 @@ bool SQL_TABLE_user :: get_firstlast(const std::string & v1, const std::string &
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user WHERE firstname LIKE ? AND lastname LIKE ?",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user "
+            "WHERE firstname LIKE ? AND lastname LIKE ?",
             -1, &pStmt_get_firstlast, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building SELECT for "
@@ -2505,7 +2513,7 @@ bool SQL_TABLE_user :: update_balance(void)
         r = sqlite3_prepare_v2(
             pdb,
             "UPDATE user SET (balance) = "
-            "(?) where rowid = ?",
+            "(?) WHERE rowid = ?",
             -1, &pStmt_update_balance, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building CUSTOM-UPD "
@@ -2519,7 +2527,7 @@ bool SQL_TABLE_user :: update_balance(void)
     if (r != SQLITE_OK)
     {
         fprintf(stderr, "SQL_TABLE_user :: "
-                "update_balance: bind balance: r = %d\n", r);
+             "update_balance: bind balance: r = %d\n", r);
     }
 
 
@@ -2556,7 +2564,7 @@ bool SQL_TABLE_user :: update_firstlast(void)
         r = sqlite3_prepare_v2(
             pdb,
             "UPDATE user SET (firstname, lastname) = "
-            "(?,?) where rowid = ?",
+            "(?,?) WHERE rowid = ?",
             -1, &pStmt_update_firstlast, NULL);
         if (r != SQLITE_OK)
             printf("ERROR building CUSTOM-UPD "
@@ -2565,21 +2573,23 @@ bool SQL_TABLE_user :: update_firstlast(void)
 
     sqlite3_reset(pStmt_update_firstlast);
 
-    r = sqlite3_bind_text(pStmt_update_firstlast, 1, 
+    r = sqlite3_bind_text(
+        pStmt_update_firstlast, 1,
          firstname.c_str(), firstname.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
         fprintf(stderr, "SQL_TABLE_user :: "
-                "update_firstlast: bind firstname: r = %d\n", r);
+            "update_firstlast: bind firstname: r = %d\n", r);
     }
-    r = sqlite3_bind_text(pStmt_update_firstlast, 2, 
+    r = sqlite3_bind_text(
+        pStmt_update_firstlast, 2,
          lastname.c_str(), lastname.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
         fprintf(stderr, "SQL_TABLE_user :: "
-                "update_firstlast: bind lastname: r = %d\n", r);
+            "update_firstlast: bind lastname: r = %d\n", r);
     }
 
 
@@ -2594,6 +2604,96 @@ bool SQL_TABLE_user :: update_firstlast(void)
     {
         fprintf(stderr, "SQL_TABLE_user :: update "
                 "firstlast: r = %d\n", r);
+        return false;
+    }
+    previous_get = NULL;
+
+    return ret;
+}
+bool SQL_TABLE_user :: update_by_userid_stuff(int64_t v1, const std::string & v2)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        printf("ERROR: attempt UPDATE before set_db\n");
+        return false;
+    }
+
+    if(pStmt_update_by_userid_stuff == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "UPDATE user SET (proto, test2, test3, balance) = "
+            "(?,?,?,?) WHERE userid = ? and lastname = ?",
+            -1, &pStmt_update_by_userid_stuff, NULL);
+        if (r != SQLITE_OK)
+            printf("ERROR building CUSTOM-UPDBY "
+                   "userid_stuff at line %d\n", __LINE__);
+    }
+
+    sqlite3_reset(pStmt_update_by_userid_stuff);
+
+    r = sqlite3_bind_blob(
+        pStmt_update_by_userid_stuff, 1,
+         proto.c_str(), proto.length(),
+         SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL_TABLE_user :: "
+            "update_by_userid_stuff: bind proto: r = %d\n", r);
+    }
+    r = sqlite3_bind_int(pStmt_update_by_userid_stuff,
+                             2, test2 ? 1 : 0);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL_TABLE_user :: "
+            "update_by_userid_stuff: bind test2: r = %d\n", r);
+    }
+    r = sqlite3_bind_int(pStmt_update_by_userid_stuff,
+                             3, (int) test3);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL_TABLE_user :: "
+            "update_by_userid_stuff: bind test3: r = %d\n", r);
+    }
+    r = sqlite3_bind_double(pStmt_update_by_userid_stuff,
+                             4, balance);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL_TABLE_user :: "
+             "update_by_userid_stuff: bind balance: r = %d\n", r);
+    }
+    r = sqlite3_bind_int64(pStmt_update_by_userid_stuff,
+                             5, v1);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_user :: update_by_userid_stuff "\
+                ": bind: r = %d\n", r);
+        return false;
+    }
+    r = sqlite3_bind_text(pStmt_update_by_userid_stuff, 6,
+                          v2.c_str(), v2.length(),
+                          SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr,
+                "SQL_TABLE_user :: update_by_userid_stuff : "
+                "bind: r = %d\n", r);
+        return false;
+    }
+
+
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update_by_userid_stuff);
+
+    r = sqlite3_step(pStmt_update_by_userid_stuff);
+    if (r != SQLITE_DONE)
+    {
+        fprintf(stderr, "SQL_TABLE_user :: update "
+                "userid_stuff: r = %d\n", r);
         return false;
     }
     previous_get = NULL;

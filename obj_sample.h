@@ -76,6 +76,7 @@ public:
     bool get_by_userid(int64_t v);
 
 
+// WHERE duedate < ?
     bool get_due_now(int64_t v1);
 
     bool get_next(void);
@@ -157,6 +158,7 @@ public:
 
     bool get_by_title_like(const std::string &patt);
 
+// WHERE quantity == 0
     bool get_out_of_stock(void);
 
     bool get_next(void);
@@ -205,6 +207,7 @@ class SQL_TABLE_user {
 
     sqlite3_stmt * pStmt_update_balance;
     sqlite3_stmt * pStmt_update_firstlast;
+    sqlite3_stmt * pStmt_update_by_userid_stuff;
 
     sqlite3_stmt * pStmt_del_SSN;
 
@@ -251,8 +254,11 @@ public:
 
     bool get_by_lastname_like(const std::string &patt);
 
+// WHERE balance > ?
     bool get_great_balance(double v1);
+// WHERE userid < 100
     bool get_founders(void);
+// WHERE firstname LIKE ? AND lastname LIKE ?
     bool get_firstlast(const std::string & v1, const std::string & v2);
 
     bool get_next(void);
@@ -263,7 +269,10 @@ public:
     bool get_all(void);
     bool update_balance(void);
     bool update_firstlast(void);
+// WHERE userid = ? and lastname = ?
+    bool update_by_userid_stuff(int64_t v1, const std::string & v2);
 
+// WHERE ssn = ?
     bool delete_SSN(int32_t v1);
 
     void CopyToProto(library::TABLE_user_m &msg);

@@ -349,13 +349,19 @@ void emit_source(const std::string &fname,
             break;
 
             case CustomGetUpdList::UPD:
+            case CustomGetUpdList::UPDBY:
             {
                 ostringstream custom_update_binders;
                 ostringstream custom_fieldlist;
                 ostringstream custom_questionmarks;
+                bool updby = (cust->type == CustomGetUpdList::UPDBY);
 
-                output_TABLE_finalize_custom_upd(
-                    finalize_custom_upd, patterns);
+                if (updby)
+                    output_TABLE_finalize_custom_updby(
+                        finalize_custom_upd, patterns);
+                else
+                    output_TABLE_finalize_custom_upd(
+                        finalize_custom_upd, patterns);
 
                 int counter = 1;
                 WordList * w;
@@ -377,6 +383,11 @@ void emit_source(const std::string &fname,
                     SET_PATTERN(fieldindex);
                     patterns["fieldname"] = fd->name;
                     patterns["sqlite_bind_func"] = TypeDef_to_sqlite_bind(t);
+
+                    if (updby)
+                        patterns["by"] = "update_by";
+                    else
+                        patterns["by"] = "update";
 
                     switch (t)
                     {
@@ -401,21 +412,82 @@ void emit_source(const std::string &fname,
                         break;
                     }
                 }
+                // note counter continues updating on from
+                // this value, below, in the case of a
+                // custom-updby.
 
                 SET_PATTERN(custom_fieldlist);
                 SET_PATTERN(custom_questionmarks);
 
-                output_TABLE_prepare_custom_upd(
-                    prepare_custom_upd, patterns);
-
-                SET_PATTERN(custom_update_binders);
+                if (updby)
+                    output_TABLE_prepare_custom_updby(
+                        prepare_custom_upd, patterns);
+                else
+                    output_TABLE_prepare_custom_upd(
+                        prepare_custom_upd, patterns);
 
                 ostringstream fieldindex;
                 fieldindex << counter;
                 SET_PATTERN(fieldindex);
 
-                output_TABLE_custom_upd_implementation(
-                    custom_upd_implementations, patterns);
+                if (updby)
+                {
+                    patterns["type_and_vX"] = make_custom_get_arglist(cust);
+                    patterns["querystring"] = cust->query;
+
+                    TypeDefValue *type;
+                    // note counter continues on from where it left
+                    // off from the binders above, but fieldnumber
+                    // starts at one.
+                    int fieldnumber = 1;
+                    for (type = cust->typelist;
+                         type;
+                         type = type->next, counter++, fieldnumber++)
+                    {
+                        TypeDef t = type->type;
+                        ostringstream arg_index;
+                        arg_index << counter;
+                        SET_PATTERN(arg_index);
+
+                        ostringstream fieldindex;
+                        fieldindex << fieldnumber;
+                        SET_PATTERN(fieldindex);
+
+                        patterns["sqlite_bind_func"] =
+                            TypeDef_to_sqlite_bind(t);
+                        switch (t)
+                        {
+                        case TYPE_INT:
+                        case TYPE_INT64:
+                        case TYPE_DOUBLE:
+                            output_TABLE_custom_updby_binder_pod(
+                                custom_update_binders, patterns);
+                            break;
+                        case TYPE_TEXT:
+                        case TYPE_BLOB:
+                            output_TABLE_custom_updby_binder_string(
+                                custom_update_binders, patterns);
+                            break;
+                        case TYPE_BOOL:
+                            output_TABLE_custom_updby_binder_bool(
+                                custom_update_binders, patterns);
+                            break;
+                        case TYPE_ENUM:
+                            output_TABLE_custom_updby_binder_enum(
+                                custom_update_binders, patterns);
+                            break;
+                        }
+                    }
+                }
+
+                SET_PATTERN(custom_update_binders);
+
+                if (updby)
+                    output_TABLE_custom_updby_implementation(
+                        custom_upd_implementations, patterns);
+                else
+                    output_TABLE_custom_upd_implementation(
+                        custom_upd_implementations, patterns);
             }
             break;
 

@@ -60,6 +60,7 @@ LIKEQUERY  { return KW_LIKEQUERY; }
 VERSION    { return KW_VERSION; }
 CUSTOM-GET { return KW_CUSTOM_GET; }
 CUSTOM-UPD { return KW_CUSTOM_UPD; }
+CUSTOM-UPDBY { return KW_CUSTOM_UPDBY; }
 CUSTOM-DEL { return KW_CUSTOM_DEL; }
 \".*\"     {
 	       yylval.word = strvec(yytext+1, yyleng-2);

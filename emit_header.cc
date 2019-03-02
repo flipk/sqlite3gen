@@ -104,6 +104,9 @@ void emit_header(const std::string &fname,
                 patterns["type_and_vX"] =
                     make_custom_get_arglist(cust);
 
+                table_custom_get_method_protos
+                    << "// WHERE " << cust->query << "\n";
+
                 output_TABLE_CLASS_table_custom_get_method_protos(
                     table_custom_get_method_protos, patterns);
 
@@ -117,12 +120,30 @@ void emit_header(const std::string &fname,
 
                 break;
 
+            case CustomGetUpdList::UPDBY:
+                output_TABLE_CLASS_stmt_custom_updby_decl(
+                    stmt_custom_upd_decls, patterns);
+
+                patterns["type_and_vX"] =
+                    make_custom_get_arglist(cust);
+
+                table_custom_upd_method_protos
+                    << "// WHERE " << cust->query << "\n";
+
+                output_TABLE_CLASS_table_custom_updby_method_protos(
+                    table_custom_upd_method_protos, patterns);
+
+                break;
+
             case CustomGetUpdList::DEL:
                 output_TABLE_CLASS_stmt_custom_del_decl(
                     stmt_custom_del_decls, patterns);
 
                 patterns["type_and_vX"] =
                     make_custom_get_arglist(cust);
+
+                table_custom_del_method_protos
+                    << "// WHERE " << cust->query << "\n";
 
                 output_TABLE_CLASS_table_custom_del_method_protos(
                     table_custom_del_method_protos, patterns);

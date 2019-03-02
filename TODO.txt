@@ -1,4 +1,2 @@
-- add ENUM type support to schema and protobuf.
-   - enum should be declared at top level, outside table.
-- PROTOPKG should implement a namespace.
 - implement a sqlite3_vfs that does encryption.
+- BUG: template_to_c can't handle @@one@@@@two@@

@@ -37,7 +37,7 @@ static void validate_table(TableDef *tb);
 %token L_CURLY R_CURLY L_PAREN R_PAREN KW_TABLE
 %token KW_INT KW_INT64 KW_TEXT KW_BLOB KW_DOUBLE KW_ENUM
 %token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD KW_BOOL
-%token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_DEL
+%token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_UPDBY KW_CUSTOM_DEL
 %token KW_DEFAULT KW_PROTOID KW_PACKAGE KW_VERSION
 
 %token KW_PROTOTOP  KW_PROTOBOTTOM
@@ -56,7 +56,7 @@ static void validate_table(TableDef *tb);
 %type <number_double> TOK_DOUBLE;
 %type <word>    TOK_STRING
 %type <words>   WORDLIST
-%type <getupdlist> CUSTOMGET CUSTOMUPD CUSTOMDEL CUSTOMS
+%type <getupdlist> CUSTOMGET CUSTOMUPD CUSTOMUPDBY CUSTOMDEL CUSTOMS
 
 %start SCHEMA_FILE
 
@@ -181,6 +181,11 @@ CUSTOMS
             $$ = $1;
             $$->next = $2;
 	}
+	| CUSTOMUPDBY CUSTOMS
+	{
+            $$ = $1;
+            $$->next = $2;
+	}
 	| CUSTOMDEL CUSTOMS
 	{
             $$ = $1;
@@ -226,6 +231,17 @@ CUSTOMUPD
             $$ = new CustomGetUpdList;
             $$->init_upd(*$2, $4);
             delete $2;
+	}
+	;
+
+CUSTOMUPDBY
+	: KW_CUSTOM_UPDBY KW_WORD L_PAREN WORDLIST R_PAREN
+          L_PAREN TYPELIST R_PAREN TOK_STRING
+	{
+            $$ = new CustomGetUpdList;
+            $$->init_updby(*$2, $4, $7, *$9);
+            delete $2;
+            delete $9;
 	}
 	;
 
