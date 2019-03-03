@@ -33,4 +33,32 @@ private:
 struct sqlite3_file_vfs_aes : public sqlite3_file
 {
     // what
+    static const sqlite3_io_methods io_methods;
+    void init(sqlite3_vfs *_vfs);
+private:
+    sqlite3_vfs * vfs;
+    static inline sqlite3_file_vfs_aes *cast(sqlite3_file *f) {
+        return (sqlite3_file_vfs_aes *)f;
+    }
+    static int xClose(sqlite3_file *);
+    static int xRead(sqlite3_file*, void*, int iAmt, sqlite3_int64 iOfst);
+    static int xWrite(sqlite3_file*, const void*, int iAmt,
+                      sqlite3_int64 iOfst);
+    static int xTruncate(sqlite3_file*, sqlite3_int64 size);
+    static int xSync(sqlite3_file*, int flags);
+    static int xFileSize(sqlite3_file*, sqlite3_int64 *pSize);
+    static int xLock(sqlite3_file*, int);
+    static int xUnlock(sqlite3_file*, int);
+    static int xCheckReservedLock(sqlite3_file*, int *pResOut);
+    static int xFileControl(sqlite3_file*, int op, void *pArg);
+    static int xSectorSize(sqlite3_file*);
+    static int xDeviceCharacteristics(sqlite3_file*);
+    static int xShmMap(sqlite3_file*, int iPg, int pgsz, int,
+                       void volatile**);
+    static int xShmLock(sqlite3_file*, int offset, int n, int flags);
+    static void xShmBarrier(sqlite3_file*);
+    static int xShmUnmap(sqlite3_file*, int deleteFlag);
+    static int xFetch(sqlite3_file*, sqlite3_int64 iOfst,
+                      int iAmt, void **pp);
+    static int xUnfetch(sqlite3_file*, sqlite3_int64 iOfst, void *p);
 };

@@ -1,0 +1,8 @@
+
+PACKAGE "test"
+
+TABLE ids VERSION 1
+{
+    id    INT64 INDEX QUERY
+    name  TEXT
+}

@@ -35,14 +35,13 @@ sqlite3_vfs_aes :: register_vfs(void)
     sqlite3_vfs_register( &vfs_aes_obj, 0 );
 }
 
-
 //static
 int
-sqlite3_vfs_aes :: my_xOpen(sqlite3_vfs*, const char *zName,
-                            sqlite3_file*_f, int flags, int *pOutFlags)
+sqlite3_vfs_aes :: my_xOpen(sqlite3_vfs *vfs, const char *zName,
+                            sqlite3_file *_f, int flags, int *pOutFlags)
 {
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
-//    f->pMethods =
+    f->init(vfs);
 
     return 1;
 }
