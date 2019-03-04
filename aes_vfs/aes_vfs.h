@@ -1,5 +1,6 @@
 
 #include "sqlite3.h"
+#include "page_cache.h"
 
 struct sqlite3_vfs_aes : public sqlite3_vfs
 {
@@ -37,6 +38,7 @@ struct sqlite3_file_vfs_aes : public sqlite3_file
              int flags, int *pOutFlags);
 private:
     int fd;
+    AES_VFS::diskCache *dc;
     sqlite3_vfs_aes * vfs;
     static const sqlite3_io_methods io_methods;
     static int xClose(sqlite3_file *);
