@@ -19,10 +19,17 @@ void version_cb(const std::string &table_name,
 int
 main()
 {
-    sqlite3 * pdb;
+    sqlite3 * pdb = NULL;
 
     sqlite3_vfs_aes::register_vfs();
-    sqlite3_open("/tmp/test.db", &pdb);
+    int r = sqlite3_open_v2("/tmp/test.db", &pdb,
+                            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+                            "aes");
+    if (r != SQLITE_OK)
+    {
+        printf("open failed, r = %d\n", r);
+        return 1;
+    }
     test::SQL_TABLE_ALL_TABLES::init_all(pdb, &version_cb);
     test::SQL_TABLE_ids  t(pdb);
 

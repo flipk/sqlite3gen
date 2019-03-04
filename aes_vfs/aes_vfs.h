@@ -4,6 +4,7 @@
 struct sqlite3_vfs_aes : public sqlite3_vfs
 {
     static void register_vfs(void);
+    int last_err;
 private:
     static  int   my_xOpen(sqlite3_vfs*, const char *zName, sqlite3_file*f,
                            int flags, int *pOutFlags);
@@ -32,14 +33,12 @@ private:
 
 struct sqlite3_file_vfs_aes : public sqlite3_file
 {
-    // what
-    static const sqlite3_io_methods io_methods;
-    void init(sqlite3_vfs *_vfs);
+    int init(sqlite3_vfs *_vfs, const char *zName,
+             int flags, int *pOutFlags);
 private:
-    sqlite3_vfs * vfs;
-    static inline sqlite3_file_vfs_aes *cast(sqlite3_file *f) {
-        return (sqlite3_file_vfs_aes *)f;
-    }
+    int fd;
+    sqlite3_vfs_aes * vfs;
+    static const sqlite3_io_methods io_methods;
     static int xClose(sqlite3_file *);
     static int xRead(sqlite3_file*, void*, int iAmt, sqlite3_int64 iOfst);
     static int xWrite(sqlite3_file*, const void*, int iAmt,

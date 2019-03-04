@@ -2,6 +2,12 @@
 #include "aes_vfs.h"
 
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <errno.h>
+#include <time.h>
 
 static sqlite3_vfs_aes vfs_aes_obj;
 
@@ -11,8 +17,8 @@ sqlite3_vfs_aes :: register_vfs(void)
 {
     vfs_aes_obj.iVersion   = 3;
     vfs_aes_obj.szOsFile   = sizeof(sqlite3_file_vfs_aes);
-    vfs_aes_obj.mxPathname = 1024;
-    vfs_aes_obj.zName      = "aes_vfs";
+    vfs_aes_obj.mxPathname = 256;
+    vfs_aes_obj.zName      = "aes";
     vfs_aes_obj.pAppData   = NULL; // what?
 
     vfs_aes_obj.xOpen             = &sqlite3_vfs_aes::my_xOpen;
@@ -32,7 +38,7 @@ sqlite3_vfs_aes :: register_vfs(void)
     vfs_aes_obj.xGetSystemCall    = &sqlite3_vfs_aes::my_xGetSystemCall;
     vfs_aes_obj.xNextSystemCall   = &sqlite3_vfs_aes::my_xNextSystemCall;
 
-    sqlite3_vfs_register( &vfs_aes_obj, 0 );
+    sqlite3_vfs_register( &vfs_aes_obj, /*make default*/ 0 );
 }
 
 //static
@@ -41,16 +47,15 @@ sqlite3_vfs_aes :: my_xOpen(sqlite3_vfs *vfs, const char *zName,
                             sqlite3_file *_f, int flags, int *pOutFlags)
 {
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
-    f->init(vfs);
-
-    return 1;
+    return f->init(vfs, zName, flags, pOutFlags);
 }
 
 //static
 int
 sqlite3_vfs_aes :: my_xDelete(sqlite3_vfs*, const char *zName, int syncDir)
 {
-    return 1;
+    unlink(zName);
+    return SQLITE_OK;
 }
 
 //static
@@ -58,7 +63,12 @@ int
 sqlite3_vfs_aes :: my_xAccess(sqlite3_vfs*, const char *zName,
            int flags, int *pResOut)
 {
-    return 1;
+    struct stat sb;
+    if (stat(zName, &sb) < 0)
+        *pResOut = 0;
+    else
+        *pResOut = 1;
+    return SQLITE_OK;
 }
 
 //static
@@ -66,7 +76,20 @@ int
 sqlite3_vfs_aes :: my_xFullPathname(sqlite3_vfs*, const char *zName,
                  int nOut, char *zOut)
 {
-    return 1;
+    if (zName[0] == '/')
+    {
+        memset(zOut, 0, nOut);
+        strncpy(zOut, zName, nOut-1);
+    }
+    else
+    {
+        memset(zOut, 0, nOut);
+        char cwd[512];
+        cwd[511] = 0;
+        getcwd(zOut, 511);
+        snprintf(zOut, nOut-1, "%s/%s", cwd, zName);
+    }
+    return SQLITE_OK;
 }
 
 //static
@@ -80,6 +103,9 @@ sqlite3_vfs_aes :: my_xDlOpen(sqlite3_vfs*, const char *zFilename)
 void
 sqlite3_vfs_aes :: my_xDlError(sqlite3_vfs*, int nByte, char *zErrMsg)
 {
+    snprintf(zErrMsg, nByte,
+             "Loadable modules are not supported by this VFS");
+    zErrMsg[nByte-1] = 0;
 }
 
 //static
@@ -99,35 +125,45 @@ sqlite3_vfs_aes :: my_xDlClose(sqlite3_vfs*, void*)
 int
 sqlite3_vfs_aes :: my_xRandomness(sqlite3_vfs*, int nByte, char *zOut)
 {
-    return 1;
+    return SQLITE_OK;
 }
 
 //static
 int
 sqlite3_vfs_aes :: my_xSleep(sqlite3_vfs*, int microseconds)
 {
-    return 1;
+    sleep(microseconds / 1000000);
+    usleep(microseconds % 1000000);
+    return microseconds;
 }
 
 //static
 int
-sqlite3_vfs_aes :: my_xCurrentTime(sqlite3_vfs*, double*)
+sqlite3_vfs_aes :: my_xCurrentTime(sqlite3_vfs*, double*pTime)
 {
-    return 1;
+    // copied from test_demovfs.c
+    time_t t = time(0);
+    *pTime = t/86400.0 + 2440587.5;
+    return SQLITE_OK;
 }
 
 //static
 int
-sqlite3_vfs_aes :: my_xGetLastError(sqlite3_vfs*, int, char *)
+sqlite3_vfs_aes :: my_xGetLastError(sqlite3_vfs*_v, int errLen, char *err)
 {
-    return 1;
+    sqlite3_vfs_aes * v = (sqlite3_vfs_aes *) _v;
+    snprintf(err, errLen, "%s", strerror(v->last_err));
+    return v->last_err;
 }
 
 //static
 int
-sqlite3_vfs_aes :: my_xCurrentTimeInt64(sqlite3_vfs*, sqlite3_int64*)
+sqlite3_vfs_aes :: my_xCurrentTimeInt64(sqlite3_vfs*, sqlite3_int64*pTime)
 {
-    return 1;
+    // copied from test_demovfs.c
+    time_t t = time(0);
+    *pTime = t/86400.0 + 2440587.5;
+    return SQLITE_OK;
 }
 
 //static
@@ -135,7 +171,7 @@ int
 sqlite3_vfs_aes :: my_xSetSystemCall(sqlite3_vfs*, const char *zName,
                                      sqlite3_syscall_ptr)
 {
-    return 1;
+    return SQLITE_ERROR;
 }
 
 //static

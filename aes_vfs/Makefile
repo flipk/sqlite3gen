@@ -14,6 +14,7 @@ PROG_TARGETS += aes_vfs_test_make
 aes_vfs_test_make_TARGET = $(OBJDIR)/aes_vfs_test_make
 aes_vfs_test_make_CXXSRCS = aes_vfs_test_make.cc
 aes_vfs_test_make_INCS = -I.
+aes_vfs_test_make_DEFS = -DSQLITE_MAX_MMAP_SIZE=0
 aes_vfs_test_make_LIBS = ../sqlite3/sqlite3.o -ldl -lpthread
 aes_vfs_test_make_DEPLIBS = $(aes_vfs_TARGET) $(schema_TARGET)
 
