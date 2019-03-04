@@ -1,8 +1,3 @@
-#if 0
-set -e -x
-g++ -DINCLUDE_TEST=1 page_cache.cc signal_backtrace.cc dll3.cc -o obj/pc -lpthread
-exit 0
-#endif
 
 #include "page_cache.h"
 
@@ -90,12 +85,11 @@ diskCache :: getPages(std::vector<pginfo> &pgs, off_t pos, int size)
 {
     off_t end_offset;
     uint64_t start_page, end_page;
-    uint32_t num_pages, pgno;
+    uint32_t pgno;
 
     end_offset = pos + size - 1;
     start_page = pos / PAGE_SIZE;
     end_page = end_offset / PAGE_SIZE;
-    num_pages = end_page - start_page + 1;
 
     int offset_in_arg = 0;
     for (pgno = start_page; pgno <= end_page; pgno++)
@@ -157,34 +151,3 @@ diskCache :: write(off_t pos, uint8_t *buf, int size)
 }
 
 }; // namespace AES_VFS
-
-#ifdef INCLUDE_TEST
-
-int
-main()
-{
-    AES_VFS::diskPageList_t  list;
-    AES_VFS::diskPageHash_t  hash;
-
-    AES_VFS::diskPage   pg(4,4);
-
-    {
-        WaitUtil::Lock   l1(&list);
-        WaitUtil::Lock   l2(&hash);
-
-        list.add_tail(&pg);
-        hash.add(&pg);
-    }
-
-    {
-        WaitUtil::Lock   l1(&list);
-        WaitUtil::Lock   l2(&hash);
-
-        list.remove(&pg);
-        hash.remove(&pg);
-    }
-
-    return 0;
-}
-
-#endif
