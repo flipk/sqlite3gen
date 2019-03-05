@@ -1,1 +1,3 @@
-- implement a sqlite3_vfs that does encryption.
+- don't store password in the class, store a sha and make keys on the fly
+  using something better than ostringstream
+- lots of code cleanup of aes_vfs!

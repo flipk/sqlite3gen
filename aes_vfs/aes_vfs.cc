@@ -9,6 +9,8 @@
 #include <errno.h>
 #include <time.h>
 
+namespace AES_VFS {
+
 static sqlite3_vfs_aes vfs_aes_obj;
 
 //static
@@ -41,13 +43,20 @@ sqlite3_vfs_aes :: register_vfs(void)
     sqlite3_vfs_register( &vfs_aes_obj, /*make default*/ 0 );
 }
 
+// static
+void
+sqlite3_vfs_aes :: setKey(const std::string &password)
+{
+    vfs_aes_obj.cipher.setKey(password);
+}
+
 //static
 int
 sqlite3_vfs_aes :: my_xOpen(sqlite3_vfs *vfs, const char *zName,
                             sqlite3_file *_f, int flags, int *pOutFlags)
 {
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
-    return f->init(vfs, zName, flags, pOutFlags);
+    return f->init(vfs, zName, flags, pOutFlags, &vfs_aes_obj.cipher);
 }
 
 //static
@@ -189,3 +198,5 @@ sqlite3_vfs_aes :: my_xNextSystemCall(sqlite3_vfs*,
 {
     return NULL;
 }
+
+}; // namespace AES_VFS

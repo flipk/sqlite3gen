@@ -1,14 +1,152 @@
 
 #include "page_cache.h"
+#include <stdio.h>
 #include <vector>
 #include <algorithm>
+#include <sstream>
 
 namespace AES_VFS {
 
+//////////////////////////// PageCipher
+
+PageCipher :: PageCipher(void)
+{
+    mbedtls_aes_init( &aesenc_ctx );
+    mbedtls_aes_init( &aesdec_ctx );
+    mbedtls_md_init( &hmac_md_ctx );
+}
+
+PageCipher :: ~PageCipher(void)
+{
+    mbedtls_aes_free( &aesenc_ctx );
+    mbedtls_aes_free( &aesdec_ctx );
+    mbedtls_md_free( &hmac_md_ctx );
+}
+
+void
+PageCipher :: setKey(const std::string &_password)
+{
+    password = _password;
+    unsigned char file_key[32];
+    mbedtls_sha256( (const unsigned char *) password.c_str(),
+                    password.length(),
+                    file_key, 0/*use SHA256*/);
+    mbedtls_aes_setkey_enc( &aesenc_ctx, file_key, 256 );
+    mbedtls_aes_setkey_dec( &aesdec_ctx, file_key, 256 );
+    mbedtls_md_setup( &hmac_md_ctx,
+                      mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
+                      /*use hmac*/ 1);
+    mbedtls_md_hmac_starts( &hmac_md_ctx, file_key, 32 );
+}
+
+
+static inline void
+make_iv(unsigned char IV_plus_sha256[32],
+        const std::string &pass, uint64_t page)
+{
+    std::ostringstream  ostr;
+    ostr << pass << ":" << page;
+    mbedtls_sha256( (const unsigned char*) ostr.str().c_str(),
+                    ostr.str().length(),
+                    IV_plus_sha256, 0/*use SHA256*/);
+    for (int ind = 0; ind < 16; ind++)
+        IV_plus_sha256[ind] ^= IV_plus_sha256[ind+16];
+}
+
+void
+PageCipher :: encrypt_page(uint64_t page_number, uint8_t * out, const uint8_t * in)
+{
+    unsigned char IV[32];
+    make_iv(IV, password, page_number);
+    mbedtls_aes_crypt_cbc( &aesenc_ctx, MBEDTLS_AES_ENCRYPT,
+                   PAGE_SIZE, IV, in, out);
+    mbedtls_md_hmac_reset( &hmac_md_ctx );
+    mbedtls_md_hmac_update( &hmac_md_ctx, out, PAGE_SIZE);
+    mbedtls_md_hmac_finish( &hmac_md_ctx, out + PAGE_SIZE );
+}
+
+bool
+PageCipher :: decrypt_page(uint64_t page_number,
+                           uint8_t * out, const uint8_t * in)
+{
+    bool ret = true;
+    unsigned char IV[32];
+    make_iv(IV, password, page_number);
+    uint8_t  hmac_buf[32];
+    mbedtls_md_hmac_reset( &hmac_md_ctx );
+    mbedtls_md_hmac_update( &hmac_md_ctx, in, PAGE_SIZE);
+    mbedtls_md_hmac_finish( &hmac_md_ctx, hmac_buf );
+
+    if (memcmp(hmac_buf, in + PAGE_SIZE, 32) != 0)
+    {
+        printf("PageCipher :: decrypt_page : HMAC FAILURE!\n");
+        ret = false;
+    }
+    mbedtls_aes_crypt_cbc( &aesdec_ctx, MBEDTLS_AES_DECRYPT,
+                   PAGE_SIZE, IV, in, out);
+    return ret;
+}
+
+
+//////////////////////////// diskPage
+
+diskPage :: diskPage(int _fd, uint32_t _pg, PageCipher * _cipher)
+    : cipher(_cipher), fd(_fd), pageNumber(_pg)
+{
+    dirty = false;
+    read();
+}
+
+diskPage :: ~diskPage(void)
+{
+    flush();
+}
+
+void
+diskPage :: flush(void)
+{
+    if (dirty)
+        write();
+    dirty = false;
+}
+
+bool
+diskPage :: write(void)
+{
+    if (!seek())
+        return false;
+
+    uint8_t disk_buffer[PAGE_SIZE_DISK];
+    cipher->encrypt_page(pageNumber, disk_buffer, buffer);
+    int r = ::write(fd, (void*) disk_buffer, PAGE_SIZE_DISK);
+    if (r < 0)
+        return false;
+    return true;
+}
+
+bool
+diskPage :: read(void)
+{
+    if (!seek())
+        return false;
+
+    uint8_t disk_buffer[PAGE_SIZE_DISK];
+    int r = ::read(fd, (void*) disk_buffer, PAGE_SIZE_DISK);
+    if (r < 0)
+        return false;
+    if (r != PAGE_SIZE_DISK)
+        memset(buffer, 0, PAGE_SIZE);
+    else
+        cipher->decrypt_page(pageNumber, buffer, disk_buffer);
+
+    dirty = false;
+    return true;
+}
+
 //////////////////////////// pageCache
 
-pageCache :: pageCache(int _fd, int _max_pages)
-    : fd(_fd), max_pages(_max_pages)
+pageCache :: pageCache(int _fd, int _max_pages, PageCipher * _cipher)
+    : cipher(_cipher), fd(_fd), max_pages(_max_pages)
 {
     // nothing
 }
@@ -38,7 +176,7 @@ pageCache :: getPage(uint32_t pgno)
             page_lru.remove(pg);
         return pg;
     }
-    pg = new diskPage(fd, pgno);
+    pg = new diskPage(fd, pgno, cipher);
     page_list.add_tail(pg);
     page_hash.add(pg);
     return pg;
@@ -86,8 +224,8 @@ pageCache :: flush(void)
 
 //////////////////////////// diskCache
 
-diskCache :: diskCache(int fd, int max_pages)
-    : pc(fd, max_pages)
+diskCache :: diskCache(int fd, int max_pages, PageCipher *cipher)
+    : pc(fd, max_pages, cipher)
 {
 }
 

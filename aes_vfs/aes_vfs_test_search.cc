@@ -22,7 +22,8 @@ main()
 {
     sqlite3 * pdb = NULL;
 
-    sqlite3_vfs_aes::register_vfs();
+    AES_VFS::sqlite3_vfs_aes::setKey("SOME PASSWORD");
+    AES_VFS::sqlite3_vfs_aes::register_vfs();
     int r = sqlite3_open_v2("/tmp/test.db", &pdb,
                             SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
                             "aes");

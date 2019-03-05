@@ -2,10 +2,14 @@
 #include "sqlite3.h"
 #include "page_cache.h"
 
+namespace AES_VFS {
+
 struct sqlite3_vfs_aes : public sqlite3_vfs
 {
     static void register_vfs(void);
+    static void setKey(const std::string &password);
     int last_err;
+    PageCipher  cipher;
 private:
     static  int   my_xOpen(sqlite3_vfs*, const char *zName, sqlite3_file*f,
                            int flags, int *pOutFlags);
@@ -35,7 +39,7 @@ private:
 struct sqlite3_file_vfs_aes : public sqlite3_file
 {
     int init(sqlite3_vfs *_vfs, const char *zName,
-             int flags, int *pOutFlags);
+             int flags, int *pOutFlags, PageCipher *cipher);
 private:
     int fd;
     AES_VFS::diskCache *dc;
@@ -63,3 +67,5 @@ private:
                       int iAmt, void **pp);
     static int xUnfetch(sqlite3_file*, sqlite3_int64 iOfst, void *p);
 };
+
+}; // namespace AES_VFS

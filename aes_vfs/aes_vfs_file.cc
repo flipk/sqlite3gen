@@ -9,35 +9,37 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+namespace AES_VFS {
+
 #define USE_DISK_CACHE 1
 
 //static
 const sqlite3_io_methods sqlite3_file_vfs_aes::io_methods =
 {
-    .iVersion               = 3,
-    .xClose                 = &sqlite3_file_vfs_aes::xClose,
-    .xRead                  = &sqlite3_file_vfs_aes::xRead,
-    .xWrite                 = &sqlite3_file_vfs_aes::xWrite,
-    .xTruncate              = &sqlite3_file_vfs_aes::xTruncate,
-    .xSync                  = &sqlite3_file_vfs_aes::xSync,
-    .xFileSize              = &sqlite3_file_vfs_aes::xFileSize,
-    .xLock                  = &sqlite3_file_vfs_aes::xLock,
-    .xUnlock                = &sqlite3_file_vfs_aes::xUnlock,
-    .xCheckReservedLock     = &sqlite3_file_vfs_aes::xCheckReservedLock,
-    .xFileControl           = &sqlite3_file_vfs_aes::xFileControl,
-    .xSectorSize            = &sqlite3_file_vfs_aes::xSectorSize,
-    .xDeviceCharacteristics = &sqlite3_file_vfs_aes::xDeviceCharacteristics, 
-    .xShmMap                = &sqlite3_file_vfs_aes::xShmMap,
-    .xShmLock               = &sqlite3_file_vfs_aes::xShmLock,
-    .xShmBarrier            = &sqlite3_file_vfs_aes::xShmBarrier,
-    .xShmUnmap              = &sqlite3_file_vfs_aes::xShmUnmap,
-    .xFetch                 = &sqlite3_file_vfs_aes::xFetch,
-    .xUnfetch               = &sqlite3_file_vfs_aes::xUnfetch
+    3,
+    &sqlite3_file_vfs_aes::xClose,
+    &sqlite3_file_vfs_aes::xRead,
+    &sqlite3_file_vfs_aes::xWrite,
+    &sqlite3_file_vfs_aes::xTruncate,
+    &sqlite3_file_vfs_aes::xSync,
+    &sqlite3_file_vfs_aes::xFileSize,
+    &sqlite3_file_vfs_aes::xLock,
+    &sqlite3_file_vfs_aes::xUnlock,
+    &sqlite3_file_vfs_aes::xCheckReservedLock,
+    &sqlite3_file_vfs_aes::xFileControl,
+    &sqlite3_file_vfs_aes::xSectorSize,
+    &sqlite3_file_vfs_aes::xDeviceCharacteristics,
+    &sqlite3_file_vfs_aes::xShmMap,
+    &sqlite3_file_vfs_aes::xShmLock,
+    &sqlite3_file_vfs_aes::xShmBarrier,
+    &sqlite3_file_vfs_aes::xShmUnmap,
+    &sqlite3_file_vfs_aes::xFetch,
+    &sqlite3_file_vfs_aes::xUnfetch
 };
 
 int
 sqlite3_file_vfs_aes :: init(sqlite3_vfs *_vfs, const char *zName,
-                             int flags, int *pOutFlags)
+                             int flags, int *pOutFlags, PageCipher *cipher)
 {
     vfs = (sqlite3_vfs_aes *) _vfs;
     pMethods = &io_methods;
@@ -63,7 +65,7 @@ sqlite3_file_vfs_aes :: init(sqlite3_vfs *_vfs, const char *zName,
 //    printf(" -> fd %d\n", fd);
 
 #if USE_DISK_CACHE
-    dc = new AES_VFS::diskCache(fd, 5000);
+    dc = new AES_VFS::diskCache(fd, 5000, cipher);
 #endif
 
     return SQLITE_OK;
@@ -311,3 +313,5 @@ sqlite3_file_vfs_aes :: xUnfetch(sqlite3_file*, sqlite3_int64 iOfst,
 {
     return SQLITE_ERROR;
 }
+
+}; // namespace AES_VFS

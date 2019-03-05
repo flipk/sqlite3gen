@@ -3,7 +3,28 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <mbedtls/aes.h>
+#include <mbedtls/sha256.h>
+#include <mbedtls/md.h>
+
 namespace AES_VFS {
+
+class PageCipher
+{
+    std::string password;
+    mbedtls_aes_context  aesenc_ctx;
+    mbedtls_aes_context  aesdec_ctx;
+    mbedtls_md_context_t hmac_md_ctx;
+public:
+    static const int PAGE_SIZE = 4096;
+    static const int PAGE_SIZE_DISK = (4096 + 32); // HMAC overhead
+    PageCipher(void);
+    ~PageCipher(void);
+    void setKey(const std::string &password);
+    void encrypt_page(uint64_t page_number, uint8_t * out, const uint8_t * in);
+    bool decrypt_page(uint64_t page_number, uint8_t * out, const uint8_t * in);
+
+};
 
 class diskPage;
 class diskPageHashComp;
@@ -17,47 +38,23 @@ class diskPage : public diskPageList_t::Links,
                  public diskPageHash_t::Links
 {
     bool seek(void) {
-        off_t o = pageNumber * PAGE_SIZE;
+        off_t o = pageNumber * PAGE_SIZE_DISK;
         return ::lseek(fd, o, SEEK_SET) == o;
     }
+    PageCipher * cipher;
+    int fd;
 public:
-    static const int PAGE_SIZE = 4096;
+    static const int PAGE_SIZE = PageCipher::PAGE_SIZE;
+    static const int PAGE_SIZE_DISK = PageCipher::PAGE_SIZE_DISK;
     uint8_t buffer[PAGE_SIZE];
     uint32_t pageNumber;
     bool dirty;
-    int fd;
 
-    diskPage(int _fd, uint32_t _pg) : fd(_fd), pageNumber(_pg) {
-        dirty = false;
-        read();
-    }
-    ~diskPage(void) {
-        flush();
-    }
-    void flush(void) {
-        if (dirty)
-            write();
-        dirty = false;
-    }
-    bool write(void) {
-//        printf("write page %d\n", pageNumber);
-        if (!seek()) return false;
-        int r = ::write(fd, (void*) buffer, PAGE_SIZE);
-        if (r < 0)
-            return false;
-        return true;
-    }
-    bool read(void) {
-//        printf("read page %d\n", pageNumber);
-        if (!seek()) return false;
-        int r = ::read(fd, (void*) buffer, PAGE_SIZE);
-        if (r < 0)
-            return false;
-        if (r != PAGE_SIZE)
-            memset(buffer + r, 0, PAGE_SIZE - r);
-        dirty = false;
-        return true;
-    }
+    diskPage(int _fd, uint32_t _pg, PageCipher * _cipher);
+    ~diskPage(void);
+    void flush(void);
+    bool write(void);
+    bool read(void);
 };
 
 class diskPageHashComp {
@@ -72,6 +69,7 @@ public:
 
 class pageCache
 {
+    PageCipher * cipher;
     int fd;
     int max_pages;
     WaitUtil::Lockable lock;
@@ -80,7 +78,7 @@ class pageCache
     diskPageHash_t page_hash;
 public:
     static const int PAGE_SIZE = diskPage::PAGE_SIZE;
-    pageCache(int fd, int max_pages);
+    pageCache(int fd, int max_pages, PageCipher *);
     ~pageCache(void);
     diskPage * getPage(uint32_t pgno);
     void releasePage(diskPage *);
@@ -100,8 +98,9 @@ class diskCache
     bool getPages(std::vector<pginfo> &pgs, off_t pos, int size);
 public:
     static const int PAGE_SIZE = diskPage::PAGE_SIZE;
-    diskCache(int fd, int max_pages);
+    diskCache(int fd, int max_pages, PageCipher *_cipher);
     ~diskCache(void);
+    void setKey(const std::string &password);
     int read(off_t pos, uint8_t *, int);
     int write(off_t pos, uint8_t *, int);
     void flush(void) { pc.flush(); }
