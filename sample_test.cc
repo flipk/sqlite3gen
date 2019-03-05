@@ -183,7 +183,7 @@ void log_sql_get(void *arg, sqlite3_stmt *stmt)
     sqlite3_free(sql);
 }
 
-void table_callback(const std::string &table_name,
+void table_callback(sqlite3 *pdb, const std::string &table_name,
                     int before, int after)
 {
     printf("table '%s' goes from version %d to %d\n",

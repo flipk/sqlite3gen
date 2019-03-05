@@ -1,5 +1,7 @@
 
 #include "page_cache.h"
+#include <vector>
+#include <algorithm>
 
 namespace AES_VFS {
 
@@ -57,15 +59,28 @@ pageCache :: releasePage(diskPage *pg)
     }
 }
 
+static bool pgs_sort(diskPage*a,diskPage*b)
+{
+    return a->pageNumber < b->pageNumber;
+}
+
 void
 pageCache :: flush(void)
 {
     WaitUtil::Lock  l(&lock);
+    std::vector<diskPage*> pgs;
     for (diskPage * pg = page_list.get_head();
          pg;
          pg = page_list.get_next(pg))
     {
-        pg->flush();
+        pgs.push_back(pg);
+    }
+    std::sort(pgs.begin(), pgs.end(), pgs_sort);
+// this is how i wanted to write it:
+// for (auto pg : pgs) pg->flush();
+    for (int ind = 0; ind < pgs.size(); ind++)
+    {
+        pgs[ind]->flush();
     }
 }
 

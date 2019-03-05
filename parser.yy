@@ -138,8 +138,7 @@ TABLE
                 $$->customs = $7;
 		delete $2;
                 validate_table($$);
-                $$->next = schema_def->tables;
-                schema_def->tables = $$;
+                schema_def->add_table($$);
 	}
 	;
 
@@ -498,16 +497,20 @@ validate_table(TableDef *tb)
     // actually column names from the table.
     for (cust = tb->customs; cust; cust = cust->next)
     {
-        if (cust->type == CustomGetUpdList::UPD)
+        if (cust->type == CustomGetUpdList::UPD ||
+            cust->type == CustomGetUpdList::UPDBY)
         {
             WordList * w;
+            const char * by =
+                (cust->type == CustomGetUpdList::UPD) ? "" : "BY";
             for (w = cust->wordlist; w; w = w->next)
             {
                 if (!is_column(tb, w->word))
                 {
-                    fprintf(stderr, "ERROR: column '%s' in CUSTOM-UPD "
-                            "is not a known column in table '%s'\n",
-                            w->word.c_str(), tb->name.c_str());
+                    fprintf(stderr, "ERROR: column '%s' in CUSTOM-UPD%s "
+                            "'%s' is not a known column in table '%s'\n",
+                            w->word.c_str(), by,
+                            cust->name.c_str(), tb->name.c_str());
                     exit(1);
                 }
             }

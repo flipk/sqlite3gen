@@ -22,6 +22,7 @@ namespace @@package@@ {
 
 typedef void (*sql_log_function_t)(void *arg, sqlite3_stmt *);
 typedef void (*table_version_callback)(
+    sqlite3 *pdb,
     const std::string &table_name,
     int version_in_file,
     int version_in_code);
@@ -521,7 +522,7 @@ bool SQL_TABLE_@@tablename@@ :: init(sqlite3 *pdb, table_version_callback cb)
     else if (r == SQLITE_ROW)
     {
         int v = sqlite3_column_int(s,0);
-        cb("@@tablename@@", v, @@tableversion@@);
+        cb(pdb, "@@tablename@@", v, @@tableversion@@);
         sqlite3_exec(
             pdb,
             "UPDATE tables SET (version) = (@@tableversion@@) "

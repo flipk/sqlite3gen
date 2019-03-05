@@ -23,24 +23,34 @@ namespace library {
 
 typedef void (*sql_log_function_t)(void *arg, sqlite3_stmt *);
 typedef void (*table_version_callback)(
+    sqlite3 *pdb,
     const std::string &table_name,
     int version_in_file,
     int version_in_code);
 
 
-class SQL_TABLE_checkouts {
+class SQL_TABLE_user {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
     sqlite3_stmt * pStmt_get_by_rowid;
     sqlite3_stmt * pStmt_get_all;
-    sqlite3_stmt * pStmt_by_bookid;
     sqlite3_stmt * pStmt_by_userid;
+    sqlite3_stmt * pStmt_by_SSN;
+    sqlite3_stmt * pStmt_by_test2;
+    sqlite3_stmt * pStmt_by_test3;
 
+    sqlite3_stmt * pStmt_by_lastname_like;
 
-    sqlite3_stmt * pStmt_get_due_now;
+    sqlite3_stmt * pStmt_get_great_balance;
+    sqlite3_stmt * pStmt_get_founders;
+    sqlite3_stmt * pStmt_get_firstlast;
 
+    sqlite3_stmt * pStmt_update_balance;
+    sqlite3_stmt * pStmt_update_firstlast;
+    sqlite3_stmt * pStmt_update_by_userid_stuff;
 
+    sqlite3_stmt * pStmt_del_SSN;
 
 
 protected:
@@ -52,10 +62,10 @@ protected:
     static void * log_arg;
 
 public:
-    SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
-    virtual ~SQL_TABLE_checkouts(void);
+    SQL_TABLE_user(sqlite3 *_pdb = NULL);
+    virtual ~SQL_TABLE_user(void);
 
-    static const int TABLE_VERSION = 1;
+    static const int TABLE_VERSION = 19;
 
     void init(void);
     void init_statements(void);
@@ -68,16 +78,29 @@ public:
 
     sqlite3_int64 rowid;
 
-    int64_t bookid;
     int64_t userid;
-    int64_t duedate;
+    std::string firstname;
+    std::string lastname;
+    std::string mi;
+    int32_t SSN;
+    double balance;
+    std::string proto;
+    bool test2;
+    sample::library2::EnumField_t test3;
 
-    bool get_by_bookid(int64_t v);
     bool get_by_userid(int64_t v);
+    bool get_by_SSN(int32_t v);
+    bool get_by_test2(bool v);
+    bool get_by_test3(sample::library2::EnumField_t v);
 
+    bool get_by_lastname_like(const std::string &patt);
 
-// WHERE duedate < ?
-    bool get_due_now(int64_t v1);
+// WHERE balance > ?
+    bool get_great_balance(double v1);
+// WHERE userid < 100
+    bool get_founders(void);
+// WHERE firstname LIKE ? AND lastname LIKE ?
+    bool get_firstlast(const std::string & v1, const std::string & v2);
 
     bool get_next(void);
     bool insert(void); // updates rowid
@@ -85,9 +108,16 @@ public:
     bool delete_rowid(void); // delete by rowid
     bool get_by_rowid(int64_t v1);
     bool get_all(void);
+    bool update_balance(void);
+    bool update_firstlast(void);
+// WHERE userid = ? and lastname = ?
+    bool update_by_userid_stuff(int64_t v1, const std::string & v2);
 
+// WHERE ssn = ?
+    bool delete_SSN(int32_t v1);
 
-   // no proto IDs for this table
+    void CopyToProto(library::TABLE_user_m &msg);
+    void CopyFromProto(const library::TABLE_user_m &msg);
 
 
     static void register_log_funcs(sql_log_function_t _upd_func,
@@ -188,28 +218,19 @@ public:
 };
 
 
-class SQL_TABLE_user {
+class SQL_TABLE_checkouts {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
     sqlite3_stmt * pStmt_get_by_rowid;
     sqlite3_stmt * pStmt_get_all;
+    sqlite3_stmt * pStmt_by_bookid;
     sqlite3_stmt * pStmt_by_userid;
-    sqlite3_stmt * pStmt_by_SSN;
-    sqlite3_stmt * pStmt_by_test2;
-    sqlite3_stmt * pStmt_by_test3;
 
-    sqlite3_stmt * pStmt_by_lastname_like;
 
-    sqlite3_stmt * pStmt_get_great_balance;
-    sqlite3_stmt * pStmt_get_founders;
-    sqlite3_stmt * pStmt_get_firstlast;
+    sqlite3_stmt * pStmt_get_due_now;
 
-    sqlite3_stmt * pStmt_update_balance;
-    sqlite3_stmt * pStmt_update_firstlast;
-    sqlite3_stmt * pStmt_update_by_userid_stuff;
 
-    sqlite3_stmt * pStmt_del_SSN;
 
 
 protected:
@@ -221,10 +242,10 @@ protected:
     static void * log_arg;
 
 public:
-    SQL_TABLE_user(sqlite3 *_pdb = NULL);
-    virtual ~SQL_TABLE_user(void);
+    SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
+    virtual ~SQL_TABLE_checkouts(void);
 
-    static const int TABLE_VERSION = 19;
+    static const int TABLE_VERSION = 1;
 
     void init(void);
     void init_statements(void);
@@ -237,29 +258,16 @@ public:
 
     sqlite3_int64 rowid;
 
+    int64_t bookid;
     int64_t userid;
-    std::string firstname;
-    std::string lastname;
-    std::string mi;
-    int32_t SSN;
-    double balance;
-    std::string proto;
-    bool test2;
-    sample::library2::EnumField_t test3;
+    int64_t duedate;
 
+    bool get_by_bookid(int64_t v);
     bool get_by_userid(int64_t v);
-    bool get_by_SSN(int32_t v);
-    bool get_by_test2(bool v);
-    bool get_by_test3(sample::library2::EnumField_t v);
 
-    bool get_by_lastname_like(const std::string &patt);
 
-// WHERE balance > ?
-    bool get_great_balance(double v1);
-// WHERE userid < 100
-    bool get_founders(void);
-// WHERE firstname LIKE ? AND lastname LIKE ?
-    bool get_firstlast(const std::string & v1, const std::string & v2);
+// WHERE duedate < ?
+    bool get_due_now(int64_t v1);
 
     bool get_next(void);
     bool insert(void); // updates rowid
@@ -267,16 +275,9 @@ public:
     bool delete_rowid(void); // delete by rowid
     bool get_by_rowid(int64_t v1);
     bool get_all(void);
-    bool update_balance(void);
-    bool update_firstlast(void);
-// WHERE userid = ? and lastname = ?
-    bool update_by_userid_stuff(int64_t v1, const std::string & v2);
 
-// WHERE ssn = ?
-    bool delete_SSN(int32_t v1);
 
-    void CopyToProto(library::TABLE_user_m &msg);
-    void CopyFromProto(const library::TABLE_user_m &msg);
+   // no proto IDs for this table
 
 
     static void register_log_funcs(sql_log_function_t _upd_func,

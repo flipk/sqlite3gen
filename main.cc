@@ -60,7 +60,7 @@ main(int argc, char ** argv)
         else
         {
             fprintf(stderr,
-                    "ERROR: schema does not contain PROTOPKG\n");
+                    "ERROR: schema does not contain PACKAGE\n");
             return 1;
         }
 

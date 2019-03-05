@@ -28,7 +28,7 @@ TABLE user VERSION 19
     balance   DOUBLE                      PROTOID 6 DEFAULT 0
     proto     BLOB                        PROTOID 7
     test2     BOOL                  QUERY PROTOID 8 DEFAULT 0
-    test3     ENUM sample.library2.EnumField_t QUERY PROTOID 9 \
+    test3     ENUM sample.library2.EnumField_t QUERY PROTOID 9
     	      DEFAULT sample.library2.ENUM_TWO
 
     CUSTOM-GET great_balance (DOUBLE) "balance > ?"

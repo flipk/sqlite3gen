@@ -8,7 +8,8 @@
 #include <sstream>
 #include <fstream>
 
-void version_cb(const std::string &table_name,
+void version_cb(sqlite3 *pdb,
+                const std::string &table_name,
                 int version_in_file,
                 int version_in_code)
 {

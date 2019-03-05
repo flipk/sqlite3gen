@@ -176,6 +176,18 @@ struct SchemaDef
     std::string prototop;
     std::string protobottom;
     struct TableDef * tables;
+    struct TableDef ** tables_next;
+    SchemaDef(void) {
+        tables = NULL;
+        tables_next = &tables;
+    }
+    ~SchemaDef(void) {
+        delete tables;
+    }
+    void add_table(struct TableDef *tb) {
+        *tables_next = tb;
+        tables_next = &tb->next;
+    }
 };
 
 SchemaDef * parse_file(const std::string &fname);
