@@ -11,8 +11,6 @@
 
 namespace AES_VFS {
 
-#define USE_DISK_CACHE 1
-
 //static
 const sqlite3_io_methods sqlite3_file_vfs_aes::io_methods =
 {
@@ -43,31 +41,20 @@ sqlite3_file_vfs_aes :: init(sqlite3_vfs *_vfs, const char *zName,
 {
     vfs = (sqlite3_vfs_aes *) _vfs;
     pMethods = &io_methods;
-
     if (zName == NULL)
     {
         printf("PLEASE SUPPORT xOpen(zName == NULL);\n");
         return SQLITE_CANTOPEN;
     }
-
-//    printf("vfs: xOpen(name = '%s', flags = 0x%x) ", zName, flags);
     if (pOutFlags)
         *pOutFlags = flags;
-
     fd = open(zName, O_RDWR | O_CREAT, 0644);
     if ( fd < 0 )
     {
         vfs->last_err = errno;
-//        printf(" -> ERR %d\n", errno);
         return SQLITE_CANTOPEN;
     }
-
-//    printf(" -> fd %d\n", fd);
-
-#if USE_DISK_CACHE
     dc = new AES_VFS::diskCache(fd, 5000, cipher);
-#endif
-
     return SQLITE_OK;
 }
 
@@ -76,10 +63,7 @@ int
 sqlite3_file_vfs_aes :: xClose(sqlite3_file *_f)
 {
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
-//    printf("vfs: xClose fd %d\n", f->fd);
-#if USE_DISK_CACHE
     delete f->dc;
-#endif
     close(f->fd);
     return SQLITE_OK;
 }
@@ -91,28 +75,16 @@ sqlite3_file_vfs_aes :: xRead(sqlite3_file*_f, void*_ptr, int iAmt,
 {
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
     char *ptr = (char *)_ptr;
-//    printf("vfs: xRead fd %d pos %lld size %d ",
-//           f->fd, iOfst, iAmt);
-
-#if USE_DISK_CACHE
     int got = f->dc->read((off_t) iOfst, (uint8_t*)_ptr, iAmt);
-#else
-    lseek(f->fd, (off_t) iOfst, SEEK_SET);
-    int got = read(f->fd, ptr, iAmt);
-#endif
     if (got == iAmt)
     {
-//        printf(" -> %d\n", got);
         return SQLITE_OK;
     }
     else if (got < 0)
     {
-//        printf(" -> ERR %d\n", errno);
         f->vfs->last_err = errno;
         return SQLITE_IOERR_READ;
     }
-    // else
-//    printf(" -> %d\n", got);
     memset(ptr + got, 0, iAmt - got);
     return SQLITE_IOERR_SHORT_READ;
 }
@@ -123,31 +95,7 @@ sqlite3_file_vfs_aes :: xWrite(sqlite3_file*_f, const void*_ptr,
                                int iAmt, sqlite3_int64 iOfst)
 {
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
-    const char *ptr = (const char *)_ptr;
-    int put;
-
-//    printf("vfs: xWrite fd %d pos %lld size %d ",
-//           f->fd, iOfst, iAmt);
-
-#if USE_DISK_CACHE
     f->dc->write((off_t) iOfst, (uint8_t*)_ptr, iAmt);
-#else
-    lseek(f->fd, (off_t) iOfst, SEEK_SET);
-    while (iAmt > 0)
-    {
-        put = write(f->fd, ptr, iAmt);
-        if (put < 0)
-        {
-            f->vfs->last_err = errno;
-//            printf("-> ERR %d\n", errno);
-            return SQLITE_IOERR_WRITE;
-        }
-//        printf("-> %d ", put);
-        iAmt -= put;
-        ptr += put;
-    }
-#endif
-//    printf("\n");
     return SQLITE_OK;
 }
 
@@ -156,9 +104,7 @@ int
 sqlite3_file_vfs_aes :: xTruncate(sqlite3_file*_f, sqlite3_int64 size)
 {
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
-#if USE_DISK_CACHE
     f->dc->flush();
-#endif
     ftruncate(f->fd, (off_t) size);
     return SQLITE_OK;
 }
@@ -168,9 +114,7 @@ int
 sqlite3_file_vfs_aes :: xSync(sqlite3_file*_f, int flags)
 {
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
-#if USE_DISK_CACHE
     f->dc->flush();
-#endif
     fsync(f->fd);
     return SQLITE_OK;
 }
@@ -214,40 +158,6 @@ sqlite3_file_vfs_aes :: xCheckReservedLock(sqlite3_file*_f, int *pResOut)
 int
 sqlite3_file_vfs_aes :: xFileControl(sqlite3_file*_f, int op, void *pArg)
 {
-#if 0
-    sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
-    printf("xFileControl fd %d op = %d ", f->fd, op);
-
-    switch (op)
-    {
-    case SQLITE_FCNTL_SIZE_HINT: // 5
-    {
-        sqlite3_int64 sz = *(sqlite3_int64*) pArg;
-        printf("SIZE HINT -> %lld\n", sz);
-//        lseek(f->fd, sz-1, SEEK_SET);
-//        char c = 0;
-//        write(f->fd, &c, 1);
-        break;
-    }
-    case SQLITE_FCNTL_BUSYHANDLER: // 15
-        printf("BUSY HANDLER\n");
-        break;
-    case SQLITE_FCNTL_HAS_MOVED: // 20
-        printf("FCNTL HAS MOVED ? \n");
-        break;
-    case SQLITE_FCNTL_SYNC: // 21
-        printf("SYNC\n");
-        break;
-    case SQLITE_FCNTL_COMMIT_PHASETWO: // 22
-        printf("COMMIT PHASE TWO ?\n");
-        break;
-    case SQLITE_FCNTL_PDB: // 30
-        printf("PDB ?\n");
-        break;
-    default:
-        printf(" UNKNOWN XXX \n");
-    }
-#endif
     return SQLITE_OK;
 }
 

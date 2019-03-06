@@ -11,10 +11,11 @@ namespace AES_VFS {
 
 class PageCipher
 {
-    std::string password;
+    unsigned char file_key[32];
     mbedtls_aes_context  aesenc_ctx;
     mbedtls_aes_context  aesdec_ctx;
     mbedtls_md_context_t hmac_md_ctx;
+    void make_iv(unsigned char IV_plus_sha256[32], uint32_t pgno);
 public:
     static const int PAGE_SIZE = 4096;
     static const int PAGE_SIZE_DISK = (4096 + 32); // HMAC overhead

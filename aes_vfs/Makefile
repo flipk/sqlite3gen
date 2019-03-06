@@ -5,17 +5,19 @@ MBEDTLS = $(HOME)/pfk/$(PFKARCH)/mbedtls-2.6.1
 MBEDTLS_INCS = -I$(MBEDTLS)/include
 MBEDTLS_LIBS = -L$(MBEDTLS)/lib -lmbedcrypto
 
-export PROTOBUF_VERS=2.5.0
-PROTOC_PATH = /shared/mh_tools/bin/protoc.sh
-PROTO_INCS = -I/shared/mh_tools/tools/protobuf/2.5.0/rhel_5_4/include
+#export PROTOBUF_VERS=2.5.0
+#PROTOC_PATH = /shared/mh_tools/bin/protoc.sh
+#PROTO_INCS = -I/shared/mh_tools/tools/protobuf/2.5.0/rhel_5_4/include
 
 SQLITE_INC = -I../sqlite3
 SQLITE_LIB = ../sqlite3/sqlite3.o
 
+CFLAGS = -Wall -Werror
+CXXFLAGS = -Wall -Werror
+
 LIB_TARGETS += aes_vfs
 aes_vfs_TARGET = $(OBJDIR)/libaes_vfs.a
-aes_vfs_CXXSRCS = aes_vfs.cc aes_vfs_file.cc \
-	page_cache.cc signal_backtrace.cc dll3.cc
+aes_vfs_CXXSRCS = aes_vfs.cc aes_vfs_file.cc page_cache.cc dll3.cc
 aes_vfs_INCS = $(SQLITE_INC) $(MBEDTLS_INCS) $(PROTO_INCS)
 
 LIB_TARGETS += schema

@@ -24,10 +24,8 @@ PageCipher :: ~PageCipher(void)
 }
 
 void
-PageCipher :: setKey(const std::string &_password)
+PageCipher :: setKey(const std::string &password)
 {
-    password = _password;
-    unsigned char file_key[32];
     mbedtls_sha256( (const unsigned char *) password.c_str(),
                     password.length(),
                     file_key, 0/*use SHA256*/);
@@ -39,16 +37,17 @@ PageCipher :: setKey(const std::string &_password)
     mbedtls_md_hmac_starts( &hmac_md_ctx, file_key, 32 );
 }
 
-
-static inline void
-make_iv(unsigned char IV_plus_sha256[32],
-        const std::string &pass, uint64_t page)
+void
+PageCipher :: make_iv(unsigned char IV_plus_sha256[32], uint32_t pgno)
 {
-    std::ostringstream  ostr;
-    ostr << pass << ":" << page;
-    mbedtls_sha256( (const unsigned char*) ostr.str().c_str(),
-                    ostr.str().length(),
-                    IV_plus_sha256, 0/*use SHA256*/);
+    unsigned char page_key[32];
+    memcpy(page_key, file_key, 32);
+    uint32_t * pageptr = (uint32_t *) page_key;
+    pageptr[0] ^=  pgno;
+    pageptr[1] ^= (pgno ^ 0xFFFFFFFF);
+    pageptr[2] ^= (pgno ^ 0xFFFF0000);
+    pageptr[3] ^= (pgno ^ 0x0000FFFF);
+    mbedtls_sha256( page_key, 32, IV_plus_sha256, 0/*use SHA256*/);
     for (int ind = 0; ind < 16; ind++)
         IV_plus_sha256[ind] ^= IV_plus_sha256[ind+16];
 }
@@ -57,7 +56,7 @@ void
 PageCipher :: encrypt_page(uint64_t page_number, uint8_t * out, const uint8_t * in)
 {
     unsigned char IV[32];
-    make_iv(IV, password, page_number);
+    make_iv(IV, page_number);
     mbedtls_aes_crypt_cbc( &aesenc_ctx, MBEDTLS_AES_ENCRYPT,
                    PAGE_SIZE, IV, in, out);
     mbedtls_md_hmac_reset( &hmac_md_ctx );
@@ -71,7 +70,7 @@ PageCipher :: decrypt_page(uint64_t page_number,
 {
     bool ret = true;
     unsigned char IV[32];
-    make_iv(IV, password, page_number);
+    make_iv(IV, page_number);
     uint8_t  hmac_buf[32];
     mbedtls_md_hmac_reset( &hmac_md_ctx );
     mbedtls_md_hmac_update( &hmac_md_ctx, in, PAGE_SIZE);
@@ -214,9 +213,7 @@ pageCache :: flush(void)
         pgs.push_back(pg);
     }
     std::sort(pgs.begin(), pgs.end(), pgs_sort);
-// this is how i wanted to write it:
-// for (auto pg : pgs) pg->flush();
-    for (int ind = 0; ind < pgs.size(); ind++)
+    for (size_t ind = 0; ind < pgs.size(); ind++)
     {
         pgs[ind]->flush();
     }
@@ -269,9 +266,8 @@ diskCache :: read(off_t pos, uint8_t *buf, int size)
 {
     std::vector<pginfo> pgs;
     getPages(pgs, pos, size);
-    int ind;
 
-    for (ind = 0; ind < pgs.size(); ind++)
+    for (size_t ind = 0; ind < pgs.size(); ind++)
     {
         pginfo &pi = pgs[ind];
         memcpy(buf + pi.offset_in_arg,
@@ -288,9 +284,8 @@ diskCache :: write(off_t pos, uint8_t *buf, int size)
 {
     std::vector<pginfo> pgs;
     getPages(pgs, pos, size);
-    int ind;
 
-    for (ind = 0; ind < pgs.size(); ind++)
+    for (size_t ind = 0; ind < pgs.size(); ind++)
     {
         pginfo &pi = pgs[ind];
         memcpy(pi.pg->buffer + pi.offset_in_page,
