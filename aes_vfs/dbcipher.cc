@@ -73,7 +73,16 @@ main(int argc, char ** argv)
         {
             int cc = read(in_fd, (void*) page_buffer, PAGE_SIZE);
             if (cc != PAGE_SIZE)
-                break;
+            {
+                if (cc < 0)
+                {
+                    printf("read error: %s\n", strerror(errno));
+                    break;
+                }
+                if (cc == 0)
+                    break;
+                memset(page_buffer + cc, 0, PAGE_SIZE - cc);
+            }
             pc.encrypt_page(pgno, disk_buffer, page_buffer);
             cc = write(out_fd, (void*) disk_buffer, PAGE_SIZE_DISK);
             if (cc != PAGE_SIZE_DISK)
