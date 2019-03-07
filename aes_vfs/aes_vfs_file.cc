@@ -54,7 +54,7 @@ sqlite3_file_vfs_aes :: init(sqlite3_vfs *_vfs, const char *zName,
         vfs->last_err = errno;
         return SQLITE_CANTOPEN;
     }
-    dc = new AES_VFS::diskCache(fd, 5000, cipher);
+    dc = new AES_VFS::DiskCache(fd, 5000, cipher);
     return SQLITE_OK;
 }
 

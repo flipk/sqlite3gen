@@ -1,2 +1,1 @@
 - figure out why aes_vfs test make can be so sloooooow
-- command line tool that can encrypt and decrypt the db by hand

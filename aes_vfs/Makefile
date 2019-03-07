@@ -17,7 +17,8 @@ CXXFLAGS = -Wall -Werror
 
 LIB_TARGETS += aes_vfs
 aes_vfs_TARGET = $(OBJDIR)/libaes_vfs.a
-aes_vfs_CXXSRCS = aes_vfs.cc aes_vfs_file.cc page_cache.cc dll3.cc
+aes_vfs_CXXSRCS = aes_vfs.cc aes_vfs_file.cc dll3.cc \
+	PageCipher.cc DiskPage.cc PageCache.cc DiskCache.cc
 aes_vfs_INCS = $(SQLITE_INC) $(MBEDTLS_INCS) $(PROTO_INCS)
 
 LIB_TARGETS += schema
@@ -39,6 +40,13 @@ aes_vfs_test_search_CXXSRCS = aes_vfs_test_search.cc
 aes_vfs_test_search_INCS = -I. $(SQLITE_INC) $(MBEDTLS_INCS) $(PROTO_INCS)
 aes_vfs_test_search_LIBS = $(SQLITE_LIB) -ldl -lpthread $(MBEDTLS_LIBS)
 aes_vfs_test_search_DEPLIBS = $(aes_vfs_TARGET) $(schema_TARGET)
+
+PROG_TARGETS += dbcipher
+
+dbcipher_TARGET = $(OBJDIR)/dbcipher
+dbcipher_CXXSRCS = PageCipher.cc dbcipher.cc
+dbcipher_INCS = $(MBEDTLS_INCS)
+dbcipher_LIBS = $(MBEDTLS_LIBS)
 
 include ../Makefile.inc
 
