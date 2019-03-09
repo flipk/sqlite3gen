@@ -72,13 +72,42 @@ PageCache :: flush(void)
          pg;
          pg = page_list.get_next(pg))
     {
-        pgs.push_back(pg);
+        if (pg->dirty)
+            pgs.push_back(pg);
     }
     std::sort(pgs.begin(), pgs.end(), pgs_sort);
     for (size_t ind = 0; ind < pgs.size(); ind++)
     {
         pgs[ind]->flush();
     }
+}
+
+void
+PageCache :: truncate(off_t size)
+{
+    uint32_t pgno = (size + (PAGE_SIZE-1)) / PAGE_SIZE;
+    DiskPage * pg, * npg;
+    for (pg = page_list.get_head();
+         pg;
+         pg = npg)
+    {
+        npg = page_list.get_next(pg);
+
+        if (pg->pageNumber > pgno)
+        {
+            if (page_lru.onthislist(pg))
+                page_lru.remove(pg);
+            page_list.remove(pg);
+            page_hash.remove(pg);
+            // if it's dirty, don't waste time
+            // flushing it, we're going to truncate
+            // prior to this page's point anyway.
+            pg->dirty = false;
+            delete pg;
+        }
+    }
+
+    ftruncate(fd, size);
 }
 
 }; // namespace AES_VFS

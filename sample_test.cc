@@ -255,6 +255,14 @@ main()
 //    library::SQL_TABLE_user::table_drop(pdb);
     if (getenv("RETAIN_TABLES") == NULL)
         library::SQL_TABLE_ALL_TABLES::table_drop_all(pdb);
-    sqlite3_close(pdb);
+
+    // release user and u to release locks.
+    user.set_db(NULL);
+    u.set_db(NULL);
+
+    int r = sqlite3_close(pdb);
+    if (r != SQLITE_OK)
+        printf("ERR!  close returns %d\n", r);
+    sqlite3_shutdown();
     return 0;
 }

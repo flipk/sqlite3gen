@@ -24,6 +24,10 @@ main()
 
     srandom((unsigned int)getpid() * (unsigned int)time(NULL));
 
+    unlink("/tmp/test.db");
+    unlink("/tmp/test.db-journal");
+    unlink("/tmp/test.text");
+
     AES_VFS::sqlite3_vfs_aes::setKey("SOME PASSWORD");
     AES_VFS::sqlite3_vfs_aes::register_vfs();
     int r = sqlite3_open_v2("/tmp/test.db", &pdb,
@@ -34,21 +38,33 @@ main()
         printf("open failed, r = %d\n", r);
         return 1;
     }
+
+    sqlite3_exec(pdb,
+                 "pragma synchronous=0",
+                 NULL, NULL, NULL);
+
     test::SQL_TABLE_ALL_TABLES::init_all(pdb, &version_cb);
-    test::SQL_TABLE_ids  t(pdb);
-
-    std::ofstream f("/tmp/test.txt");
-    std::ostringstream n;
-    for (int i = 0; i < 10000; i++)
     {
-        t.id = random();
-        n.str("");
-        n << "N_" << t.id;
-        t.name = n.str();
-        t.insert();
-        f << t.id << std::endl;
-    }
+        test::SQL_TABLE_ids  t(pdb);
 
-    sqlite3_close(pdb);
+        std::ofstream f("/tmp/test.txt");
+        std::ostringstream n;
+        for (int i = 0; i < 10000; i++)
+        {
+            t.id = random();
+            n.str("");
+            n << "N_" << t.id;
+            t.name = n.str();
+            t.insert();
+            f << t.id << std::endl;
+        }
+    } // destructor for "t" releases locks held.
+
+    r = sqlite3_close(pdb);
+    if (r != SQLITE_OK)
+        printf("ERR! close returns %d\n", r);
+
+    sqlite3_shutdown();
+
     return 0;
 }

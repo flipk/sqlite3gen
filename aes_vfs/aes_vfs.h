@@ -6,10 +6,13 @@ namespace AES_VFS {
 
 struct sqlite3_vfs_aes : public sqlite3_vfs
 {
+    sqlite3_vfs_aes(void);
     static void register_vfs(void);
     static void setKey(const std::string &password);
-    int last_err;
+    int         last_err;
     PageCipher  cipher;
+    int         sync_mode;
+    bool        journal_mode;
 private:
     static  int   my_xOpen(sqlite3_vfs*, const char *zName, sqlite3_file*f,
                            int flags, int *pOutFlags);

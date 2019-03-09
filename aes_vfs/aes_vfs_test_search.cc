@@ -33,22 +33,27 @@ main()
         return 1;
     }
     test::SQL_TABLE_ALL_TABLES::init_all(pdb, &version_cb);
-    test::SQL_TABLE_ids  t(pdb);
-
-    std::ifstream  f("/tmp/test.txt");
-
-    int count_good = 0;
-    int count_bad = 0;
-    while (f.good())
     {
-        f >> t.id;
-        if (t.get_by_id(t.id) == false)
-            count_bad ++;
-        else
-            count_good ++;
-    }
-    printf("good %d bad %d\n", count_good, count_bad);
+        test::SQL_TABLE_ids  t(pdb);
 
-    sqlite3_close(pdb);
+        std::ifstream  f("/tmp/test.txt");
+
+        int count_good = 0;
+        int count_bad = 0;
+        while (f.good())
+        {
+            f >> t.id;
+            if (t.get_by_id(t.id) == false)
+                count_bad ++;
+            else
+                count_good ++;
+        }
+        printf("good %d bad %d\n", count_good, count_bad);
+    } // destructor on "t" to release locks.
+
+    if (sqlite3_close(pdb) != SQLITE_OK)
+        printf("ERR!  close returns %d\n", r);
+    sqlite3_shutdown();
+
     return 0;
 }

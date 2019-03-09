@@ -1,12 +1,21 @@
 
 #include "DiskCache.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 namespace AES_VFS {
 
 
 DiskCache :: DiskCache(int fd, int max_pages, PageCipher *cipher)
     : pc(fd, max_pages, cipher)
 {
+    struct stat sb;
+    if (fstat(fd, &sb) < 0)
+        file_size = 0;
+    else
+        file_size = sb.st_size * PAGE_SIZE / PAGE_SIZE_DISK;
 }
 
 DiskCache :: ~DiskCache(void)
@@ -65,6 +74,7 @@ DiskCache :: read(off_t pos, uint8_t *buf, int size)
 int
 DiskCache :: write(off_t pos, uint8_t *buf, int size)
 {
+    uint32_t highest_page = 0;
     std::vector<pginfo> pgs;
     getPages(pgs, pos, size);
 
@@ -75,8 +85,15 @@ DiskCache :: write(off_t pos, uint8_t *buf, int size)
                buf + pi.offset_in_arg,
                pi.size_in_page);
         pi.pg->dirty = true;
+        if (pi.pgno > highest_page)
+            highest_page = pi.pgno;
         pc.releasePage(pi.pg);
     }
+
+    off_t highest_offset = (highest_page+1) * DiskPage::PAGE_SIZE;
+
+    if (highest_offset > file_size)
+        file_size = highest_offset;
 
     return size;
 }

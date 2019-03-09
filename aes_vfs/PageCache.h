@@ -19,6 +19,7 @@ public:
     DiskPage * getPage(uint32_t pgno);
     void releasePage(DiskPage *);
     void flush(void);
+    void truncate(off_t size);
 };
 
 }; // namespace AES_VFS

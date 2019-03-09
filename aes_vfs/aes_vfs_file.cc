@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -104,8 +105,7 @@ int
 sqlite3_file_vfs_aes :: xTruncate(sqlite3_file*_f, sqlite3_int64 size)
 {
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
-    f->dc->flush();
-    ftruncate(f->fd, (off_t) size);
+    f->dc->truncate((off_t) size);
     return SQLITE_OK;
 }
 
@@ -114,8 +114,11 @@ int
 sqlite3_file_vfs_aes :: xSync(sqlite3_file*_f, int flags)
 {
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
-    f->dc->flush();
-    fsync(f->fd);
+    if (f->vfs->sync_mode != 0)
+    {
+        f->dc->flush();
+        fsync(f->fd);
+    }
     return SQLITE_OK;
 }
 
@@ -124,11 +127,7 @@ int
 sqlite3_file_vfs_aes :: xFileSize(sqlite3_file*_f, sqlite3_int64 *pSize)
 {
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
-    struct stat sb;
-    if (fstat(f->fd, &sb) < 0)
-        return SQLITE_ERROR;
-
-    *pSize = (sqlite3_int64) sb.st_size;
+    *pSize = f->dc->getFileSize();
     return SQLITE_OK;
 }
 
@@ -158,6 +157,47 @@ sqlite3_file_vfs_aes :: xCheckReservedLock(sqlite3_file*_f, int *pResOut)
 int
 sqlite3_file_vfs_aes :: xFileControl(sqlite3_file*_f, int op, void *pArg)
 {
+    sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
+    switch (op)
+    {
+    case SQLITE_FCNTL_PRAGMA:
+    {
+        char ** args = (char **) pArg;
+        std::string  pragma(args[1]);
+        std::string  value(args[2]);
+        if (pragma == "journal_mode")
+        {
+            if (value == "off")
+            {
+                printf("turning journal mode OFF\n");
+                f->vfs->journal_mode = false;
+            }
+            else
+            {
+                printf("turning journal mode ON\n");
+                f->vfs->journal_mode = true;
+            }
+        }
+        else if (pragma == "synchronous")
+        {
+            int val = atoi(value.c_str());
+            printf("setting sync to %d\n", val);
+            f->vfs->sync_mode = val;
+        }
+        break;
+    }
+    case SQLITE_FCNTL_BUSYHANDLER:
+        break;
+    case SQLITE_FCNTL_MMAP_SIZE:
+        break;
+    case SQLITE_FCNTL_HAS_MOVED:
+        break;
+    case SQLITE_FCNTL_COMMIT_PHASETWO:
+        break;
+    case SQLITE_FCNTL_PDB:
+        break;
+    }
+
     return SQLITE_OK;
 }
 
