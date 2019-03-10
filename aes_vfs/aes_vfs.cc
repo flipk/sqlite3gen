@@ -16,6 +16,7 @@ static sqlite3_vfs_aes vfs_aes_obj;
 sqlite3_vfs_aes :: sqlite3_vfs_aes(void)
 {
     last_err = 0;
+    files = NULL;
 }
 
 //static
@@ -55,11 +56,48 @@ sqlite3_vfs_aes :: setKey(const std::string &password)
     vfs_aes_obj.cipher.setKey(password);
 }
 
+void
+sqlite3_vfs_aes :: register_file(sqlite3_file_vfs_aes *f)
+{
+    WaitUtil::Lock l(&files_lock);
+    f->next = files;
+    files = f;
+}
+
+void
+sqlite3_vfs_aes :: unregister_file(sqlite3_file_vfs_aes *rf)
+{
+    WaitUtil::Lock l(&files_lock);
+    sqlite3_file_vfs_aes **pf = &files;
+    sqlite3_file_vfs_aes *f;
+    for (f = files; f; pf = &f->next, f = f->next)
+        if (f == rf)
+            break;
+    if (f)
+        *pf = f->next;
+}
+
+void
+sqlite3_vfs_aes :: _sync(void)
+{
+    WaitUtil::Lock l(&files_lock);
+    sqlite3_file_vfs_aes *f;
+    for (f = files; f; f = f->next)
+        sqlite3_file_vfs_aes::xSync(f,0);
+}
+
+void
+sqlite3_vfs_aes :: sync(void)
+{
+    vfs_aes_obj._sync();
+}
+
 //static
 int
-sqlite3_vfs_aes :: my_xOpen(sqlite3_vfs *vfs, const char *zName,
+sqlite3_vfs_aes :: my_xOpen(sqlite3_vfs *_vfs, const char *zName,
                             sqlite3_file *_f, int flags, int *pOutFlags)
 {
+    sqlite3_vfs_aes * vfs = (sqlite3_vfs_aes *) _vfs;
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
     return f->init(vfs, zName, flags, pOutFlags, &vfs_aes_obj.cipher);
 }

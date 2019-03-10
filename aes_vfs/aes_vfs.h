@@ -4,14 +4,27 @@
 
 namespace AES_VFS {
 
+struct sqlite3_file_vfs_aes;
+
 struct sqlite3_vfs_aes : public sqlite3_vfs
 {
+    friend class sqlite3_file_vfs_aes;
     sqlite3_vfs_aes(void);
     static void register_vfs(void);
     static void setKey(const std::string &password);
+    static void sync(void);
+
+private:
+
+    WaitUtil::Lockable files_lock;
+    sqlite3_file_vfs_aes * files;
     int         last_err;
     PageCipher  cipher;
-private:
+
+    void register_file(sqlite3_file_vfs_aes *f);
+    void unregister_file(sqlite3_file_vfs_aes *f);
+    void _sync(void);
+
     static  int   my_xOpen(sqlite3_vfs*, const char *zName, sqlite3_file*f,
                            int flags, int *pOutFlags);
     static  int   my_xDelete(sqlite3_vfs*, const char *zName, int syncDir);
@@ -39,9 +52,11 @@ private:
 
 struct sqlite3_file_vfs_aes : public sqlite3_file
 {
-    int init(sqlite3_vfs *_vfs, const char *zName,
+    friend class sqlite3_vfs_aes;
+    int init(sqlite3_vfs_aes *_vfs, const char *zName,
              int flags, int *pOutFlags, PageCipher *cipher);
 private:
+    sqlite3_file_vfs_aes * next;
     int fd;
     AES_VFS::DiskCache *dc;
     sqlite3_vfs_aes * vfs;

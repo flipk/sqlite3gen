@@ -52,6 +52,7 @@ main()
 
         std::ofstream f("/tmp/test.txt");
         std::ostringstream n;
+        time_t last = time(NULL);
         for (int i = 0; i < 100000; i++)
         {
             t.id = random();
@@ -60,6 +61,13 @@ main()
             t.name = n.str();
             t.insert();
             f << t.id << std::endl;
+            time_t now = time(NULL);
+            if (now != last)
+            {
+                printf("sync\n");
+                AES_VFS::sqlite3_vfs_aes::sync();
+                last = now;
+            }
         }
     } // destructor for "t" releases locks held.
 

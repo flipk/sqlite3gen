@@ -37,10 +37,10 @@ const sqlite3_io_methods sqlite3_file_vfs_aes::io_methods =
 };
 
 int
-sqlite3_file_vfs_aes :: init(sqlite3_vfs *_vfs, const char *zName,
+sqlite3_file_vfs_aes :: init(sqlite3_vfs_aes *_vfs, const char *zName,
                              int flags, int *pOutFlags, PageCipher *cipher)
 {
-    vfs = (sqlite3_vfs_aes *) _vfs;
+    vfs = _vfs;
     pMethods = &io_methods;
     if (zName == NULL)
     {
@@ -56,6 +56,7 @@ sqlite3_file_vfs_aes :: init(sqlite3_vfs *_vfs, const char *zName,
         return SQLITE_CANTOPEN;
     }
     dc = new AES_VFS::DiskCache(fd, 5000, cipher);
+    vfs->register_file(this);
     return SQLITE_OK;
 }
 
@@ -66,6 +67,7 @@ sqlite3_file_vfs_aes :: xClose(sqlite3_file *_f)
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
     delete f->dc;
     close(f->fd);
+    f->vfs->unregister_file(f);
     return SQLITE_OK;
 }
 
