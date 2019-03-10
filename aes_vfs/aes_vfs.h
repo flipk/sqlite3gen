@@ -11,8 +11,6 @@ struct sqlite3_vfs_aes : public sqlite3_vfs
     static void setKey(const std::string &password);
     int         last_err;
     PageCipher  cipher;
-    int         sync_mode;
-    bool        journal_mode;
 private:
     static  int   my_xOpen(sqlite3_vfs*, const char *zName, sqlite3_file*f,
                            int flags, int *pOutFlags);

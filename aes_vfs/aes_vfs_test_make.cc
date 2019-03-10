@@ -40,6 +40,9 @@ main()
     }
 
     sqlite3_exec(pdb,
+                 "pragma journal_mode=off",
+                 NULL, NULL, NULL);
+    sqlite3_exec(pdb,
                  "pragma synchronous=0",
                  NULL, NULL, NULL);
 
@@ -49,7 +52,7 @@ main()
 
         std::ofstream f("/tmp/test.txt");
         std::ostringstream n;
-        for (int i = 0; i < 10000; i++)
+        for (int i = 0; i < 100000; i++)
         {
             t.id = random();
             n.str("");

@@ -114,11 +114,8 @@ int
 sqlite3_file_vfs_aes :: xSync(sqlite3_file*_f, int flags)
 {
     sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
-    if (f->vfs->sync_mode != 0)
-    {
-        f->dc->flush();
-        fsync(f->fd);
-    }
+    f->dc->flush();
+    fsync(f->fd);
     return SQLITE_OK;
 }
 
@@ -157,35 +154,15 @@ sqlite3_file_vfs_aes :: xCheckReservedLock(sqlite3_file*_f, int *pResOut)
 int
 sqlite3_file_vfs_aes :: xFileControl(sqlite3_file*_f, int op, void *pArg)
 {
-    sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
+//    sqlite3_file_vfs_aes * f = (sqlite3_file_vfs_aes *) _f;
     switch (op)
     {
     case SQLITE_FCNTL_PRAGMA:
-    {
-        char ** args = (char **) pArg;
-        std::string  pragma(args[1]);
-        std::string  value(args[2]);
-        if (pragma == "journal_mode")
-        {
-            if (value == "off")
-            {
-                printf("turning journal mode OFF\n");
-                f->vfs->journal_mode = false;
-            }
-            else
-            {
-                printf("turning journal mode ON\n");
-                f->vfs->journal_mode = true;
-            }
-        }
-        else if (pragma == "synchronous")
-        {
-            int val = atoi(value.c_str());
-            printf("setting sync to %d\n", val);
-            f->vfs->sync_mode = val;
-        }
-        break;
-    }
+        // by saying NOTFOUND, we're telling sqlite3 that it should
+        // handle it, we're not going to do anything here. sqlite3
+        // pager will not create a journal file if journal_mode=off
+        // and will not periodically call xSync if synchronous=0.
+        return SQLITE_NOTFOUND;
     case SQLITE_FCNTL_BUSYHANDLER:
         break;
     case SQLITE_FCNTL_MMAP_SIZE:
@@ -205,18 +182,14 @@ sqlite3_file_vfs_aes :: xFileControl(sqlite3_file*_f, int op, void *pArg)
 int
 sqlite3_file_vfs_aes :: xSectorSize(sqlite3_file*)
 {
-    return 4096;
+    return 0;
 }
 
 // static
 int
 sqlite3_file_vfs_aes :: xDeviceCharacteristics(sqlite3_file*)
 {
-    return
-        SQLITE_IOCAP_ATOMIC4K |
-        SQLITE_IOCAP_SAFE_APPEND |
-        SQLITE_IOCAP_SEQUENTIAL |
-        SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN;
+    return 0;
 }
 
 // static

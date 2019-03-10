@@ -16,8 +16,6 @@ static sqlite3_vfs_aes vfs_aes_obj;
 sqlite3_vfs_aes :: sqlite3_vfs_aes(void)
 {
     last_err = 0;
-    sync_mode = 2;
-    journal_mode = true;
 }
 
 //static
