@@ -38,8 +38,9 @@ main()
 
         std::ifstream  f("/tmp/test.txt");
 
-        int count_good = 0;
-        int count_bad = 0;
+        time_t last = time(NULL);
+        int count_good = 0, last_good = 0;
+        int count_bad = 0, last_bad = 0;
         while (f.good())
         {
             f >> t.id;
@@ -47,6 +48,16 @@ main()
                 count_bad ++;
             else
                 count_good ++;
+            time_t now = time(NULL);
+            if (now != last)
+            {
+                printf("good %d %d bad %d %d\n",
+                       count_good - last_good, count_good,
+                       count_bad - last_bad, count_bad);
+                last = now;
+                last_good = count_good;
+                last_bad = count_bad;
+            }
         }
         printf("good %d bad %d\n", count_good, count_bad);
     } // destructor on "t" to release locks.

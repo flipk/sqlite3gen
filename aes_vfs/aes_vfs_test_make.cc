@@ -39,11 +39,9 @@ main()
         return 1;
     }
 
-    sqlite3_exec(pdb,
-                 "pragma journal_mode=off",
+    sqlite3_exec(pdb, "pragma journal_mode=off",
                  NULL, NULL, NULL);
-    sqlite3_exec(pdb,
-                 "pragma synchronous=0",
+    sqlite3_exec(pdb, "pragma synchronous=0",
                  NULL, NULL, NULL);
 
     test::SQL_TABLE_ALL_TABLES::init_all(pdb, &version_cb);
@@ -53,7 +51,8 @@ main()
         std::ofstream f("/tmp/test.txt");
         std::ostringstream n;
         time_t last = time(NULL);
-        for (int i = 0; i < 100000; i++)
+        int last_i = 0;
+        for (int i = 0; i < 1000000; i++)
         {
             t.id = random();
             n.str("");
@@ -64,9 +63,10 @@ main()
             time_t now = time(NULL);
             if (now != last)
             {
-                printf("sync\n");
+                printf("sync %d %d\n", i - last_i, i);
                 AES_VFS::sqlite3_vfs_aes::sync();
                 last = now;
+                last_i = i;
             }
         }
     } // destructor for "t" releases locks held.
