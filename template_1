@@ -21,6 +21,7 @@ ________ HEADER_TOP
 namespace @@package@@ {
 
 typedef void (*sql_log_function_t)(void *arg, sqlite3_stmt *);
+typedef void (*sql_err_function_t)(void *arg, const std::string &msg);
 typedef void (*table_version_callback)(
     sqlite3 *pdb,
     const std::string &table_name,
@@ -50,6 +51,10 @@ protected:
     static sql_log_function_t log_upd_func;
     static sql_log_function_t log_get_func;
     static void * log_arg;
+    static sql_err_function_t err_log_func;
+    static void * err_log_arg;
+    static void print_err(const char *func, int lineno,
+                          const char *format, ...);
 
 public:
     SQL_TABLE_@@tablename@@(sqlite3 *_pdb = NULL);
@@ -84,11 +89,15 @@ public:
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
-                                   void *_arg)
+                                   void *_arg,
+                                   sql_err_function_t _err_func,
+                                   void *_err_arg)
     {
         log_upd_func = _upd_func;
         log_get_func = _get_func;
         log_arg  = _arg;
+        err_log_func = _err_func;
+        err_log_arg = _err_arg;
     }
     static bool init(sqlite3 *pdb, table_version_callback cb);
     static bool table_create(sqlite3 *pdb);
@@ -182,19 +191,41 @@ ________ SOURCE_TOP
 #include "@@headerfile@@"
 #include <string.h>
 #include <stdio.h>
+#include <sstream>
 
 @@sourcetop_block@@
 
 namespace @@package@@ {
+
+static void dflt_log_upd(void *arg, sqlite3_stmt *stmt)
+{
+    char * sql = sqlite3_expanded_sql(stmt);
+    printf("SQL UPDATE: %s\n", sql);
+    sqlite3_free(sql);
+}
+
+static void dflt_log_get(void *arg, sqlite3_stmt *stmt)
+{
+    char * sql = sqlite3_expanded_sql(stmt);
+    printf("SQL GET: %s\n", sql);
+    sqlite3_free(sql);
+}
+
+static void dflt_log_err(void *arg, const std::string &msg)
+{
+    printf("SQL ERROR: %s\n", msg.c_str());
+}
 
 ________ END
 
 ________ TABLE_CLASS_IMPL
 
 //static
-sql_log_function_t SQL_TABLE_@@tablename@@ :: log_upd_func = NULL;
-sql_log_function_t SQL_TABLE_@@tablename@@ :: log_get_func = NULL;
+sql_log_function_t SQL_TABLE_@@tablename@@ :: log_upd_func = &dflt_log_upd;
+sql_log_function_t SQL_TABLE_@@tablename@@ :: log_get_func = &dflt_log_get;
 void *             SQL_TABLE_@@tablename@@ :: log_arg  = NULL;
+sql_err_function_t SQL_TABLE_@@tablename@@ :: err_log_func = &dflt_log_err;
+void *             SQL_TABLE_@@tablename@@ :: err_log_arg  = NULL;
 
 SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
     : pdb(_pdb)
@@ -256,6 +287,37 @@ void SQL_TABLE_@@tablename@@ :: init(void)
     previous_get = NULL;
 }
 
+//static
+void
+SQL_TABLE_@@tablename@@ :: print_err(const char *function, int lineno,
+                                     const char *format, ...)
+{
+    if (err_log_func == NULL)
+        // don't bother formatting the args.
+        return;
+
+    std::ostringstream msg_out;
+    msg_out << function << ":" << lineno << ": ";
+    std::string msg = msg_out.str();
+
+    size_t offset = msg.size();
+    msg.resize(offset + 250);
+
+    va_list ap;
+    va_start(ap, format);
+    size_t l = vsnprintf((char*)msg.c_str() + offset,
+                         250, format, ap);
+    va_end(ap);
+    // note that *snprintf returns what it WOULD have written
+    // if there was space! so l > msg.size means it truncated.
+    if (l < 250)
+        msg.resize(l + offset);
+    err_log_func(err_log_arg, msg);
+}
+
+#undef  PRINT_ERR
+#define PRINT_ERR(args...) print_err(__PRETTY_FUNCTION__, __LINE__, args)
+
 bool SQL_TABLE_@@tablename@@ :: get_columns(sqlite3_stmt * pStmt)
 {
     int got;
@@ -293,7 +355,7 @@ bool SQL_TABLE_@@tablename@@ :: insert(void)
 
     if (pdb == NULL)
     {
-        printf("ERROR: attempt INSERT before set_db\n");
+        PRINT_ERR("attempted INSERT before set_db");
         return false;
     }
 
@@ -305,7 +367,10 @@ bool SQL_TABLE_@@tablename@@ :: insert(void)
             "values (@@questionmarks@@)",
             -1, &pStmt_insert, NULL);
         if (r != SQLITE_OK)
-            printf("ERROR building INSERT at line %d\n", __LINE__);
+        {
+            PRINT_ERR("ERROR %d preparing INSERT", r);
+            return false;
+        }
     }
     sqlite3_reset(pStmt_insert);
 
@@ -317,7 +382,7 @@ bool SQL_TABLE_@@tablename@@ :: insert(void)
     r = sqlite3_step(pStmt_insert);
     if (r != SQLITE_DONE)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: insert: r = %d\n", r);
+        PRINT_ERR("insert: r = %d", r);
         return false;
     }
 
@@ -332,7 +397,7 @@ bool SQL_TABLE_@@tablename@@ :: update(void)
 
     if (pdb == NULL)
     {
-        printf("ERROR: attempt UPDATE before set_db\n");
+        PRINT_ERR("attempted UPDATE before set_db");
         return false;
     }
 
@@ -344,7 +409,10 @@ bool SQL_TABLE_@@tablename@@ :: update(void)
             "= (@@questionmarks@@) WHERE rowid = ?",
             -1, &pStmt_update, NULL);
         if (r != SQLITE_OK)
-            printf("ERROR building UPDATE at line %d\n", __LINE__);
+        {
+            PRINT_ERR("ERROR %d preparing UPDATE", r);
+            return false;
+        }
     }
 
     sqlite3_reset(pStmt_update);
@@ -360,7 +428,7 @@ bool SQL_TABLE_@@tablename@@ :: update(void)
     r = sqlite3_step(pStmt_update);
     if (r != SQLITE_DONE)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: update: r = %d\n", r);
+        PRINT_ERR("update: r = %d", r);
         return false;
     }
 
@@ -373,7 +441,7 @@ bool SQL_TABLE_@@tablename@@ :: delete_rowid(void)
 
     if (pdb == NULL)
     {
-        printf("ERROR: attempt DELETE before set_db\n");
+        PRINT_ERR("attempted DELETE before set_db");
         return false;
     }
 
@@ -383,7 +451,10 @@ bool SQL_TABLE_@@tablename@@ :: delete_rowid(void)
             pdb, "DELETE FROM @@tablename@@ WHERE rowid = ?",
             -1, &pStmt_delete_rowid, NULL);
         if (r != SQLITE_OK)
-            printf("ERROR building UPDATE at line %d\n", __LINE__);
+        {
+            PRINT_ERR("ERROR %d preparing DELETE", r);
+            return false;
+        }
     }
 
     sqlite3_reset(pStmt_delete_rowid);
@@ -397,8 +468,7 @@ bool SQL_TABLE_@@tablename@@ :: delete_rowid(void)
     r = sqlite3_step(pStmt_delete_rowid);
     if (r != SQLITE_DONE)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
-                "delete_rowid: r = %d\n", r);
+        PRINT_ERR("delete: r = %d", r);
         return false;
     }
 
@@ -412,7 +482,7 @@ bool SQL_TABLE_@@tablename@@ :: get_by_rowid(int64_t v1)
 
     if (pdb == NULL)
     {
-        printf("ERROR: attempt GET before set_db\n");
+        PRINT_ERR("attempted GET before set_db");
         return false;
     }
 
@@ -423,8 +493,10 @@ bool SQL_TABLE_@@tablename@@ :: get_by_rowid(int64_t v1)
             "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ WHERE rowid = ?",
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
-            printf("ERROR building SELECT for "
-                   "get_by_rowid at line %d\n", __LINE__);
+        {
+            PRINT_ERR("ERROR %d preparing SELECT for get_by_rowid", r);
+            return false;
+        }
     }
 
     sqlite3_reset(pStmt_get_by_rowid);
@@ -433,9 +505,7 @@ bool SQL_TABLE_@@tablename@@ :: get_by_rowid(int64_t v1)
                              1, v1);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr,
-                "SQL_TABLE_@@tablename@@  :: get_by_rowid "
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind: r = %d", r);
         return false;
     }
 
@@ -461,7 +531,7 @@ bool SQL_TABLE_@@tablename@@ :: get_all(void)
 
     if (pdb == NULL)
     {
-        printf("ERROR: attempt GET before set_db\n");
+        PRINT_ERR("attempted GET before set_db");
         return false;
     }
 
@@ -472,8 +542,10 @@ bool SQL_TABLE_@@tablename@@ :: get_all(void)
             "SELECT rowid,@@fieldnames@@ FROM @@tablename@@",
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
-            printf("ERROR building SELECT for "
-                   "get_all at line %d\n", __LINE__);
+        {
+            PRINT_ERR("ERROR %d preparing SELECT for get_all", r);
+            return false;
+        }
     }
 
     sqlite3_reset(pStmt_get_all);
@@ -503,11 +575,16 @@ bool SQL_TABLE_@@tablename@@ :: init(sqlite3 *pdb, table_version_callback cb)
 {
     bool ret = true;
     sqlite3_stmt * s;
-    sqlite3_prepare_v2(pdb,
+    int r = sqlite3_prepare_v2(pdb,
         "select version from tables where name = \"@@tablename@@\"",
         -1, &s, NULL);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("select from tables: %d", r);
+        return false;
+    }
     sqlite3_reset(s);
-    int r = sqlite3_step(s);
+    r = sqlite3_step(s);
 
     if (r == SQLITE_DONE)
     {
@@ -531,7 +608,7 @@ bool SQL_TABLE_@@tablename@@ :: init(sqlite3 *pdb, table_version_callback cb)
     }
     else
     {
-        printf("ERROR r = %d\n", r);
+        PRINT_ERR("select from tables / step r = %d", r);
         ret = false;
     }
     sqlite3_finalize(s);
@@ -543,7 +620,7 @@ bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
 {
     if (pdb == NULL)
     {
-        printf("ERROR: attempt CREATE with null db\n");
+        PRINT_ERR("attempted CREATE with null db");
         return false;
     }
 
@@ -564,7 +641,7 @@ void SQL_TABLE_@@tablename@@ :: table_drop(sqlite3 *pdb)
 {
     if (pdb == NULL)
     {
-        printf("ERROR: attempt DROP with null db\n");
+        PRINT_ERR("attempted DROP with null db");
         return;
     }
 
@@ -575,7 +652,7 @@ void SQL_TABLE_@@tablename@@ :: table_drop(sqlite3 *pdb)
     {
         // if you get error 6 tables is locked, some prepared
         // statement is still in a SQLITE_ROW state.
-        printf("DROP TABLE @@tablename@@ ERROR: %s\n", errmsg);
+        PRINT_ERR("DROP error: %s", errmsg);
         sqlite3_free(errmsg);
     }
 
@@ -646,9 +723,8 @@ ________ TABLE_get_column_pod
     got = sqlite3_column_type(pStmt, @@column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: get_columns "
-                "(@@fieldname@@) : "
-                "column @@column_index@@ wrong type (%d %d)\n",
+        PRINT_ERR("get_columns (@@fieldname@@) : "
+                "column @@column_index@@ wrong type (%d %d)",
                 got, SQLITE_@@sqlite_type@@);
         return false;
     }
@@ -659,9 +735,8 @@ ________ TABLE_get_column_enum
     got = sqlite3_column_type(pStmt, @@column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: get_columns "
-                "(@@fieldname@@) : "
-                "column @@column_index@@ wrong type (%d %d)\n",
+        PRINT_ERR("get_columns (@@fieldname@@) : "
+                "column @@column_index@@ wrong type (%d %d)",
                 got, SQLITE_@@sqlite_type@@);
         return false;
     }
@@ -676,9 +751,8 @@ ________ TABLE_get_column_bool
     got = sqlite3_column_type(pStmt, @@column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: get_columns "
-                "(@@fieldname@@) : "
-                "column @@column_index@@ wrong type (%d %d)\n",
+        PRINT_ERR("get_columns (@@fieldname@@) : "
+                "column @@column_index@@ wrong type (%d %d)",
                 got, SQLITE_@@sqlite_type@@);
         return false;
     }
@@ -692,9 +766,8 @@ ________ TABLE_get_column_string
     got = sqlite3_column_type(pStmt, @@column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: get_columns "
-                "(@@fieldname@@) : "
-                "column @@column_index@@ wrong type (%d %d)\n",
+        PRINT_ERR("get_columns (@@fieldname@@) : "
+                "column @@column_index@@ wrong type (%d %d)",
                 got, SQLITE_@@sqlite_type@@);
         return false;
     }
@@ -715,7 +788,7 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@(@@fieldtype@@ v)
 
     if (pdb == NULL)
     {
-        printf("ERROR: attempt GET before set_db\n");
+        PRINT_ERR("attempted GET before set_db");
         return false;
     }
 
@@ -726,8 +799,10 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@(@@fieldtype@@ v)
             "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ WHERE @@fieldname@@ = ?",
             -1, &pStmt_by_@@fieldname@@, NULL);
         if (r != SQLITE_OK)
-            printf("ERROR building SELECT for @@fieldname@@ at line %d\n",
-                   __LINE__);
+        {
+            PRINT_ERR("ERROR %d preparing SELECT", r);
+            return false;
+        }
     }
 
     sqlite3_reset(pStmt_by_@@fieldname@@);
@@ -754,8 +829,7 @@ ________ TABLE_query_bind_pod
     r = @@sqlite_bind_func@@(pStmt_by_@@fieldname@@, 1, v);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@ "
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind: r = %d", r);
         return false;
     }
 ________ END
@@ -765,8 +839,7 @@ ________ TABLE_query_bind_bool
                              v ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@ "
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind: r = %d", r);
         return false;
     }
 ________ END
@@ -777,8 +850,7 @@ ________ TABLE_query_bind_string
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@ "
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind: r = %d", r);
         return false;
     }
 ________ END
@@ -792,7 +864,7 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@_like(
 
     if (pdb == NULL)
     {
-        printf("ERROR: attempt GET before set_db\n");
+        PRINT_ERR("attempted GET before set_db");
         return false;
     }
 
@@ -800,11 +872,14 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@_like(
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ WHERE @@fieldname@@ like ?",
+            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ "
+            "WHERE @@fieldname@@ like ?",
             -1, &pStmt_by_@@fieldname@@_like, NULL);
         if (r != SQLITE_OK)
-            printf("ERROR building SELECT LIKE for @@fieldname@@ at line %d\n",
-                   __LINE__);
+        {
+            PRINT_ERR("ERROR %d preparing SELECT LIKE for @@fieldname@@", r);
+            return false;
+        }
     }
 
     sqlite3_reset(pStmt_by_@@fieldname@@_like);
@@ -814,8 +889,7 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@_like(
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
-                "get_by_@@fieldname@@_like : bind: r = %d\n", r);
+        PRINT_ERR("bind: r = %d", r);
         return false;
     }
 
@@ -840,8 +914,8 @@ ________ TABLE_insert_binder_pod
                              @@fieldname@@);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: @@stmt@@: "
-                "bind @@fieldname@@: r = %d\n", r);
+        PRINT_ERR("@@stmt@@: bind @@fieldname@@: r = %d", r);
+        return false;
     }
 ________ END
 
@@ -850,8 +924,8 @@ ________ TABLE_insert_binder_bool
                              @@fieldname@@ ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: @@stmt@@: "
-                "bind @@fieldname@@: r = %d\n", r);
+        PRINT_ERR("@@stmt@@: bind @@fieldname@@: r = %d", r);
+        return false;
     }
 ________ END
 
@@ -860,8 +934,8 @@ ________ TABLE_insert_binder_enum
                              (int) @@fieldname@@);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: @@stmt@@: "
-                "bind @@fieldname@@: r = %d\n", r);
+        PRINT_ERR("@@stmt@@: bind @@fieldname@@: r = %d", r);
+        return false;
     }
 ________ END
 
@@ -871,8 +945,8 @@ ________ TABLE_insert_binder_string
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: @@stmt@@: "
-                "bind @@fieldname@@: r = %d\n", r);
+        PRINT_ERR("@@stmt@@: bind @@fieldname@@: r = %d", r);
+        return false;
     }
 ________ END
 
@@ -884,7 +958,7 @@ bool SQL_TABLE_@@tablename@@ :: get_@@customname@@(@@type_and_vX@@)
 
     if (pdb == NULL)
     {
-        printf("ERROR: attempt GET before set_db\n");
+        PRINT_ERR("attempted GET before set_db");
         return false;
     }
 
@@ -896,8 +970,11 @@ bool SQL_TABLE_@@tablename@@ :: get_@@customname@@(@@type_and_vX@@)
             "WHERE @@querystring@@",
             -1, &pStmt_get_@@customname@@, NULL);
         if (r != SQLITE_OK)
-            printf("ERROR building SELECT for "
-                   "CUSTOM-GET @@customname@@ at line %d\n", __LINE__);
+        {
+            PRINT_ERR("ERROR %d preparing SELECT for "
+                   "CUSTOM-GET @@customname@@", r);
+            return false;
+        }
     }
 
     sqlite3_reset(pStmt_get_@@customname@@);
@@ -925,9 +1002,7 @@ ________ TABLE_custom_get_binder_pod
                              @@arg_index@@, v@@arg_index@@);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, 
-                "SQL_TABLE_@@tablename@@ :: get_@@customname@@ "\
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind: r = %d", r);
         return false;
     }
 ________ END
@@ -937,9 +1012,7 @@ ________ TABLE_custom_get_binder_bool
                              @@arg_index@@, v@@arg_index@@ ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, 
-                "SQL_TABLE_@@tablename@@ :: get_@@customname@@ "\
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind: r = %d", r);
         return false;
     }
 ________ END
@@ -949,9 +1022,7 @@ ________ TABLE_custom_get_binder_enum
                              @@arg_index@@, (int) v@@arg_index@@);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, 
-                "SQL_TABLE_@@tablename@@ :: get_@@customname@@ "\
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind: r = %d", r);
         return false;
     }
 ________ END
@@ -962,9 +1033,7 @@ ________ TABLE_custom_get_binder_string
                           SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, 
-                "SQL_TABLE_@@tablename@@ :: get_@@customname@@ : "
-                "bind: r = %d\n", r);
+        PRINT_ERR("bind: r = %d", r);
         return false;
     }
 ________ END
@@ -977,7 +1046,7 @@ bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
 
     if (pdb == NULL)
     {
-        printf("ERROR: attempt UPDATE before set_db\n");
+        PRINT_ERR("attempted UPDATE before set_db");
         return false;
     }
 
@@ -989,8 +1058,11 @@ bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
             "(@@custom_questionmarks@@) WHERE rowid = ?",
             -1, &pStmt_update_@@customname@@, NULL);
         if (r != SQLITE_OK)
-            printf("ERROR building CUSTOM-UPD "
-                   "@@customname@@ at line %d\n", __LINE__);
+        {
+            PRINT_ERR("ERROR %d preparing CUSTOM-UPD "
+                   "@@customname@@", r);
+            return false;
+        }
     }
 
     sqlite3_reset(pStmt_update_@@customname@@);
@@ -1006,8 +1078,7 @@ bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
     r = sqlite3_step(pStmt_update_@@customname@@);
     if (r != SQLITE_DONE)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: update "
-                "@@customname@@: r = %d\n", r);
+        PRINT_ERR("update @@customname@@: r = %d", r);
         return false;
     }
     previous_get = NULL;
@@ -1024,7 +1095,7 @@ bool SQL_TABLE_@@tablename@@ :: update_by_@@customname@@(@@type_and_vX@@)
 
     if (pdb == NULL)
     {
-        printf("ERROR: attempt UPDATE before set_db\n");
+        PRINT_ERR("attempted UPDATE before set_db");
         return false;
     }
 
@@ -1036,8 +1107,11 @@ bool SQL_TABLE_@@tablename@@ :: update_by_@@customname@@(@@type_and_vX@@)
             "(@@custom_questionmarks@@) WHERE @@querystring@@",
             -1, &pStmt_update_by_@@customname@@, NULL);
         if (r != SQLITE_OK)
-            printf("ERROR building CUSTOM-UPDBY "
-                   "@@customname@@ at line %d\n", __LINE__);
+        {
+            PRINT_ERR("ERROR %d preparing CUSTOM-UPDBY "
+                      "@@customname@@", r);
+            return false;
+        }
     }
 
     sqlite3_reset(pStmt_update_by_@@customname@@);
@@ -1050,8 +1124,7 @@ bool SQL_TABLE_@@tablename@@ :: update_by_@@customname@@(@@type_and_vX@@)
     r = sqlite3_step(pStmt_update_by_@@customname@@);
     if (r != SQLITE_DONE)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: update "
-                "@@customname@@: r = %d\n", r);
+        PRINT_ERR("update @@customname@@: r = %d", r);
         return false;
     }
     previous_get = NULL;
@@ -1065,8 +1138,8 @@ ________ TABLE_custom_upd_binder_pod
                              @@fieldindex@@, @@fieldname@@);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
-             "@@by@@_@@customname@@: bind @@fieldname@@: r = %d\n", r);
+        PRINT_ERR("bind @@fieldname@@: r = %d", r);
+        return false;
     }
 ________ END
 
@@ -1075,8 +1148,8 @@ ________ TABLE_custom_upd_binder_bool
                              @@fieldindex@@, @@fieldname@@ ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
-            "@@by@@_@@customname@@: bind @@fieldname@@: r = %d\n", r);
+        PRINT_ERR("bind @@fieldname@@: r = %d", r);
+        return false;
     }
 ________ END
 
@@ -1085,8 +1158,8 @@ ________ TABLE_custom_upd_binder_enum
                              @@fieldindex@@, (int) @@fieldname@@);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
-            "@@by@@_@@customname@@: bind @@fieldname@@: r = %d\n", r);
+        PRINT_ERR("bind @@fieldname@@: r = %d", r);
+        return false;
     }
 ________ END
 
@@ -1097,8 +1170,8 @@ ________ TABLE_custom_upd_binder_string
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr, "SQL_TABLE_@@tablename@@ :: "
-            "@@by@@_@@customname@@: bind @@fieldname@@: r = %d\n", r);
+        PRINT_ERR("bind @@fieldname@@: r = %d", r);
+        return false;
     }
 ________ END
 
@@ -1107,9 +1180,7 @@ ________ TABLE_custom_updby_binder_pod
                              @@arg_index@@, v@@fieldindex@@);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr,
-                "SQL_TABLE_@@tablename@@ :: update_by_@@customname@@ "\
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind field @@fieldindex@@: r = %d", r);
         return false;
     }
 ________ END
@@ -1119,9 +1190,7 @@ ________ TABLE_custom_updby_binder_bool
                              @@arg_index@@, v@@fieldindex@@ ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr,
-                "SQL_TABLE_@@tablename@@ :: update_by_@@customname@@ "\
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind field @@fieldindex@@: r = %d", r);
         return false;
     }
 ________ END
@@ -1131,9 +1200,7 @@ ________ TABLE_custom_updby_binder_enum
                              @@arg_index@@, (int) v@@fieldindex@@);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr,
-                "SQL_TABLE_@@tablename@@ :: update_by_@@customname@@ "\
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind field @@fieldindex@@: r = %d", r);
         return false;
     }
 ________ END
@@ -1144,9 +1211,7 @@ ________ TABLE_custom_updby_binder_string
                           SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr,
-                "SQL_TABLE_@@tablename@@ :: update_by_@@customname@@ : "
-                "bind: r = %d\n", r);
+        PRINT_ERR("bind field @@fieldindex@@: r = %d", r);
         return false;
     }
 ________ END
@@ -1159,7 +1224,7 @@ bool SQL_TABLE_@@tablename@@ :: delete_@@customname@@(@@type_and_vX@@)
 
     if (pdb == NULL)
     {
-        printf("ERROR: attempt DELETE before set_db\n");
+        PRINT_ERR("attempted DELETE before set_db");
         return false;
     }
 
@@ -1170,8 +1235,10 @@ bool SQL_TABLE_@@tablename@@ :: delete_@@customname@@(@@type_and_vX@@)
             "DELETE FROM @@tablename@@ WHERE @@querystring@@",
             -1, &pStmt_del_@@customname@@, NULL);
         if (r != SQLITE_OK)
-            printf("ERROR building DELETE for "
-                   "CUSTOM-DEL @@customname@@ at line %d\n", __LINE__);
+        {
+            PRINT_ERR("ERROR %d preparing CUSTOM-DEL", r);
+            return false;
+        }
     }
 
     sqlite3_reset(pStmt_del_@@customname@@);
@@ -1199,9 +1266,7 @@ ________ TABLE_custom_del_binder_pod
                              @@arg_index@@, v@@arg_index@@);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr,
-                "SQL_TABLE_@@tablename@@ :: delete_@@customname@@ "\
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind arg @@arg_index@@: r = %d", r);
         return false;
     }
 ________ END
@@ -1211,9 +1276,7 @@ ________ TABLE_custom_del_binder_bool
                              @@arg_index@@, v@@arg_index@@ ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr,
-                "SQL_TABLE_@@tablename@@ :: delete_@@customname@@ "\
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind arg @@arg_index@@: r = %d", r);
         return false;
     }
 ________ END
@@ -1223,9 +1286,7 @@ ________ TABLE_custom_del_binder_enum
                              @@arg_index@@, (int) v@@arg_index@@);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr,
-                "SQL_TABLE_@@tablename@@ :: delete_@@customname@@ "\
-                ": bind: r = %d\n", r);
+        PRINT_ERR("bind arg @@arg_index@@: r = %d", r);
         return false;
     }
 ________ END
@@ -1236,9 +1297,7 @@ ________ TABLE_custom_del_binder_string
                           SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        fprintf(stderr,
-                "SQL_TABLE_@@tablename@@ :: delete_@@customname@@ : "
-                "bind: r = %d\n", r);
+        PRINT_ERR("bind arg @@arg_index@@: r = %d", r);
         return false;
     }
 ________ END
@@ -1324,7 +1383,7 @@ void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
 {
     if (pdb == NULL)
     {
-        printf("ERROR: attempt DROP with null db\n");
+        fprintf(stderr, "attempted DROP (all) with null db\n");
         return;
     }
 

@@ -22,6 +22,7 @@
 namespace library {
 
 typedef void (*sql_log_function_t)(void *arg, sqlite3_stmt *);
+typedef void (*sql_err_function_t)(void *arg, const std::string &msg);
 typedef void (*table_version_callback)(
     sqlite3 *pdb,
     const std::string &table_name,
@@ -60,6 +61,10 @@ protected:
     static sql_log_function_t log_upd_func;
     static sql_log_function_t log_get_func;
     static void * log_arg;
+    static sql_err_function_t err_log_func;
+    static void * err_log_arg;
+    static void print_err(const char *func, int lineno,
+                          const char *format, ...);
 
 public:
     SQL_TABLE_user(sqlite3 *_pdb = NULL);
@@ -122,11 +127,15 @@ public:
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
-                                   void *_arg)
+                                   void *_arg,
+                                   sql_err_function_t _err_func,
+                                   void *_err_arg)
     {
         log_upd_func = _upd_func;
         log_get_func = _get_func;
         log_arg  = _arg;
+        err_log_func = _err_func;
+        err_log_arg = _err_arg;
     }
     static bool init(sqlite3 *pdb, table_version_callback cb);
     static bool table_create(sqlite3 *pdb);
@@ -159,6 +168,10 @@ protected:
     static sql_log_function_t log_upd_func;
     static sql_log_function_t log_get_func;
     static void * log_arg;
+    static sql_err_function_t err_log_func;
+    static void * err_log_arg;
+    static void print_err(const char *func, int lineno,
+                          const char *format, ...);
 
 public:
     SQL_TABLE_book(sqlite3 *_pdb = NULL);
@@ -206,11 +219,15 @@ public:
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
-                                   void *_arg)
+                                   void *_arg,
+                                   sql_err_function_t _err_func,
+                                   void *_err_arg)
     {
         log_upd_func = _upd_func;
         log_get_func = _get_func;
         log_arg  = _arg;
+        err_log_func = _err_func;
+        err_log_arg = _err_arg;
     }
     static bool init(sqlite3 *pdb, table_version_callback cb);
     static bool table_create(sqlite3 *pdb);
@@ -240,6 +257,10 @@ protected:
     static sql_log_function_t log_upd_func;
     static sql_log_function_t log_get_func;
     static void * log_arg;
+    static sql_err_function_t err_log_func;
+    static void * err_log_arg;
+    static void print_err(const char *func, int lineno,
+                          const char *format, ...);
 
 public:
     SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
@@ -282,11 +303,15 @@ public:
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
-                                   void *_arg)
+                                   void *_arg,
+                                   sql_err_function_t _err_func,
+                                   void *_err_arg)
     {
         log_upd_func = _upd_func;
         log_get_func = _get_func;
         log_arg  = _arg;
+        err_log_func = _err_func;
+        err_log_arg = _err_arg;
     }
     static bool init(sqlite3 *pdb, table_version_callback cb);
     static bool table_create(sqlite3 *pdb);

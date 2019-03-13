@@ -183,6 +183,11 @@ void log_sql_get(void *arg, sqlite3_stmt *stmt)
     sqlite3_free(sql);
 }
 
+void log_sql_err(void *arg, const std::string &msg)
+{
+    fprintf(stderr, "** SQL ERROR: %s\n", msg.c_str());
+}
+
 void table_callback(sqlite3 *pdb, const std::string &table_name,
                     int before, int after)
 {
@@ -204,9 +209,9 @@ main()
     user.set_db(pdb);
     u.set_db(pdb);
 
-    library::SQL_TABLE_ALL_TABLES::init_all(pdb, &table_callback);
     library::SQL_TABLE_user::register_log_funcs(
-        &log_sql_upd, &log_sql_get, NULL);
+        &log_sql_upd, &log_sql_get, NULL, &log_sql_err, NULL);
+    library::SQL_TABLE_ALL_TABLES::init_all(pdb, &table_callback);
     {
 
         user.userid = 4;
