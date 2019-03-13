@@ -8,6 +8,8 @@
 #include <sstream>
 #include <fstream>
 
+#define VERBOSE 0
+
 void version_cb(sqlite3 *pdb,
                 const std::string &table_name,
                 int version_in_file,
@@ -15,6 +17,29 @@ void version_cb(sqlite3 *pdb,
 {
     printf("table %s version from %d to %d\n",
            table_name.c_str(), version_in_file, version_in_code);
+}
+
+static void log_upd(void *arg, sqlite3_stmt *stmt)
+{
+#if VERBOSE
+    char * sql = sqlite3_expanded_sql(stmt);
+    printf("SQL UPDATE: %s\n", sql);
+    sqlite3_free(sql);
+#endif
+}
+
+static void log_get(void *arg, sqlite3_stmt *stmt)
+{
+#if VERBOSE
+    char * sql = sqlite3_expanded_sql(stmt);
+    printf("SQL GET: %s\n", sql);
+    sqlite3_free(sql);
+#endif
+}
+
+static void log_err(void *arg, const std::string &msg)
+{
+    printf("SQL ERROR: %s\n", msg.c_str());
 }
 
 int
@@ -28,6 +53,8 @@ main()
     unlink("/tmp/test.db-journal");
     unlink("/tmp/test.text");
 
+    test::SQL_TABLE_ids::register_log_funcs(
+        &log_upd, &log_get, NULL, &log_err, NULL);
     AES_VFS::sqlite3_vfs_aes::setKey("SOME PASSWORD");
     AES_VFS::sqlite3_vfs_aes::register_vfs();
     int r = sqlite3_open_v2("/tmp/test.db", &pdb,
