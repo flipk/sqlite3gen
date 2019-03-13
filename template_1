@@ -665,8 +665,11 @@ ________ TABLE_get_column_enum
                 got, SQLITE_@@sqlite_type@@);
         return false;
     }
-    @@fieldname@@ = (@@fieldtype@@) @@sqlite_column_func@@(
-        pStmt, @@column_index@@);
+    if (@@fieldtype@@_IsValid(@@fieldname@@))
+        @@fieldname@@ = (@@fieldtype@@) @@sqlite_column_func@@(
+            pStmt, @@column_index@@);
+    else
+    @@initial_value@@
 ________ END
 
 ________ TABLE_get_column_bool

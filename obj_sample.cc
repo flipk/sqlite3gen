@@ -252,8 +252,12 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
                 got, SQLITE_INTEGER);
         return false;
     }
-    test3 = (sample::library2::EnumField_t) sqlite3_column_int(
-        pStmt, 9);
+    if (sample::library2::EnumField_t_IsValid(test3))
+        test3 = (sample::library2::EnumField_t) sqlite3_column_int(
+            pStmt, 9);
+    else
+        test3 = sample::library2::ENUM_TWO;
+
 
 
     return true;
