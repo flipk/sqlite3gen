@@ -1460,11 +1460,11 @@ bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
     }
 
     sqlite3_exec(pdb, "CREATE TABLE user "
-        "(userid int64, firstname string, lastname string, mi string, SSN integer, balance double, proto blob, test2 integer, test3 integer)",
+        "(userid int64 NOT NULL UNIQUE, firstname string NOT NULL, lastname string NOT NULL, mi string, SSN integer NOT NULL UNIQUE, balance double, proto blob, test2 integer, test3 integer)",
         NULL, NULL, NULL);
 
     printf("CREATE TABLE: CREATE TABLE user "
-           "(userid int64, firstname string, lastname string, mi string, SSN integer, balance double, proto blob, test2 integer, test3 integer)\n");
+           "(userid int64 NOT NULL UNIQUE, firstname string NOT NULL, lastname string NOT NULL, mi string, SSN integer NOT NULL UNIQUE, balance double, proto blob, test2 integer, test3 integer)\n");
 
     sqlite3_exec(pdb,"CREATE INDEX user_userid "
                  "ON user (userid)",
@@ -2367,11 +2367,11 @@ bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
     }
 
     sqlite3_exec(pdb, "CREATE TABLE book "
-        "(bookid int64, title string, isbn string, price double, quantity integer)",
+        "(bookid int64 NOT NULL UNIQUE, title string NOT NULL, isbn string NOT NULL UNIQUE, price double, quantity integer)",
         NULL, NULL, NULL);
 
     printf("CREATE TABLE: CREATE TABLE book "
-           "(bookid int64, title string, isbn string, price double, quantity integer)\n");
+           "(bookid int64 NOT NULL UNIQUE, title string NOT NULL, isbn string NOT NULL UNIQUE, price double, quantity integer)\n");
 
     sqlite3_exec(pdb,"CREATE INDEX book_bookid "
                  "ON book (bookid)",
@@ -3049,11 +3049,11 @@ bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
     }
 
     sqlite3_exec(pdb, "CREATE TABLE checkouts "
-        "(bookid int64, userid int64, duedate int64)",
+        "(bookid int64 NOT NULL UNIQUE, userid int64, duedate int64, FOREIGN KEY(userid) REFERENCES user(userid))",
         NULL, NULL, NULL);
 
     printf("CREATE TABLE: CREATE TABLE checkouts "
-           "(bookid int64, userid int64, duedate int64)\n");
+           "(bookid int64 NOT NULL UNIQUE, userid int64, duedate int64, FOREIGN KEY(userid) REFERENCES user(userid))\n");
 
     sqlite3_exec(pdb,"CREATE INDEX checkouts_bookid "
                  "ON checkouts (bookid)",

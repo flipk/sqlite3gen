@@ -68,6 +68,7 @@ void emit_source(const std::string &fname,
         ostringstream proto_copy_to;
         ostringstream proto_copy_from;
         ostringstream table_create_fields;
+        ostringstream table_create_constraints;
         ostringstream index_creation;
 
         const FieldDef * fd;
@@ -118,11 +119,24 @@ void emit_source(const std::string &fname,
             questionmarks << "?";
             table_create_fields << fd->name << " "
                                 << TypeDef_to_sqlite_create_type(t);
+            if (fd->attrs.notnull)
+                table_create_fields << " NOT NULL";
+            if (fd->attrs.unique)
+                table_create_fields << " UNIQUE";
             if (fd->next)
             {
                 fieldnames << ", ";
                 questionmarks << ",";
                 table_create_fields << ", ";
+            }
+
+            if (fd->attrs.foreign)
+            {
+                patterns["foreign_table"] = fd->attrs.foreign_table;
+                patterns["foreign_field"] = fd->attrs.foreign_field;
+
+                output_TABLE_create_constraints(
+                    table_create_constraints, patterns);
             }
 
             if (fd->attrs.query)
@@ -202,14 +216,13 @@ void emit_source(const std::string &fname,
                 break;
             }
             initial_values << initial_value.str();
+            SET_PATTERN(initial_value);
 
             // reuse the initial value stuff for the protobuf
             // copyFrom method too (for when a field is not
             // populated in the Message).
             if (do_protobuf && fd->attrs.protoid != -1)
             {
-                SET_PATTERN(initial_value);
-
                 switch (fd->type.type)
                 {
                 case TYPE_INT:
@@ -553,6 +566,8 @@ void emit_source(const std::string &fname,
             output_TABLE_proto_copy_funcs(
                 table_proto_copy_funcs, patterns);
         }
+
+        table_create_fields << table_create_constraints.str();
 
         SET_PATTERN(tableversion);
         SET_PATTERN(prepare_queries);

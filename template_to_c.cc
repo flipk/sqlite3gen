@@ -153,7 +153,6 @@ process_line(ostream &cc_out, ostream &h_out,
     if (memcmp(line.c_str(), BOUNDARY, BOUNDARY_LEN) == 0)
     {
         in_template = false;
-        add_template(cc_out, h_out, template_name, template_body);
         if (line.substr(BOUNDARY_LEN + 1, 3) != "END")
         {
             cerr << "ERROR 'END' != '"
@@ -161,6 +160,11 @@ process_line(ostream &cc_out, ostream &h_out,
                  << "'\n";
             exit(1);
         }
+        if (line.substr(BOUNDARY_LEN + 1, 5) == "ENDNL")
+        {
+            template_body.resize(template_body.size()-1);
+        }
+        add_template(cc_out, h_out, template_name, template_body);
         return;
     }
     template_body += line;

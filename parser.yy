@@ -17,7 +17,7 @@ using namespace std;
 
 static SchemaDef * schema_def = NULL;
 
-static void validate_table(TableDef *tb);
+static void validate_schema(SchemaDef *sd);
 
 %}
 
@@ -38,7 +38,8 @@ static void validate_table(TableDef *tb);
 %token KW_INT KW_INT64 KW_TEXT KW_BLOB KW_DOUBLE KW_ENUM
 %token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD KW_BOOL
 %token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_UPDBY KW_CUSTOM_DEL
-%token KW_DEFAULT KW_PROTOID KW_PACKAGE KW_VERSION
+%token KW_DEFAULT KW_PROTOID KW_PACKAGE KW_VERSION KW_LEFTJOIN
+%token KW_FOREIGN KW_NOTNULL KW_UNIQUE
 
 %token KW_PROTOTOP  KW_PROTOBOTTOM
 %token KW_HEADERTOP KW_HEADERBOTTOM
@@ -137,7 +138,6 @@ TABLE
                 $$->fields = $6;
                 $$->customs = $7;
 		delete $2;
-                validate_table($$);
                 schema_def->add_table($$);
 	}
 	;
@@ -318,6 +318,29 @@ ATTRIBUTES
 		$$ = $1;
 		$$->likequery = true;
 	}
+	| ATTRIBUTES KW_FOREIGN KW_WORD
+	{
+		// note $3 is "table.field"
+		$$ = $1;
+		$$->foreign = true;
+		size_t dotpos = $3->find_first_of('.');
+		if (dotpos != string::npos)
+		{
+			$$->foreign_table = $3->substr(0,dotpos);
+			$$->foreign_field = $3->substr(dotpos+1,string::npos);
+		}
+		delete $3;
+	}
+	| ATTRIBUTES KW_NOTNULL
+	{
+		$$ = $1;
+		$$->notnull = true;
+	}
+	| ATTRIBUTES KW_UNIQUE
+	{
+		$$ = $1;
+		$$->unique = true;
+	}
 	| ATTRIBUTES KW_DEFAULT TOK_STRING
 	{
 		$$ = $1;
@@ -374,6 +397,7 @@ parse_file(const std::string &fname)
     tokenizer_init(f);
     yyparse();
     fclose(f);
+    validate_schema(schema_def);
     return schema_def;
 }
 
@@ -422,10 +446,18 @@ get_type(const TypeDefValue &type)
 void
 print_field(FieldDef *fd)
 {
-    printf("  field %s i %d q %d lq %d type %s\n",
+    printf("  field %s i %d q %d lq %d type %s",
            fd->name.c_str(),
            fd->attrs.index, fd->attrs.query, fd->attrs.likequery,
            get_type(fd->type).c_str());
+    if (fd->attrs.foreign)
+        printf(" foreign_key %s.%s", fd->attrs.foreign_table.c_str(),
+               fd->attrs.foreign_field.c_str());
+    if (fd->attrs.notnull)
+        printf(" notnull");
+    if (fd->attrs.unique)
+        printf(" unique");
+    printf("\n");
 }
 
 void
@@ -511,6 +543,51 @@ validate_table(TableDef *tb)
                             "'%s' is not a known column in table '%s'\n",
                             w->word.c_str(), by,
                             cust->name.c_str(), tb->name.c_str());
+                    exit(1);
+                }
+            }
+        }
+    }
+}
+
+static void
+validate_schema(SchemaDef *sd)
+{
+    for (TableDef *tb = sd->tables; tb; tb = tb->next)
+    {
+        validate_table(tb);
+
+        // validate foreign keys actually exist
+        for (FieldDef *fd = tb->fields; fd; fd = fd->next)
+        {
+            if (fd->attrs.foreign)
+            {
+                TableDef *tb2;
+                for (tb2 = sd->tables; tb2; tb2 = tb2->next)
+                    if (tb2->name == fd->attrs.foreign_table)
+                        break;
+                if (tb2 == NULL)
+                {
+                    fprintf(stderr, "ERROR: unknown table '%s' in FOREIGN "
+                            "within table '%s' field '%s'\n",
+                            fd->attrs.foreign_table.c_str(),
+                            tb->name.c_str(), fd->name.c_str());
+                    exit(1);
+                }
+                // now find field
+                FieldDef *fd2;
+                for (fd2 = tb2->fields; fd2; fd2 = fd2->next)
+                    if (fd2->name == fd->attrs.foreign_field)
+                        break;
+                if (fd2 == NULL)
+                {
+                    fprintf(stderr, "ERROR: unknown field '%s' in "
+                            "table '%s' in FOREIGN in "
+                            "table '%s' field '%s'\n",
+                            fd->attrs.foreign_field.c_str(),
+                            tb2->name.c_str(),
+                            tb->name.c_str(),
+                            fd->name.c_str());
                     exit(1);
                 }
             }

@@ -20,15 +20,15 @@ import "sample2.proto";
 
 TABLE user VERSION 19
 {
-    userid    INT64         INDEX   QUERY PROTOID 1 DEFAULT -1
-    firstname TEXT                        PROTOID 2 DEFAULT ""
-    lastname  TEXT          LIKEQUERY     PROTOID 3 DEFAULT ""
-    mi        TEXT                        PROTOID 4 DEFAULT ""
-    SSN       INT           INDEX   QUERY PROTOID 5 DEFAULT 0
-    balance   DOUBLE                      PROTOID 6 DEFAULT 0
-    proto     BLOB                        PROTOID 7
-    test2     BOOL                  QUERY PROTOID 8 DEFAULT 0
-    test3     ENUM sample.library2.EnumField_t QUERY PROTOID 9
+    userid    INT64         INDEX QUERY NOTNULL UNIQUE PROTOID 1 DEFAULT -1
+    firstname TEXT                      NOTNULL        PROTOID 2 DEFAULT ""
+    lastname  TEXT          LIKEQUERY   NOTNULL        PROTOID 3 DEFAULT ""
+    mi        TEXT                                     PROTOID 4 DEFAULT ""
+    SSN       INT           INDEX QUERY NOTNULL UNIQUE PROTOID 5 DEFAULT 0
+    balance   DOUBLE                                   PROTOID 6 DEFAULT 0
+    proto     BLOB                                     PROTOID 7
+    test2     BOOL                QUERY                PROTOID 8 DEFAULT 0
+    test3     ENUM sample.library2.EnumField_t QUERY   PROTOID 9
     	      DEFAULT sample.library2.ENUM_TWO
 
     CUSTOM-GET great_balance (DOUBLE) "balance > ?"
@@ -45,9 +45,9 @@ TABLE user VERSION 19
 
 TABLE book VERSION 1
 {
-    bookid          INT64           INDEX   QUERY
-    title           TEXT            LIKEQUERY
-    isbn            TEXT            INDEX   QUERY
+    bookid          INT64    INDEX   QUERY  NOTNULL UNIQUE
+    title           TEXT     LIKEQUERY      NOTNULL
+    isbn            TEXT     INDEX   QUERY  NOTNULL UNIQUE
     price           DOUBLE
     quantity        INT
 
@@ -59,8 +59,8 @@ TABLE book VERSION 1
 
 TABLE checkouts VERSION 1
 {
-    bookid          INT64           INDEX QUERY
-    userid          INT64           INDEX QUERY
+    bookid          INT64           INDEX QUERY NOTNULL UNIQUE
+    userid          INT64           INDEX QUERY FOREIGN user.userid
     duedate         INT64
 
     CUSTOM-GET due_now (INT64)  "duedate < ?"

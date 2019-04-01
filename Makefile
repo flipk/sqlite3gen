@@ -87,6 +87,10 @@ $(OBJDIR)/sample.cc: $(sql3gen_TARGET) sample.schema
 	cp $(OBJDIR)/sample.h     obj_sample.h
 	cp $(OBJDIR)/sample.proto obj_sample.proto
 
+tokenize:
+	cd $(OBJDIR) ; DEBUG_TOKENIZER=1 ./sql3gen ../sample.schema \
+		sample.cc.tmp sample.h sample.proto
+
 bundle:
 	git bundle create sqlite3gen.bundle --all
 	git bundle verify sqlite3gen.bundle

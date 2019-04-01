@@ -106,6 +106,11 @@ struct FieldAttrs
     int64_t init_int;
     double init_double;
     int protoid;
+    bool foreign;
+    std::string foreign_table;
+    std::string foreign_field;
+    bool notnull;
+    bool unique;
     void init(void) {
         index = false;
         query = false;
@@ -114,6 +119,9 @@ struct FieldAttrs
         init_int = 0;
         init_double = 0.0;
         protoid = -1;
+        foreign = false;
+        notnull = false;
+        unique = false;
     }
     FieldAttrs(void) {
         init();

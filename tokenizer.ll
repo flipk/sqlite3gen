@@ -49,6 +49,10 @@ INT        { return KW_INT; }
 INT64      { return KW_INT64; }
 ENUM       { return KW_ENUM; }
 TEXT       { return KW_TEXT; }
+FOREIGN    { return KW_FOREIGN; }
+LEFT-JOIN  { return KW_LEFTJOIN; }
+NOTNULL    { return KW_NOTNULL; }
+UNIQUE     { return KW_UNIQUE; }
 BLOB       { return KW_BLOB; }
 DOUBLE     { return KW_DOUBLE; }
 INDEX      { return KW_INDEX; }

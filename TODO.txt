@@ -1,0 +1,5 @@
+- make DEFAULT required on ENUM
+- support CREATE VIEW, or LEFT JOIN ?
+- support csv import/export?
+- support JSON import/export?
+- support XML import/export?
