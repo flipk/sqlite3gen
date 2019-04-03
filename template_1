@@ -1444,5 +1444,5 @@ message @@tablename@@_m
 ________ END
 
 ________ PROTO_protofield
-  optional @@fieldtype@@ @@fieldname@@ = @@fieldnum@@;
+  @@optional_required@@ @@fieldtype@@ @@fieldname@@ = @@fieldnum@@;
 ________ END

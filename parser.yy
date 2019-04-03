@@ -38,7 +38,7 @@ static void validate_schema(SchemaDef *sd);
 %token KW_INT KW_INT64 KW_TEXT KW_BLOB KW_DOUBLE KW_ENUM
 %token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD KW_BOOL
 %token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_UPDBY KW_CUSTOM_DEL
-%token KW_DEFAULT KW_PROTOID KW_PACKAGE KW_VERSION KW_LEFTJOIN
+%token KW_DEFAULT KW_PROTOID KW_PACKAGE KW_VERSION KW_SUBTABLE
 %token KW_FOREIGN KW_NOTNULL KW_UNIQUE
 
 %token KW_PROTOTOP  KW_PROTOBOTTOM
@@ -46,7 +46,7 @@ static void validate_schema(SchemaDef *sd);
 %token KW_SOURCETOP KW_SOURCEBOTTOM
 %token KW_CLOSEBLOCK
 
-%token TOK_INTEGER TOK_DOUBLE TOK_STRING TOK_NL
+%token TOK_INTEGER TOK_DOUBLE TOK_STRING TOK_NL TOK_EQ
 
 %type <word>    KW_WORD BLOCKBODY
 %type <table>   TABLE
@@ -162,6 +162,15 @@ FIELD
                 delete $3;
                 delete $2;
 		delete $1;
+	}
+	| KW_SUBTABLE KW_WORD KW_PROTOID TOK_INTEGER
+	{
+		TypeDefValue tdv;
+		tdv.init(TYPE_SUBTABLE);
+		$$ = new FieldDef(*$2, tdv);
+		$$->attrs.subtable = true;
+		$$->attrs.protoid = $4;
+		delete $2;
 	}
 	;
 
@@ -327,7 +336,7 @@ ATTRIBUTES
 		if (dotpos != string::npos)
 		{
 			$$->foreign_table = $3->substr(0,dotpos);
-			$$->foreign_field = $3->substr(dotpos+1,string::npos);
+			$$->foreign_field = $3->substr(dotpos+1);
 		}
 		delete $3;
 	}
@@ -440,23 +449,32 @@ get_type(const TypeDefValue &type)
     case TYPE_DOUBLE: return "double";
     case TYPE_BOOL:   return "bool";
     case TYPE_ENUM:   return type.enum_name;
+    case TYPE_SUBTABLE:  return "SQL_TABLE";
     }
     return "UNKNOWN";
 }
 void
 print_field(FieldDef *fd)
 {
-    printf("  field %s i %d q %d lq %d type %s",
-           fd->name.c_str(),
-           fd->attrs.index, fd->attrs.query, fd->attrs.likequery,
-           get_type(fd->type).c_str());
-    if (fd->attrs.foreign)
-        printf(" foreign_key %s.%s", fd->attrs.foreign_table.c_str(),
-               fd->attrs.foreign_field.c_str());
-    if (fd->attrs.notnull)
-        printf(" notnull");
-    if (fd->attrs.unique)
-        printf(" unique");
+    printf("  field %s", fd->name.c_str());
+    if (!fd->attrs.subtable)
+    {
+        printf(" i %d q %d lq %d type %s",
+               fd->attrs.index, fd->attrs.query,
+               fd->attrs.likequery, get_type(fd->type).c_str());
+        if (fd->attrs.foreign)
+            printf(" foreign_key %s.%s", fd->attrs.foreign_table.c_str(),
+                   fd->attrs.foreign_field.c_str());
+        if (fd->attrs.notnull)
+            printf(" notnull");
+        if (fd->attrs.unique)
+            printf(" unique");
+    }
+    else
+    {
+        // subtable
+        printf(" subtable");
+    }
     printf("\n");
 }
 
@@ -558,6 +576,7 @@ validate_schema(SchemaDef *sd)
         validate_table(tb);
 
         // validate foreign keys actually exist
+        // validate SUBTABLE refers to actual table and field names
         for (FieldDef *fd = tb->fields; fd; fd = fd->next)
         {
             if (fd->attrs.foreign)
@@ -587,6 +606,21 @@ validate_schema(SchemaDef *sd)
                             fd->attrs.foreign_field.c_str(),
                             tb2->name.c_str(),
                             tb->name.c_str(),
+                            fd->name.c_str());
+                    exit(1);
+                }
+            }
+            if (fd->attrs.subtable)
+            {
+                // fd->name should be a table
+                TableDef *tb2;
+                for (tb2 = sd->tables; tb2; tb2 = tb2->next)
+                    if (tb2->name == fd->name)
+                        break;
+                if (tb2 == NULL)
+                {
+                    fprintf(stderr, "ERROR: SUBTABLE field name '%s' "
+                            "should be the same as the name of a table\n",
                             fd->name.c_str());
                     exit(1);
                 }

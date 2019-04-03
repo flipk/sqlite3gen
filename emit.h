@@ -31,7 +31,8 @@ Dots_to_Colons(const std::string &in)
 }
 
 static inline std::string
-TypeDef_to_Ctype(const TypeDefValue *t, bool do_const)
+TypeDef_to_Ctype(const TypeDefValue *t, bool do_const,
+                 const std::string &fieldname = "")
 {
     switch (t->type)
     {
@@ -46,6 +47,10 @@ TypeDef_to_Ctype(const TypeDefValue *t, bool do_const)
         // else
         return "std::string";
     case TYPE_ENUM:   return Dots_to_Colons(t->enum_name);
+    case TYPE_SUBTABLE:
+        fprintf(stderr, "ERROR: TypeDef_to_sqlite_macro "
+                "TYPE_SUBTABLE invalid\n");
+        exit(1);
     }
     return "UNKNOWN_TYPE";
 }
@@ -62,6 +67,10 @@ TypeDef_to_sqlite_macro(TypeDef t)
     case TYPE_TEXT:    return "TEXT";
     case TYPE_BLOB:    return "BLOB";
     case TYPE_ENUM:    return "INTEGER";
+    case TYPE_SUBTABLE:
+        fprintf(stderr, "ERROR: TypeDef_to_sqlite_macro "
+                "TYPE_SUBTABLE invalid\n");
+        exit(1);
     }
     return "UNKNOWN_TYPE";
 }
@@ -78,6 +87,10 @@ TypeDef_to_sqlite_type(TypeDef t)
     case TYPE_TEXT:    return "text";
     case TYPE_BLOB:    return "blob";
     case TYPE_ENUM:    return "int";
+    case TYPE_SUBTABLE:
+        fprintf(stderr, "ERROR: TypeDef_to_sqlite_type "
+                "TYPE_SUBTABLE invalid\n");
+        exit(1);
     }
     return "UNKNOWN_TYPE";
 }
@@ -94,6 +107,10 @@ TypeDef_to_sqlite_create_type(TypeDef t)
     case TYPE_BLOB:    return "blob";
     case TYPE_BOOL:    return "integer";
     case TYPE_ENUM:    return "integer";
+    case TYPE_SUBTABLE:
+        fprintf(stderr, "ERROR: TypeDef_to_sqlite_create_type "
+                "TYPE_SUBTABLE invalid\n");
+        exit(1);
     }
     return "UNKNOWN_TYPE";
 }

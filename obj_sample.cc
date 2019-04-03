@@ -2992,6 +2992,37 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
 
 
 
+void
+SQL_TABLE_checkouts :: CopyToProto(
+              library::TABLE_checkouts_m &msg)
+{
+    msg.set_bookid(bookid);
+    msg.set_userid(userid);
+    msg.set_duedate(duedate);
+
+}
+
+void
+SQL_TABLE_checkouts :: CopyFromProto(
+              const library::TABLE_checkouts_m &msg)
+{
+    if (msg.has_bookid())
+        bookid = msg.bookid();
+    else
+        bookid = 0;
+
+    if (msg.has_userid())
+        userid = msg.userid();
+    else
+        userid = 0;
+
+    if (msg.has_duedate())
+        duedate = msg.duedate();
+    else
+        duedate = 0;
+
+
+}
 
 
 //static

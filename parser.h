@@ -13,7 +13,8 @@ enum TypeDef
     TYPE_BLOB   = 4,
     TYPE_DOUBLE = 5,
     TYPE_BOOL   = 6,
-    TYPE_ENUM   = 7
+    TYPE_ENUM   = 7,
+    TYPE_SUBTABLE = 8
 };
 
 struct TypeDefValue
@@ -111,6 +112,7 @@ struct FieldAttrs
     std::string foreign_field;
     bool notnull;
     bool unique;
+    bool subtable;
     void init(void) {
         index = false;
         query = false;
@@ -122,6 +124,7 @@ struct FieldAttrs
         foreign = false;
         notnull = false;
         unique = false;
+        subtable = false;
     }
     FieldAttrs(void) {
         init();

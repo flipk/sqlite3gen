@@ -79,13 +79,19 @@ void emit_source(const std::string &fname,
         tableversion << td->version;
 
         int column = 1;
-        for (fd = td->fields; fd; fd = fd->next, column++)
+        bool first_field = true;
+        for (fd = td->fields; fd; fd = fd->next)
         {
-            fieldnames << fd->name;
-            if (fd->next)
+            if (fd->type.type == TYPE_SUBTABLE)
+                continue;
+
+            if (!first_field)
                 fieldnames << ", ";
+            first_field = false;
+            fieldnames << fd->name;
             if (fd->attrs.protoid != -1)
                 do_protobuf = true;
+            column++;
         }
 
         // this needs to be defined before processing any
@@ -96,9 +102,14 @@ void emit_source(const std::string &fname,
 
         column = 1;
         ostringstream column_index;
-        for (fd = td->fields; fd; fd = fd->next, column++)
+        first_field = true;
+        for (fd = td->fields; fd; fd = fd->next)
         {
             TypeDef t = fd->type.type;
+
+            if (t == TYPE_SUBTABLE)
+                // nothing in C++ code
+                continue;
 
             string fdnamelower = fd->name;
             for (size_t p = 0; p < fdnamelower.size(); p++)
@@ -107,7 +118,9 @@ void emit_source(const std::string &fname,
 
             patterns["fieldname"]          = fd->name;
             patterns["fieldname_lower"]    = fdnamelower;
-            patterns["fieldtype"]          = TypeDef_to_Ctype(&fd->type, true);
+            patterns["fieldtype"]          = TypeDef_to_Ctype(&fd->type,
+                                                              true,
+                                                              fd->name);
             patterns["sqlite_column_func"] = TypeDef_to_sqlite_column(t);
             patterns["sqlite_bind_func"]   = TypeDef_to_sqlite_bind(t);
             patterns["sqlite_type"]        = TypeDef_to_sqlite_macro(t);
@@ -116,6 +129,12 @@ void emit_source(const std::string &fname,
             column_index << column;
             SET_PATTERN(column_index);
 
+            if (!first_field)
+            {
+                questionmarks << ",";
+                table_create_fields << ", ";
+            }
+            first_field = false;
             questionmarks << "?";
             table_create_fields << fd->name << " "
                                 << TypeDef_to_sqlite_create_type(t);
@@ -123,12 +142,6 @@ void emit_source(const std::string &fname,
                 table_create_fields << " NOT NULL";
             if (fd->attrs.unique)
                 table_create_fields << " UNIQUE";
-            if (fd->next)
-            {
-                fieldnames << ", ";
-                questionmarks << ",";
-                table_create_fields << ", ";
-            }
 
             if (fd->attrs.foreign)
             {
@@ -161,6 +174,10 @@ void emit_source(const std::string &fname,
                 case TYPE_BOOL:
                     output_TABLE_query_bind_bool(query_bind, patterns);
                     break;
+                case TYPE_SUBTABLE:
+                    fprintf(stderr, "ERROR: query SUBTABLE "
+                            "shouldn't get here\n");
+                    exit(1);
                 }
 
                 SET_PATTERN(query_bind);
@@ -214,6 +231,9 @@ void emit_source(const std::string &fname,
                     << Dots_to_Colons(fd->attrs.init_string)
                     << ";\n";
                 break;
+            case TYPE_SUBTABLE:
+                fprintf(stderr, "ERROR: init subtable shouldn't get here\n");
+                exit(1);
             }
             initial_values << initial_value.str();
             SET_PATTERN(initial_value);
@@ -241,6 +261,10 @@ void emit_source(const std::string &fname,
                     output_TABLE_proto_copy_to_field_enum(
                         proto_copy_to, patterns);
                     break;
+                case TYPE_SUBTABLE:
+                    // nothing -- user is expected to add the subtable
+                    // proto files themselves
+                    break;
                 }
 
                 switch (fd->type.type)
@@ -257,6 +281,10 @@ void emit_source(const std::string &fname,
                 case TYPE_BOOL:
                     output_TABLE_proto_copy_from_field_bool(
                         proto_copy_from, patterns);
+                    break;
+                case TYPE_SUBTABLE:
+                    // nothing -- user is expected to add the subtable
+                    // proto files themselves
                     break;
                 }
             }
@@ -294,7 +322,13 @@ void emit_source(const std::string &fname,
                 output_TABLE_insert_binder_enum(update_binders, patterns);
                 output_TABLE_get_column_enum(get_columns, patterns);
                 break;
+            case TYPE_SUBTABLE:
+                // nothing. user expected to get/update/insert subtables
+                // using the classes for those tables.
+                break;
             }
+
+            column++;
         }
 
         // for ::update(), the last "?" is rowid, so the column_index
@@ -349,6 +383,10 @@ void emit_source(const std::string &fname,
                         output_TABLE_custom_get_binder_enum(
                             custom_get_binders, patterns);
                         break;
+                    case TYPE_SUBTABLE:
+                        fprintf(stderr, "ERROR: subtable custom get binder "
+                                "should be invalid\n");
+                        exit(1);
                     }
                 }
 
@@ -423,6 +461,10 @@ void emit_source(const std::string &fname,
                         output_TABLE_custom_upd_binder_enum(
                             custom_update_binders, patterns);
                         break;
+                    case TYPE_SUBTABLE:
+                        fprintf(stderr, "ERROR: subtable custom upd binder "
+                                "should be invalid\n");
+                        exit(1);
                     }
                 }
                 // note counter continues updating on from
@@ -489,6 +531,10 @@ void emit_source(const std::string &fname,
                             output_TABLE_custom_updby_binder_enum(
                                 custom_update_binders, patterns);
                             break;
+                        case TYPE_SUBTABLE:
+                            fprintf(stderr, "ERROR: subtable custom "
+                                    "upd binder should be invalid\n");
+                            exit(1);
                         }
                     }
                 }
@@ -544,6 +590,10 @@ void emit_source(const std::string &fname,
                         output_TABLE_custom_del_binder_enum(
                             custom_del_binders, patterns);
                         break;
+                    case TYPE_SUBTABLE:
+                        fprintf(stderr, "ERROR: subtable custom "
+                                    "del binder should be invalid\n");
+                        exit(1);
                     }
                 }
 

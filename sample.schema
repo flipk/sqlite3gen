@@ -31,6 +31,9 @@ TABLE user VERSION 19
     test3     ENUM sample.library2.EnumField_t QUERY   PROTOID 9
     	      DEFAULT sample.library2.ENUM_TWO
 
+    # used in protobuf output only, doesn't affect C++ code
+    SUBTABLE checkouts                                 PROTOID 10
+
     CUSTOM-GET great_balance (DOUBLE) "balance > ?"
     CUSTOM-GET founders      ()       "userid < 100"
     CUSTOM-GET firstlast  (TEXT TEXT) "firstname LIKE ? AND lastname LIKE ?"
@@ -59,9 +62,9 @@ TABLE book VERSION 1
 
 TABLE checkouts VERSION 1
 {
-    bookid          INT64           INDEX QUERY NOTNULL UNIQUE
-    userid          INT64           INDEX QUERY FOREIGN user.userid
-    duedate         INT64
+    bookid          INT64  INDEX QUERY NOTNULL UNIQUE      PROTOID 1
+    userid          INT64  INDEX QUERY FOREIGN user.userid PROTOID 2
+    duedate         INT64                                  PROTOID 3
 
     CUSTOM-GET due_now (INT64)  "duedate < ?"
 }

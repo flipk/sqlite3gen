@@ -298,7 +298,8 @@ public:
     bool get_all(void);
 
 
-   // no proto IDs for this table
+    void CopyToProto(library::TABLE_checkouts_m &msg);
+    void CopyFromProto(const library::TABLE_checkouts_m &msg);
 
 
     static void register_log_funcs(sql_log_function_t _upd_func,

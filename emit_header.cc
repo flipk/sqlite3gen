@@ -67,11 +67,15 @@ void emit_header(const std::string &fname,
 
         for (fd = td->fields; fd; fd = fd->next)
         {
+            if (fd->type.type == TYPE_SUBTABLE)
+                // nothing in C++ code
+                continue;
+
             patterns["fieldname"] = fd->name;
             if (fd->attrs.query)
             {
                 patterns["fieldtype"] =
-                    TypeDef_to_Ctype(&fd->type, true);
+                    TypeDef_to_Ctype(&fd->type, true, fd->name);
                 output_TABLE_CLASS_stmt_by_decl(
                     stmt_by_decls, patterns);
                 output_TABLE_CLASS_table_query_method_protos(
@@ -85,7 +89,7 @@ void emit_header(const std::string &fname,
                     table_query_like_method_protos, patterns);
             }
             patterns["fieldtype"] =
-                TypeDef_to_Ctype(&fd->type, false);
+                TypeDef_to_Ctype(&fd->type, false, fd->name);
             output_TABLE_CLASS_table_field_type_name_decls(
                 table_field_type_name_decls, patterns);
             if (fd->attrs.protoid != -1)

@@ -67,6 +67,18 @@ emit_proto(const std::string &fname, const SchemaDef *schema)
 
             patterns["fieldname"] = fd->name;
 
+            if (fd->attrs.notnull)
+                patterns["optional_required"] =
+                    "/*required*/ optional";
+            else if (fd->type.type == TYPE_SUBTABLE)
+                patterns["optional_required"] =
+                    "/* note users are required to deal with subtables\n"
+                    "     in protobufs themselves, the Copy methods won't\n"
+                    "     do it for you! */\n"
+                    "  /*SUBTABLE*/ repeated";
+            else
+                patterns["optional_required"] = "optional";
+
             switch (fd->type.type)
             {
             case TYPE_INT:
@@ -89,6 +101,9 @@ emit_proto(const std::string &fname, const SchemaDef *schema)
                 break;
             case TYPE_ENUM:
                 patterns["fieldtype"] = fd->type.enum_name;
+                break;
+            case TYPE_SUBTABLE:
+                patterns["fieldtype"] = string("TABLE_") + fd->name + "_m";
                 break;
             }
 
