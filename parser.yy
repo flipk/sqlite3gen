@@ -578,6 +578,19 @@ validate_table(TableDef *tb)
             }
         }
     }
+
+    FieldDef * fd;
+    for (fd = tb->fields; fd; fd = fd->next)
+    {
+        if (fd->type.type == TYPE_ENUM)
+        {
+            if (fd->attrs.init_string == "")
+            {
+                fprintf(stderr, "ERROR: DEFAULT required for ENUM type\n");
+                exit(1);
+            }
+        }
+    }
 }
 
 static void

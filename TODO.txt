@@ -1,11 +1,9 @@
+- support XML import/export?
+
 - need a strategy for rolling back to older schema versions
   (if you upgrade software, then fall back, old software won't
    know how to reverse the modifications; maybe tables can be
    renamed and archived using a well known convention so at least
    it could load a copy of the old database which does not contain
    updates made while on the new software?)
-- make DEFAULT required on ENUM
-- support CREATE VIEW, or LEFT JOIN ?
-- support csv import/export?
-- support JSON import/export?
-- support XML import/export?
+
