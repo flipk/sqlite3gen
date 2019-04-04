@@ -26,6 +26,9 @@ CXXFLAGS = -Wall -Werror $(PROTOINC)
 template_to_c_TARGET = $(OBJDIR)/template_to_c
 template_to_c_CXXSRCS = template_to_c.cc
 
+TEMPLATES = header source proto
+TEMPLATE_OBJS = $(foreach t,$(TEMPLATES),$(OBJDIR)/template_$(t).o)
+
 sql3gen_TARGET = $(OBJDIR)/sql3gen
 sql3gen_LLSRCS = tokenizer.ll
 sql3gen_YYSRCS = parser.yy
@@ -33,8 +36,8 @@ sql3gen_CXXSRCS = main.cc template_patterns.cc \
 	emit_header.cc emit_source.cc emit_proto.cc
 sql3gen_DEFS = -DPARSER_YY_HDR=\"$(sql3gen_parser.yy_HDR)\" \
 	-DYY_TYPEDEF_YY_SIZE_T=1 -Dyy_size_t=int
-sql3gen_LIBS = $(OBJDIR)/template_1.o
-sql3gen_PREMAKE = $(template_to_c_TARGET) $(OBJDIR)/template_1.o
+sql3gen_LIBS = $(TEMPLATE_OBJS)
+sql3gen_PREMAKE = $(template_to_c_TARGET) $(TEMPLATE_OBJS)
 
 sample_TARGET = $(OBJDIR)/sample
 sample_CXXSRCS = sample_test.cc
@@ -47,17 +50,26 @@ sample_PREMAKE = $(OBJDIR)/sample.o
 
 include Makefile.inc
 
-$(sql3gen_TARGET): $(OBJDIR)/template_1.o
+echo:
+	@echo $(TEMPLATE_OBJS)
 
-$(sql3gen_CXXOBJS): $(OBJDIR)/template_1.o
+$(sql3gen_TARGET): $(foreach t,$(TEMPLATES),$(OBJDIR)/template_$(t).o)
 
-$(OBJDIR)/template_1.o: $(OBJDIR)/template_1.cc
-	@echo compiling $(OBJDIR)/template_1.cc
-	$(Q)g++ -O3 -c $(OBJDIR)/template_1.cc -o $(OBJDIR)/template_1.o -I$(OBJDIR) -I.
+$(sql3gen_CXXOBJS): $(foreach t,$(TEMPLATES),$(OBJDIR)/template_$(t).o)
 
-$(OBJDIR)/template_1.cc $(OBJDIR)/template_1.h: $(template_to_c_TARGET) template_1
-	@echo generating $(OBJDIR)/template_1.cc
-	$(Q)./$(OBJDIR)/template_to_c template_1 $(OBJDIR)/template_1.cc $(OBJDIR)/template_1.h || ( rm -f $(OBJDIR)/template_1.cc $(OBJDIR)/template_1.h ; exit 1 )
+define TEMPLATE_RULES
+
+$(OBJDIR)/template_$(1).o: $(OBJDIR)/template_$(1).cc
+	@echo compiling $(OBJDIR)/template_$(1).cc
+	$(Q)g++ -O3 -c $(OBJDIR)/template_$(1).cc -o $(OBJDIR)/template_$(1).o -I$(OBJDIR) -I.
+
+$(OBJDIR)/template_$(1).cc $(OBJDIR)/template_$(1).h: $(template_to_c_TARGET) template_$(1)
+	@echo generating $(OBJDIR)/template_$(1).cc
+	$(Q)./$(OBJDIR)/template_to_c template_$(1) $(OBJDIR)/template_$(1).cc $(OBJDIR)/template_$(1).h || ( rm -f $(OBJDIR)/template_$(1).cc $(OBJDIR)/template_$(1).h ; exit 1 )
+
+endef
+
+$(eval $(foreach t,$(TEMPLATES),$(call TEMPLATE_RULES,$(t))))
 
 $(sample_TARGET): $(OBJDIR)/sample.o $(OBJDIR)/sample.pb.o
 

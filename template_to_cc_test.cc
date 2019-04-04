@@ -1,12 +1,12 @@
 #if 0
-# test this by typing "bash template_2.cc"
+# test this by typing "bash template_to_c_test.cc"
 set -e -x
 cd build_native
 g++ -DECHO_OUTPUT=1 ../template_to_c.cc -o template_to_c
-./template_to_c ../template_2.cc template_2_out.cc template_2_out.h
-ls -l template_2_out.cc template_2_out.h
-g++ -I. -I.. ../template_2.cc ../template_patterns.cc template_2_out.cc -o template_2
-./template_2 
+./template_to_c ../template_to_c_test.cc template_test_out.cc template_test_out.h
+ls -l template_test_out.cc template_test_out.h
+g++ -I. -I.. ../template_to_c_test.cc ../template_patterns.cc template_test_out.cc -o template_test
+./template_test
 exit 0 ;
 
 ________ pattern_one
@@ -15,7 +15,7 @@ ________ END
 
 #endif
 
-#include "template_2_out.h"
+#include "template_test_out.h"
 #include <iostream>
 
 int

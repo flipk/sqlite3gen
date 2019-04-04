@@ -10,7 +10,7 @@
 
 #include "emit.h"
 #ifndef DEPENDING
-#include "template_1.h"
+#include "template_proto.h"
 #endif
 
 using namespace std;
