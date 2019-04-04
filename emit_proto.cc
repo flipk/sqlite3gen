@@ -51,6 +51,9 @@ emit_proto(const std::string &fname, const SchemaDef *schema)
         patterns["tablename"] = tablename;
 
         ostringstream protofields;
+        ostringstream schema_version;
+
+        schema_version << td->version;
 
         for (fd = td->fields; fd; fd = fd->next)
         {
@@ -115,6 +118,7 @@ emit_proto(const std::string &fname, const SchemaDef *schema)
         }
 
         SET_PATTERN(protofields);
+        SET_PATTERN(schema_version);
 
         output_PROTO_message(out, patterns);
     }

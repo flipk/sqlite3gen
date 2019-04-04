@@ -170,6 +170,12 @@ FIELD
 		$$ = new FieldDef(*$2, tdv);
 		$$->attrs.subtable = true;
 		$$->attrs.protoid = $4;
+                if ($4 == 1)
+                {
+                    fprintf(stderr, "ERROR: PROTOID 1 is reserved for "
+                            "schema_version, please start numbering at 2\n");
+                    exit(1);
+                }
 		delete $2;
 	}
 	;
@@ -381,6 +387,12 @@ ATTRIBUTES
 	{
 		$$ = $1;
                 $$->protoid = $3;
+                if ($3 == 1)
+                {
+                    fprintf(stderr, "ERROR: PROTOID 1 is reserved for "
+                            "schema_version, please start numbering at 2\n");
+                    exit(1);
+                }
 	}
 	;
 

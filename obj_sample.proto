@@ -18,45 +18,69 @@ import "sample2.proto";
 
 
 
+enum TABLE_user_VERSION_t
+{
+    TABLE_user_VERSION = 19;
+}
+
 message TABLE_user_m
 {
-  /*required*/ optional int64 userid = 1;
-  /*required*/ optional string firstname = 2;
-  /*required*/ optional string lastname = 3;
-  optional string mi = 4;
-  /*required*/ optional int32 SSN = 5;
-  optional double balance = 6;
-  optional bytes proto = 7;
-  optional bool test2 = 8;
-  optional sample.library2.EnumField_t test3 = 9;
+  /* note this is int32 instead of TABLE_user_VERSION_t
+     to prevent protobuf decode errors when it mismatches. */
+  /*required*/ optional int32 schema_version = 1;
+  /*required*/ optional int64 userid = 2;
+  /*required*/ optional string firstname = 3;
+  /*required*/ optional string lastname = 4;
+  optional string mi = 5;
+  /*required*/ optional int32 SSN = 6;
+  optional double balance = 7;
+  optional bytes proto = 8;
+  optional bool test2 = 9;
+  optional sample.library2.EnumField_t test3 = 10;
   /* note users are required to deal with subtables
      in protobufs themselves, the Copy methods won't
      do it for you! */
-  /*SUBTABLE*/ repeated TABLE_checkouts_m checkouts = 10;
+  /*SUBTABLE*/ repeated TABLE_checkouts_m checkouts = 11;
 
 }
 
+
+enum TABLE_book_VERSION_t
+{
+    TABLE_book_VERSION = 1;
+}
 
 message TABLE_book_m
 {
-  /*required*/ optional int64 bookid = 1;
-  /*required*/ optional string title = 2;
-  /*required*/ optional string isbn = 3;
-  optional double price = 4;
-  optional int32 quantity = 5;
+  /* note this is int32 instead of TABLE_book_VERSION_t
+     to prevent protobuf decode errors when it mismatches. */
+  /*required*/ optional int32 schema_version = 1;
+  /*required*/ optional int64 bookid = 2;
+  /*required*/ optional string title = 3;
+  /*required*/ optional string isbn = 4;
+  optional double price = 5;
+  optional int32 quantity = 6;
   /* note users are required to deal with subtables
      in protobufs themselves, the Copy methods won't
      do it for you! */
-  /*SUBTABLE*/ repeated TABLE_checkouts_m checkouts = 6;
+  /*SUBTABLE*/ repeated TABLE_checkouts_m checkouts = 7;
 
 }
 
 
+enum TABLE_checkouts_VERSION_t
+{
+    TABLE_checkouts_VERSION = 1;
+}
+
 message TABLE_checkouts_m
 {
-  optional int64 bookid = 1;
-  optional int64 userid = 2;
-  optional int64 duedate = 3;
+  /* note this is int32 instead of TABLE_checkouts_VERSION_t
+     to prevent protobuf decode errors when it mismatches. */
+  /*required*/ optional int32 schema_version = 1;
+  optional int64 bookid = 2;
+  optional int64 userid = 3;
+  optional int64 duedate = 4;
 
 }
 

@@ -13,6 +13,7 @@ ________ HEADER_TOP
 
 #include <inttypes.h>
 #include <string>
+#include <sstream>
 #include "sqlite3.h"
 @@protobuf_header@@
 
@@ -1307,6 +1308,7 @@ void
 SQL_TABLE_@@tablename@@ :: CopyToProto(
               @@package@@::TABLE_@@tablename@@_m &msg)
 {
+    msg.set_schema_version(TABLE_VERSION);
 @@proto_copy_to@@
 }
 
@@ -1314,6 +1316,23 @@ void
 SQL_TABLE_@@tablename@@ :: CopyFromProto(
               const @@package@@::TABLE_@@tablename@@_m &msg)
 {
+    if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
+    {
+        // NOTE : if this becomes a problem in the future, we could
+        //        enhance sql3gen to allow the user to register a
+        //        callback function which can convert a message from
+        //        one schema version to another.
+        std::ostringstream err;
+        err << "SQL_TABLE_@@tablename@@ :: "
+            << "CopyFromProto : recvd protobuf message with "
+            << "schema version " << msg.schema_version()
+            << " (supported is " << TABLE_VERSION
+            << ")\n";
+        if (err_log_func)
+            err_log_func(err_log_arg, err.str());
+        else
+            std::cerr << err.str();
+    }
 @@proto_copy_from@@
 }
 ________ END
@@ -1436,8 +1455,16 @@ ________ END
 
 ________ PROTO_message
 
+enum @@tablename@@_VERSION_t
+{
+    @@tablename@@_VERSION = @@schema_version@@;
+}
+
 message @@tablename@@_m
 {
+  /* note this is int32 instead of @@tablename@@_VERSION_t
+     to prevent protobuf decode errors when it mismatches. */
+  /*required*/ optional int32 schema_version = 1;
 @@protofields@@
 }
 

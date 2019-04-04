@@ -1337,6 +1337,7 @@ void
 SQL_TABLE_user :: CopyToProto(
               library::TABLE_user_m &msg)
 {
+    msg.set_schema_version(TABLE_VERSION);
     msg.set_userid(userid);
     msg.set_firstname(firstname);
     msg.set_lastname(lastname);
@@ -1356,6 +1357,23 @@ void
 SQL_TABLE_user :: CopyFromProto(
               const library::TABLE_user_m &msg)
 {
+    if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
+    {
+        // NOTE : if this becomes a problem in the future, we could
+        //        enhance sql3gen to allow the user to register a
+        //        callback function which can convert a message from
+        //        one schema version to another.
+        std::ostringstream err;
+        err << "SQL_TABLE_user :: "
+            << "CopyFromProto : recvd protobuf message with "
+            << "schema version " << msg.schema_version()
+            << " (supported is " << TABLE_VERSION
+            << ")\n";
+        if (err_log_func)
+            err_log_func(err_log_arg, err.str());
+        else
+            std::cerr << err.str();
+    }
     if (msg.has_userid())
         userid = msg.userid();
     else
@@ -2314,6 +2332,7 @@ void
 SQL_TABLE_book :: CopyToProto(
               library::TABLE_book_m &msg)
 {
+    msg.set_schema_version(TABLE_VERSION);
     msg.set_bookid(bookid);
     msg.set_title(title);
     msg.set_isbn(isbn);
@@ -2326,6 +2345,23 @@ void
 SQL_TABLE_book :: CopyFromProto(
               const library::TABLE_book_m &msg)
 {
+    if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
+    {
+        // NOTE : if this becomes a problem in the future, we could
+        //        enhance sql3gen to allow the user to register a
+        //        callback function which can convert a message from
+        //        one schema version to another.
+        std::ostringstream err;
+        err << "SQL_TABLE_book :: "
+            << "CopyFromProto : recvd protobuf message with "
+            << "schema version " << msg.schema_version()
+            << " (supported is " << TABLE_VERSION
+            << ")\n";
+        if (err_log_func)
+            err_log_func(err_log_arg, err.str());
+        else
+            std::cerr << err.str();
+    }
     if (msg.has_bookid())
         bookid = msg.bookid();
     else
@@ -3039,6 +3075,7 @@ void
 SQL_TABLE_checkouts :: CopyToProto(
               library::TABLE_checkouts_m &msg)
 {
+    msg.set_schema_version(TABLE_VERSION);
     msg.set_bookid(bookid);
     msg.set_userid(userid);
     msg.set_duedate(duedate);
@@ -3049,6 +3086,23 @@ void
 SQL_TABLE_checkouts :: CopyFromProto(
               const library::TABLE_checkouts_m &msg)
 {
+    if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
+    {
+        // NOTE : if this becomes a problem in the future, we could
+        //        enhance sql3gen to allow the user to register a
+        //        callback function which can convert a message from
+        //        one schema version to another.
+        std::ostringstream err;
+        err << "SQL_TABLE_checkouts :: "
+            << "CopyFromProto : recvd protobuf message with "
+            << "schema version " << msg.schema_version()
+            << " (supported is " << TABLE_VERSION
+            << ")\n";
+        if (err_log_func)
+            err_log_func(err_log_arg, err.str());
+        else
+            std::cerr << err.str();
+    }
     if (msg.has_bookid())
         bookid = msg.bookid();
     else

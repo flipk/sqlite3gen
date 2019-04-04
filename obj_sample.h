@@ -10,6 +10,7 @@
 
 #include <inttypes.h>
 #include <string>
+#include <sstream>
 #include "sqlite3.h"
 #include "sample.pb.h"
 
