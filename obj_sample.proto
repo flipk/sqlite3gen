@@ -26,7 +26,9 @@ enum TABLE_user_VERSION_t
 message TABLE_user_m
 {
   /* note this is int32 instead of TABLE_user_VERSION_t
-     to prevent protobuf decode errors when it mismatches. */
+     to prevent protobuf decode errors when version enum
+     value changes. we're kinda breaking google's rules a little
+     bit by redefining enum values. */
   /*required*/ optional int32 schema_version = 1;
   /*required*/ optional int64 userid = 2;
   /*required*/ optional string firstname = 3;
@@ -37,9 +39,6 @@ message TABLE_user_m
   optional bytes proto = 8;
   optional bool test2 = 9;
   optional sample.library2.EnumField_t test3 = 10;
-  /* note users are required to deal with subtables
-     in protobufs themselves, the Copy methods won't
-     do it for you! */
   /*SUBTABLE*/ repeated TABLE_checkouts_m checkouts = 11;
 
 }
@@ -53,16 +52,15 @@ enum TABLE_book_VERSION_t
 message TABLE_book_m
 {
   /* note this is int32 instead of TABLE_book_VERSION_t
-     to prevent protobuf decode errors when it mismatches. */
+     to prevent protobuf decode errors when version enum
+     value changes. we're kinda breaking google's rules a little
+     bit by redefining enum values. */
   /*required*/ optional int32 schema_version = 1;
   /*required*/ optional int64 bookid = 2;
   /*required*/ optional string title = 3;
   /*required*/ optional string isbn = 4;
   optional double price = 5;
   optional int32 quantity = 6;
-  /* note users are required to deal with subtables
-     in protobufs themselves, the Copy methods won't
-     do it for you! */
   /*SUBTABLE*/ repeated TABLE_checkouts_m checkouts = 7;
 
 }
@@ -76,10 +74,12 @@ enum TABLE_checkouts_VERSION_t
 message TABLE_checkouts_m
 {
   /* note this is int32 instead of TABLE_checkouts_VERSION_t
-     to prevent protobuf decode errors when it mismatches. */
+     to prevent protobuf decode errors when version enum
+     value changes. we're kinda breaking google's rules a little
+     bit by redefining enum values. */
   /*required*/ optional int32 schema_version = 1;
-  optional int64 bookid = 2;
-  optional int64 userid = 3;
+  optional int64 bookid2 = 2;
+  optional int64 userid2 = 3;
   optional int64 duedate = 4;
 
 }

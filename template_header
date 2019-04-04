@@ -13,6 +13,7 @@ ________ HEADER_TOP
 
 #include <inttypes.h>
 #include <string>
+#include <vector>
 #include <sstream>
 #include "sqlite3.h"
 @@protobuf_header@@
@@ -29,6 +30,7 @@ typedef void (*table_version_callback)(
     int version_in_file,
     int version_in_code);
 
+@@class_forwards@@
 ________ END
 
 ________ TABLE_CLASS_DEFN
@@ -59,6 +61,7 @@ protected:
 
 public:
     SQL_TABLE_@@tablename@@(sqlite3 *_pdb = NULL);
+    SQL_TABLE_@@tablename@@(const SQL_TABLE_@@tablename@@ &other);
     virtual ~SQL_TABLE_@@tablename@@(void);
 
     static const int TABLE_VERSION = @@tableversion@@;
@@ -139,6 +142,12 @@ ________ TABLE_CLASS_table_query_method_protos
     bool get_by_@@fieldname@@(@@fieldtype@@ v);
 ________ END
 
+________ TABLE_CLASS_table_get_subtable_proto
+// note this assumes foreign key @@foreign_key@@ is populated;
+// returns number of rows fetched.
+    int get_subtable_@@fieldname@@(void);
+________ END
+
 ________ TABLE_CLASS_table_query_method_protos_like
     bool get_by_@@fieldname@@_like(const std::string &patt);
 ________ END
@@ -160,6 +169,8 @@ ________ TABLE_CLASS_table_custom_del_method_protos
 ________ END
 
 ________ TABLE_CLASS_proto_copy_proto
+// NOTE these only copy SUBTABLEs if you have called the
+//      get_subtable_* methods to populate them.
     void CopyToProto(@@package@@::TABLE_@@tablename@@_m &msg);
     void CopyFromProto(const @@package@@::TABLE_@@tablename@@_m &msg);
 ________ END

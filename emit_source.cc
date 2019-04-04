@@ -70,6 +70,8 @@ void emit_source(const std::string &fname,
         ostringstream table_create_fields;
         ostringstream table_create_constraints;
         ostringstream index_creation;
+        ostringstream get_subtable_implementations;
+        ostringstream field_copies;
 
         const FieldDef * fd;
         const CustomGetUpdList * cust;
@@ -107,10 +109,6 @@ void emit_source(const std::string &fname,
         {
             TypeDef t = fd->type.type;
 
-            if (t == TYPE_SUBTABLE)
-                // nothing in C++ code
-                continue;
-
             string fdnamelower = fd->name;
             for (size_t p = 0; p < fdnamelower.size(); p++)
                 if (isupper(fdnamelower[p]))
@@ -118,9 +116,66 @@ void emit_source(const std::string &fname,
 
             patterns["fieldname"]          = fd->name;
             patterns["fieldname_lower"]    = fdnamelower;
-            patterns["fieldtype"]          = TypeDef_to_Ctype(&fd->type,
-                                                              true,
-                                                              fd->name);
+            patterns["fieldtype"]          =
+                TypeDef_to_Ctype(&fd->type, true, fd->name);
+
+            ostringstream initial_value;
+            initial_value << "    " << fd->name;
+            switch (t)
+            {
+            case TYPE_INT:
+            case TYPE_INT64:
+                initial_value
+                    << " = " << fd->attrs.init_int << ";\n";
+                break;
+            case TYPE_DOUBLE:
+                initial_value
+                    << " = " << fd->attrs.init_double << ";\n";
+                break;
+            case TYPE_TEXT:
+                initial_value
+                    << " = \"" << fd->attrs.init_string << "\";\n";
+                break;
+            case TYPE_BLOB:
+                initial_value << ".clear();\n";
+                break;
+            case TYPE_BOOL:
+                initial_value
+                    << " = "
+                    << (fd->attrs.init_int ? "true" : "false")
+                    << ";\n";
+                break;
+            case TYPE_ENUM:
+                initial_value
+                    << " = "
+                    << Dots_to_Colons(fd->attrs.init_string)
+                    << ";\n";
+                break;
+            case TYPE_SUBTABLE:
+                initial_value << ".clear();\n";
+                break;
+            }
+            initial_values << initial_value.str();
+            SET_PATTERN(initial_value);
+
+            field_copies << "    " << fd->name
+                         << " = other." << fd->name
+                         << ";\n";
+
+            if (t == TYPE_SUBTABLE)
+            {
+                patterns["this_key"] =
+                    fd->attrs.subtable_field->attrs.foreign_field;
+                patterns["other_key"] = fd->attrs.subtable_field->name;
+                output_TABLE_get_subtable_implementation(
+                    get_subtable_implementations, patterns);
+                output_TABLE_proto_copy_to_subtable(
+                    proto_copy_to, patterns);
+                output_TABLE_proto_copy_from_subtable(
+                    proto_copy_from, patterns);
+                continue;
+            }
+
             patterns["sqlite_column_func"] = TypeDef_to_sqlite_column(t);
             patterns["sqlite_bind_func"]   = TypeDef_to_sqlite_bind(t);
             patterns["sqlite_type"]        = TypeDef_to_sqlite_macro(t);
@@ -199,45 +254,6 @@ void emit_source(const std::string &fname,
                 output_TABLE_create_index(index_creation, patterns);
             }
 
-            ostringstream initial_value;
-            initial_value << "    " << fd->name;
-            switch (t)
-            {
-            case TYPE_INT:
-            case TYPE_INT64:
-                initial_value
-                    << " = " << fd->attrs.init_int << ";\n";
-                break;
-            case TYPE_DOUBLE:
-                initial_value
-                    << " = " << fd->attrs.init_double << ";\n";
-                break;
-            case TYPE_TEXT:
-                initial_value
-                    << " = \"" << fd->attrs.init_string << "\";\n";
-                break;
-            case TYPE_BLOB:
-                initial_value << ".clear();\n";
-                break;
-            case TYPE_BOOL:
-                initial_value
-                    << " = "
-                    << (fd->attrs.init_int ? "true" : "false")
-                    << ";\n";
-                break;
-            case TYPE_ENUM:
-                initial_value
-                    << " = "
-                    << Dots_to_Colons(fd->attrs.init_string)
-                    << ";\n";
-                break;
-            case TYPE_SUBTABLE:
-                fprintf(stderr, "ERROR: init subtable shouldn't get here\n");
-                exit(1);
-            }
-            initial_values << initial_value.str();
-            SET_PATTERN(initial_value);
-
             // reuse the initial value stuff for the protobuf
             // copyFrom method too (for when a field is not
             // populated in the Message).
@@ -262,8 +278,7 @@ void emit_source(const std::string &fname,
                         proto_copy_to, patterns);
                     break;
                 case TYPE_SUBTABLE:
-                    // nothing -- user is expected to add the subtable
-                    // proto files themselves
+                    // handled above, this is a NOTREACHED
                     break;
                 }
 
@@ -283,8 +298,7 @@ void emit_source(const std::string &fname,
                         proto_copy_from, patterns);
                     break;
                 case TYPE_SUBTABLE:
-                    // nothing -- user is expected to add the subtable
-                    // proto files themselves
+                    // handled above, this is a NOTREACHED
                     break;
                 }
             }
@@ -645,6 +659,8 @@ void emit_source(const std::string &fname,
         SET_PATTERN(table_proto_copy_funcs);
         SET_PATTERN(table_create_fields);
         SET_PATTERN(index_creation);
+        SET_PATTERN(get_subtable_implementations);
+        SET_PATTERN(field_copies);
 
         output_TABLE_CLASS_IMPL(out, patterns);
 

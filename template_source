@@ -57,6 +57,19 @@ SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
     init_statements();
 }
 
+// copy constructor, duplicates all the data fields (including rowid)
+// but does not duplicate the statement pointers, because then they'd
+// get double-freed.
+SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(
+    const SQL_TABLE_@@tablename@@ &other)
+{
+    init_statements();
+
+    pdb = other.pdb;
+    rowid = other.rowid;
+@@field_copies@@
+}
+
 void
 SQL_TABLE_@@tablename@@ :: init_statements(void)
 {
@@ -389,6 +402,7 @@ bool SQL_TABLE_@@tablename@@ :: get_all(void)
     return ret;
 }
 
+@@get_subtable_implementations@@
 @@custom_get_implementations@@
 @@custom_upd_implementations@@
 @@custom_del_implementations@@
@@ -772,6 +786,29 @@ ________ TABLE_insert_binder_string
         PRINT_ERR("@@stmt@@: bind @@fieldname@@: r = %d", r);
         return false;
     }
+________ END
+
+________ TABLE_get_subtable_implementation
+int SQL_TABLE_@@tablename@@ :: get_subtable_@@fieldname@@(void)
+{
+    SQL_TABLE_@@fieldname@@  row(pdb);
+    bool status;
+    int count = 0;
+
+    @@fieldname@@.clear();
+    status = row.get_by_@@other_key@@(@@this_key@@);
+    while (status)
+    {
+        // note this uses the special table class
+        // copy constructor that only copies the data,
+        // not the prepared statements.
+        @@fieldname@@.push_back(row);
+        count++;
+        status = row.get_next();
+    }
+
+    return count;
+}
 ________ END
 
 ________ TABLE_custom_get_implementation
@@ -1186,6 +1223,22 @@ ________ TABLE_proto_copy_from_field_bool
         @@fieldname@@ = msg.@@fieldname_lower@@() ? true : false;
     else
     @@initial_value@@
+________ END
+
+________ TABLE_proto_copy_to_subtable
+    msg.clear_@@fieldname@@();
+    for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
+        @@fieldname@@[ind].CopyToProto(*msg.add_@@fieldname@@());
+________ END
+
+________ TABLE_proto_copy_from_subtable
+    @@fieldname@@.clear();
+    @@fieldname@@.resize(msg.@@fieldname@@_size());
+    for (int ind = 0; ind < msg.@@fieldname@@_size(); ind++)
+    {
+        @@fieldname@@[ind].set_db(pdb);
+        @@fieldname@@[ind].CopyFromProto(msg.@@fieldname@@(ind));
+    }
 ________ END
 
 ________ TABLE_create_constraints

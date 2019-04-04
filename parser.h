@@ -113,6 +113,8 @@ struct FieldAttrs
     bool notnull;
     bool unique;
     bool subtable;
+    struct TableDef *subtable_table;
+    struct FieldDef *subtable_field;
     void init(void) {
         index = false;
         query = false;
@@ -125,6 +127,8 @@ struct FieldAttrs
         notnull = false;
         unique = false;
         subtable = false;
+        subtable_table = NULL;
+        subtable_field = NULL;
     }
     FieldAttrs(void) {
         init();

@@ -68,6 +68,14 @@ public:
                (int64_t) rowid, userid,
                firstname.c_str(), mi.c_str(), lastname.c_str(),
                SSN, balance, (int) proto.length());
+        printf("%d checkouts:\n", (int) checkouts.size());
+        for (size_t ind = 0; ind < checkouts.size(); ind++)
+        {
+            printf("   row %" PRId64 " userid2 %" PRId64
+                   " bookid %" PRId64 " duedate %" PRId64 "\n",
+                   (int64_t) checkouts[ind].rowid,   checkouts[ind].userid2,
+                   checkouts[ind].bookid2, checkouts[ind].duedate);
+        }
     }
 };
 
@@ -195,6 +203,8 @@ void table_callback(sqlite3 *pdb, const std::string &table_name,
            table_name.c_str(), before, after);
 }
 
+void test_subtables(sqlite3 * pdb);
+
 int
 main()
 {
@@ -253,6 +263,8 @@ main()
             user.delete_rowid();
     }
 
+    test_subtables(pdb);
+
     // if every query completes until SQLITE_DONE,
     // these aren't needed.
 //    user.finalize();
@@ -270,4 +282,61 @@ main()
         printf("ERR!  close returns %d\n", r);
     sqlite3_shutdown();
     return 0;
+}
+
+void
+test_subtables(sqlite3 * pdb)
+{
+    {
+        library::SQL_TABLE_user      u(pdb);
+        library::SQL_TABLE_book      b(pdb);
+        library::SQL_TABLE_checkouts c(pdb);
+
+        u.userid = 1;
+        u.firstname = "fir1";
+        u.lastname = "las1";
+        u.SSN = 11;
+        u.balance = 4.00;
+        u.insert();
+
+        b.bookid = 2;
+        b.title = "book 2 title";
+        b.isbn = 4;
+        b.price = 8.00;
+        b.quantity = 1;
+        b.insert();
+
+        b.bookid = 3;
+        b.title = "book 3 title";
+        b.isbn = "12345";
+        b.price = 12.00;
+        b.quantity = 2;
+        b.insert();
+
+        c.bookid2 = 2;
+        c.userid2 = 1;
+        c.duedate = 5;
+        c.insert();
+
+        c.bookid2 = 3;
+        c.userid2 = 1;
+        c.duedate = 6;
+        c.insert();
+    }
+
+    SQL_TABLE_user_custom        u(pdb);
+
+    if (u.get_by_userid(1))
+    {
+        printf("got user id 1!\n");
+        u.get_subtable_checkouts();
+        u.print();
+        library::TABLE_user_m  msg;
+        u.CopyToProto(msg);
+
+        SQL_TABLE_user_custom  u2(pdb);
+        u2.CopyFromProto(msg);
+        printf("after protobuf marshaling:\n");
+        u2.print();
+    }
 }

@@ -48,9 +48,9 @@ TypeDef_to_Ctype(const TypeDefValue *t, bool do_const,
         return "std::string";
     case TYPE_ENUM:   return Dots_to_Colons(t->enum_name);
     case TYPE_SUBTABLE:
-        fprintf(stderr, "ERROR: TypeDef_to_sqlite_macro "
-                "TYPE_SUBTABLE invalid\n");
-        exit(1);
+        return std::string("// NOTE this is only populated by get_subtable_")
+            + fieldname + "()\n    std::vector<SQL_TABLE_"
+            + fieldname + ">";
     }
     return "UNKNOWN_TYPE";
 }

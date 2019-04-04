@@ -34,12 +34,20 @@ void emit_header(const std::string &fname,
     patterns["headerbottom_block"] = schema->headerbottom;
 
     ostringstream protobuf_header;
+    ostringstream class_forwards;
+
     if (schema->package != "")
         protobuf_header << "#include \""
                         << proto_hdr_fname
                         << "\"\n";
-    SET_PATTERN(protobuf_header);
 
+    for (td = schema->tables; td; td = td->next)
+    {
+        class_forwards << "class SQL_TABLE_" << td->name << "; // forward\n";
+    }
+
+    SET_PATTERN(protobuf_header);
+    SET_PATTERN(class_forwards);
     output_HEADER_TOP(out, patterns);
 
     for (td = schema->tables; td; td = td->next)
@@ -67,10 +75,6 @@ void emit_header(const std::string &fname,
 
         for (fd = td->fields; fd; fd = fd->next)
         {
-            if (fd->type.type == TYPE_SUBTABLE)
-                // nothing in C++ code
-                continue;
-
             patterns["fieldname"] = fd->name;
             if (fd->attrs.query)
             {
@@ -88,6 +92,14 @@ void emit_header(const std::string &fname,
                 output_TABLE_CLASS_table_query_method_protos_like(
                     table_query_like_method_protos, patterns);
             }
+
+            if (fd->type.type == TYPE_SUBTABLE)
+            {
+                patterns["foreign_key"] = fd->attrs.subtable_field->name;
+                output_TABLE_CLASS_table_get_subtable_proto(
+                    table_query_method_protos, patterns);
+            }
+
             patterns["fieldtype"] =
                 TypeDef_to_Ctype(&fd->type, false, fd->name);
             output_TABLE_CLASS_table_field_type_name_decls(

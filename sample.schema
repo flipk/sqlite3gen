@@ -32,7 +32,6 @@ TABLE user VERSION 19
     test3     ENUM sample.library2.EnumField_t QUERY   PROTOID 10
     	      DEFAULT sample.library2.ENUM_TWO
 
-    # used in protobuf output only, doesn't affect C++ code
     SUBTABLE checkouts                                 PROTOID 11
 
     CUSTOM-GET great_balance (DOUBLE) "balance > ?"
@@ -67,8 +66,8 @@ TABLE book VERSION 1
 TABLE checkouts VERSION 1
 {
     # NOTE PROTOID 1 is reserved for schema_version
-    bookid          INT64  INDEX QUERY UNIQUE FOREIGN book.bookid PROTOID 2
-    userid          INT64  INDEX QUERY        FOREIGN user.userid PROTOID 3
+    bookid2         INT64  INDEX QUERY UNIQUE FOREIGN book.bookid PROTOID 2
+    userid2         INT64  INDEX QUERY        FOREIGN user.userid PROTOID 3
     duedate         INT64                                         PROTOID 4
 
     CUSTOM-GET due_now (INT64)  "duedate < ?"

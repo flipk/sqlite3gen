@@ -54,6 +54,29 @@ SQL_TABLE_user :: SQL_TABLE_user(sqlite3 *_pdb)
     init_statements();
 }
 
+// copy constructor, duplicates all the data fields (including rowid)
+// but does not duplicate the statement pointers, because then they'd
+// get double-freed.
+SQL_TABLE_user :: SQL_TABLE_user(
+    const SQL_TABLE_user &other)
+{
+    init_statements();
+
+    pdb = other.pdb;
+    rowid = other.rowid;
+    userid = other.userid;
+    firstname = other.firstname;
+    lastname = other.lastname;
+    mi = other.mi;
+    SSN = other.SSN;
+    balance = other.balance;
+    proto = other.proto;
+    test2 = other.test2;
+    test3 = other.test3;
+    checkouts = other.checkouts;
+
+}
+
 void
 SQL_TABLE_user :: init_statements(void)
 {
@@ -149,6 +172,7 @@ void SQL_TABLE_user :: init(void)
     proto.clear();
     test2 = false;
     test3 = sample::library2::ENUM_TWO;
+    checkouts.clear();
 
     previous_get = NULL;
 }
@@ -922,6 +946,27 @@ bool SQL_TABLE_user :: get_all(void)
     return ret;
 }
 
+int SQL_TABLE_user :: get_subtable_checkouts(void)
+{
+    SQL_TABLE_checkouts  row(pdb);
+    bool status;
+    int count = 0;
+
+    checkouts.clear();
+    status = row.get_by_userid2(userid);
+    while (status)
+    {
+        // note this uses the special table class
+        // copy constructor that only copies the data,
+        // not the prepared statements.
+        checkouts.push_back(row);
+        count++;
+        status = row.get_next();
+    }
+
+    return count;
+}
+
 bool SQL_TABLE_user :: get_great_balance(double v1)
 {
     int r;
@@ -1351,6 +1396,9 @@ SQL_TABLE_user :: CopyToProto(
         test3 = sample::library2::ENUM_TWO;
 
     msg.set_test3(test3);
+    msg.clear_checkouts();
+    for (size_t ind = 0; ind < checkouts.size(); ind++)
+        checkouts[ind].CopyToProto(*msg.add_checkouts());
 
 }
 
@@ -1420,6 +1468,13 @@ SQL_TABLE_user :: CopyFromProto(
     else
         test3 = sample::library2::ENUM_TWO;
 
+    checkouts.clear();
+    checkouts.resize(msg.checkouts_size());
+    for (int ind = 0; ind < msg.checkouts_size(); ind++)
+    {
+        checkouts[ind].set_db(pdb);
+        checkouts[ind].CopyFromProto(msg.checkouts(ind));
+    }
 
 }
 
@@ -1541,6 +1596,25 @@ SQL_TABLE_book :: SQL_TABLE_book(sqlite3 *_pdb)
     init_statements();
 }
 
+// copy constructor, duplicates all the data fields (including rowid)
+// but does not duplicate the statement pointers, because then they'd
+// get double-freed.
+SQL_TABLE_book :: SQL_TABLE_book(
+    const SQL_TABLE_book &other)
+{
+    init_statements();
+
+    pdb = other.pdb;
+    rowid = other.rowid;
+    bookid = other.bookid;
+    title = other.title;
+    isbn = other.isbn;
+    price = other.price;
+    quantity = other.quantity;
+    checkouts = other.checkouts;
+
+}
+
 void
 SQL_TABLE_book :: init_statements(void)
 {
@@ -1614,6 +1688,7 @@ void SQL_TABLE_book :: init(void)
     isbn = "";
     price = 0;
     quantity = 0;
+    checkouts.clear();
 
     previous_get = NULL;
 }
@@ -2176,6 +2251,27 @@ bool SQL_TABLE_book :: get_all(void)
     return ret;
 }
 
+int SQL_TABLE_book :: get_subtable_checkouts(void)
+{
+    SQL_TABLE_checkouts  row(pdb);
+    bool status;
+    int count = 0;
+
+    checkouts.clear();
+    status = row.get_by_bookid2(bookid);
+    while (status)
+    {
+        // note this uses the special table class
+        // copy constructor that only copies the data,
+        // not the prepared statements.
+        checkouts.push_back(row);
+        count++;
+        status = row.get_next();
+    }
+
+    return count;
+}
+
 bool SQL_TABLE_book :: get_out_of_stock(void)
 {
     int r;
@@ -2339,6 +2435,9 @@ SQL_TABLE_book :: CopyToProto(
     msg.set_isbn(isbn);
     msg.set_price(price);
     msg.set_quantity(quantity);
+    msg.clear_checkouts();
+    for (size_t ind = 0; ind < checkouts.size(); ind++)
+        checkouts[ind].CopyToProto(*msg.add_checkouts());
 
 }
 
@@ -2388,6 +2487,13 @@ SQL_TABLE_book :: CopyFromProto(
     else
         quantity = 0;
 
+    checkouts.clear();
+    checkouts.resize(msg.checkouts_size());
+    for (int ind = 0; ind < msg.checkouts_size(); ind++)
+    {
+        checkouts[ind].set_db(pdb);
+        checkouts[ind].CopyFromProto(msg.checkouts(ind));
+    }
 
 }
 
@@ -2509,6 +2615,22 @@ SQL_TABLE_checkouts :: SQL_TABLE_checkouts(sqlite3 *_pdb)
     init_statements();
 }
 
+// copy constructor, duplicates all the data fields (including rowid)
+// but does not duplicate the statement pointers, because then they'd
+// get double-freed.
+SQL_TABLE_checkouts :: SQL_TABLE_checkouts(
+    const SQL_TABLE_checkouts &other)
+{
+    init_statements();
+
+    pdb = other.pdb;
+    rowid = other.rowid;
+    bookid2 = other.bookid2;
+    userid2 = other.userid2;
+    duedate = other.duedate;
+
+}
+
 void
 SQL_TABLE_checkouts :: init_statements(void)
 {
@@ -2518,8 +2640,8 @@ SQL_TABLE_checkouts :: init_statements(void)
     pStmt_get_by_rowid = NULL;
     pStmt_get_all = NULL;
 
-    pStmt_by_bookid = NULL;
-    pStmt_by_userid = NULL;
+    pStmt_by_bookid2 = NULL;
+    pStmt_by_userid2 = NULL;
 
 
     pStmt_get_due_now = NULL;
@@ -2550,10 +2672,10 @@ SQL_TABLE_checkouts :: finalize(void)
     if (pStmt_get_all)
         sqlite3_finalize(pStmt_get_all);
 
-    if (pStmt_by_bookid)
-        sqlite3_finalize(pStmt_by_bookid);
-    if (pStmt_by_userid)
-        sqlite3_finalize(pStmt_by_userid);
+    if (pStmt_by_bookid2)
+        sqlite3_finalize(pStmt_by_bookid2);
+    if (pStmt_by_userid2)
+        sqlite3_finalize(pStmt_by_userid2);
 
 
     if (pStmt_get_due_now)
@@ -2568,8 +2690,8 @@ SQL_TABLE_checkouts :: finalize(void)
 void SQL_TABLE_checkouts :: init(void)
 {
     rowid = -1;
-    bookid = 0;
-    userid = 0;
+    bookid2 = 0;
+    userid2 = 0;
     duedate = 0;
 
     previous_get = NULL;
@@ -2615,21 +2737,21 @@ bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 1);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (bookid) : "
+        PRINT_ERR("get_columns (bookid2) : "
                 "column 1 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    bookid = sqlite3_column_int64(pStmt, 1);
+    bookid2 = sqlite3_column_int64(pStmt, 1);
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (userid) : "
+        PRINT_ERR("get_columns (userid2) : "
                 "column 2 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    userid = sqlite3_column_int64(pStmt, 2);
+    userid2 = sqlite3_column_int64(pStmt, 2);
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_INTEGER)
     {
@@ -2644,7 +2766,7 @@ bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
     return true;
 }
 
-bool SQL_TABLE_checkouts :: get_by_bookid(int64_t v)
+bool SQL_TABLE_checkouts :: get_by_bookid2(int64_t v)
 {
     int r;
     bool ret = false;
@@ -2655,12 +2777,12 @@ bool SQL_TABLE_checkouts :: get_by_bookid(int64_t v)
         return false;
     }
 
-    if (pStmt_by_bookid == NULL)
+    if (pStmt_by_bookid2 == NULL)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, userid, duedate FROM checkouts WHERE bookid = ?",
-            -1, &pStmt_by_bookid, NULL);
+            "SELECT rowid,bookid2, userid2, duedate FROM checkouts WHERE bookid2 = ?",
+            -1, &pStmt_by_bookid2, NULL);
         if (r != SQLITE_OK)
         {
             PRINT_ERR("ERROR %d preparing SELECT", r);
@@ -2668,9 +2790,9 @@ bool SQL_TABLE_checkouts :: get_by_bookid(int64_t v)
         }
     }
 
-    sqlite3_reset(pStmt_by_bookid);
+    sqlite3_reset(pStmt_by_bookid2);
 
-    r = sqlite3_bind_int64(pStmt_by_bookid, 1, v);
+    r = sqlite3_bind_int64(pStmt_by_bookid2, 1, v);
     if (r != SQLITE_OK)
     {
         PRINT_ERR("bind: r = %d", r);
@@ -2679,20 +2801,20 @@ bool SQL_TABLE_checkouts :: get_by_bookid(int64_t v)
 
 
     if (log_get_func)
-        log_get_func(log_arg, pStmt_by_bookid);
+        log_get_func(log_arg, pStmt_by_bookid2);
 
-    r = sqlite3_step(pStmt_by_bookid);
+    r = sqlite3_step(pStmt_by_bookid2);
     if (r == SQLITE_ROW)
     {
-        ret = get_columns(pStmt_by_bookid);
-        previous_get = pStmt_by_bookid;
+        ret = get_columns(pStmt_by_bookid2);
+        previous_get = pStmt_by_bookid2;
     }
     else if (r == SQLITE_DONE)
         previous_get = NULL;
 
     return ret;
 }
-bool SQL_TABLE_checkouts :: get_by_userid(int64_t v)
+bool SQL_TABLE_checkouts :: get_by_userid2(int64_t v)
 {
     int r;
     bool ret = false;
@@ -2703,12 +2825,12 @@ bool SQL_TABLE_checkouts :: get_by_userid(int64_t v)
         return false;
     }
 
-    if (pStmt_by_userid == NULL)
+    if (pStmt_by_userid2 == NULL)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, userid, duedate FROM checkouts WHERE userid = ?",
-            -1, &pStmt_by_userid, NULL);
+            "SELECT rowid,bookid2, userid2, duedate FROM checkouts WHERE userid2 = ?",
+            -1, &pStmt_by_userid2, NULL);
         if (r != SQLITE_OK)
         {
             PRINT_ERR("ERROR %d preparing SELECT", r);
@@ -2716,9 +2838,9 @@ bool SQL_TABLE_checkouts :: get_by_userid(int64_t v)
         }
     }
 
-    sqlite3_reset(pStmt_by_userid);
+    sqlite3_reset(pStmt_by_userid2);
 
-    r = sqlite3_bind_int64(pStmt_by_userid, 1, v);
+    r = sqlite3_bind_int64(pStmt_by_userid2, 1, v);
     if (r != SQLITE_OK)
     {
         PRINT_ERR("bind: r = %d", r);
@@ -2727,13 +2849,13 @@ bool SQL_TABLE_checkouts :: get_by_userid(int64_t v)
 
 
     if (log_get_func)
-        log_get_func(log_arg, pStmt_by_userid);
+        log_get_func(log_arg, pStmt_by_userid2);
 
-    r = sqlite3_step(pStmt_by_userid);
+    r = sqlite3_step(pStmt_by_userid2);
     if (r == SQLITE_ROW)
     {
-        ret = get_columns(pStmt_by_userid);
-        previous_get = pStmt_by_userid;
+        ret = get_columns(pStmt_by_userid2);
+        previous_get = pStmt_by_userid2;
     }
     else if (r == SQLITE_DONE)
         previous_get = NULL;
@@ -2774,7 +2896,7 @@ bool SQL_TABLE_checkouts :: insert(void)
     {
         r = sqlite3_prepare_v2(
             pdb, "INSERT INTO checkouts "
-            "(bookid, userid, duedate) "
+            "(bookid2, userid2, duedate) "
             "values (?,?,?)",
             -1, &pStmt_insert, NULL);
         if (r != SQLITE_OK)
@@ -2786,17 +2908,17 @@ bool SQL_TABLE_checkouts :: insert(void)
     sqlite3_reset(pStmt_insert);
 
     r = sqlite3_bind_int64(pStmt_insert, 1,
-                             bookid);
+                             bookid2);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind bookid: r = %d", r);
+        PRINT_ERR("insert: bind bookid2: r = %d", r);
         return false;
     }
     r = sqlite3_bind_int64(pStmt_insert, 2,
-                             userid);
+                             userid2);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind userid: r = %d", r);
+        PRINT_ERR("insert: bind userid2: r = %d", r);
         return false;
     }
     r = sqlite3_bind_int64(pStmt_insert, 3,
@@ -2837,7 +2959,7 @@ bool SQL_TABLE_checkouts :: update(void)
     {
         r = sqlite3_prepare_v2(
             pdb, "UPDATE checkouts SET "
-            "(bookid, userid, duedate) "
+            "(bookid2, userid2, duedate) "
             "= (?,?,?) WHERE rowid = ?",
             -1, &pStmt_update, NULL);
         if (r != SQLITE_OK)
@@ -2850,17 +2972,17 @@ bool SQL_TABLE_checkouts :: update(void)
     sqlite3_reset(pStmt_update);
 
     r = sqlite3_bind_int64(pStmt_update, 1,
-                             bookid);
+                             bookid2);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind bookid: r = %d", r);
+        PRINT_ERR("update: bind bookid2: r = %d", r);
         return false;
     }
     r = sqlite3_bind_int64(pStmt_update, 2,
-                             userid);
+                             userid2);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind userid: r = %d", r);
+        PRINT_ERR("update: bind userid2: r = %d", r);
         return false;
     }
     r = sqlite3_bind_int64(pStmt_update, 3,
@@ -2943,7 +3065,7 @@ bool SQL_TABLE_checkouts :: get_by_rowid(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, userid, duedate FROM checkouts WHERE rowid = ?",
+            "SELECT rowid,bookid2, userid2, duedate FROM checkouts WHERE rowid = ?",
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
         {
@@ -2992,7 +3114,7 @@ bool SQL_TABLE_checkouts :: get_all(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, userid, duedate FROM checkouts",
+            "SELECT rowid,bookid2, userid2, duedate FROM checkouts",
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
         {
@@ -3018,6 +3140,7 @@ bool SQL_TABLE_checkouts :: get_all(void)
     return ret;
 }
 
+
 bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
 {
     int r;
@@ -3033,7 +3156,7 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, userid, duedate FROM checkouts "
+            "SELECT rowid,bookid2, userid2, duedate FROM checkouts "
             "WHERE duedate < ?",
             -1, &pStmt_get_due_now, NULL);
         if (r != SQLITE_OK)
@@ -3077,8 +3200,8 @@ SQL_TABLE_checkouts :: CopyToProto(
               library::TABLE_checkouts_m &msg)
 {
     msg.set_schema_version(TABLE_VERSION);
-    msg.set_bookid(bookid);
-    msg.set_userid(userid);
+    msg.set_bookid2(bookid2);
+    msg.set_userid2(userid2);
     msg.set_duedate(duedate);
 
 }
@@ -3104,15 +3227,15 @@ SQL_TABLE_checkouts :: CopyFromProto(
         else
             std::cerr << err.str();
     }
-    if (msg.has_bookid())
-        bookid = msg.bookid();
+    if (msg.has_bookid2())
+        bookid2 = msg.bookid2();
     else
-        bookid = 0;
+        bookid2 = 0;
 
-    if (msg.has_userid())
-        userid = msg.userid();
+    if (msg.has_userid2())
+        userid2 = msg.userid2();
     else
-        userid = 0;
+        userid2 = 0;
 
     if (msg.has_duedate())
         duedate = msg.duedate();
@@ -3178,22 +3301,22 @@ bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
     }
 
     sqlite3_exec(pdb, "CREATE TABLE checkouts "
-        "(bookid int64 UNIQUE, userid int64, duedate int64, FOREIGN KEY(bookid) REFERENCES book(bookid), FOREIGN KEY(userid) REFERENCES user(userid))",
+        "(bookid2 int64 UNIQUE, userid2 int64, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))",
         NULL, NULL, NULL);
 
     printf("CREATE TABLE: CREATE TABLE checkouts "
-           "(bookid int64 UNIQUE, userid int64, duedate int64, FOREIGN KEY(bookid) REFERENCES book(bookid), FOREIGN KEY(userid) REFERENCES user(userid))\n");
+           "(bookid2 int64 UNIQUE, userid2 int64, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))\n");
 
-    sqlite3_exec(pdb,"CREATE INDEX checkouts_bookid "
-                 "ON checkouts (bookid)",
+    sqlite3_exec(pdb,"CREATE INDEX checkouts_bookid2 "
+                 "ON checkouts (bookid2)",
         NULL, NULL, NULL);
-    printf("CREATE INDEX: CREATE INDEX checkouts_bookid "
-           "ON checkouts (bookid)\n");
-    sqlite3_exec(pdb,"CREATE INDEX checkouts_userid "
-                 "ON checkouts (userid)",
+    printf("CREATE INDEX: CREATE INDEX checkouts_bookid2 "
+           "ON checkouts (bookid2)\n");
+    sqlite3_exec(pdb,"CREATE INDEX checkouts_userid2 "
+                 "ON checkouts (userid2)",
         NULL, NULL, NULL);
-    printf("CREATE INDEX: CREATE INDEX checkouts_userid "
-           "ON checkouts (userid)\n");
+    printf("CREATE INDEX: CREATE INDEX checkouts_userid2 "
+           "ON checkouts (userid2)\n");
 
 
     return true;

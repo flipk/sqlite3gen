@@ -31,7 +31,9 @@ enum @@tablename@@_VERSION_t
 message @@tablename@@_m
 {
   /* note this is int32 instead of @@tablename@@_VERSION_t
-     to prevent protobuf decode errors when it mismatches. */
+     to prevent protobuf decode errors when version enum
+     value changes. we're kinda breaking google's rules a little
+     bit by redefining enum values. */
   /*required*/ optional int32 schema_version = 1;
 @@protofields@@
 }

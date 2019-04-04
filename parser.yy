@@ -649,6 +649,7 @@ validate_schema(SchemaDef *sd)
                             fd->name.c_str());
                     exit(1);
                 }
+                fd->attrs.subtable_table = tb2;
 
                 // the other table better have a foreign key
                 // from this table.
@@ -666,6 +667,15 @@ validate_schema(SchemaDef *sd)
                     fprintf(stderr, "ERROR: SUBTABLE '%s' has no FOREIGN "
                             "key from this table '%s'\n",
                             fd->name.c_str(), tb->name.c_str());
+                    exit(1);
+                }
+                fd->attrs.subtable_field = fd2;
+                if (fd2->attrs.query == false)
+                {
+                    fprintf(stderr, "ERROR: FOREIGN key '%s.%s' must have "
+                            "QUERY in order to use SUBTABLE in table '%s'\n",
+                            tb2->name.c_str(), fd2->name.c_str(),
+                            tb->name.c_str());
                     exit(1);
                 }
             }

@@ -10,6 +10,7 @@
 
 #include <inttypes.h>
 #include <string>
+#include <vector>
 #include <sstream>
 #include "sqlite3.h"
 #include "sample.pb.h"
@@ -29,6 +30,10 @@ typedef void (*table_version_callback)(
     const std::string &table_name,
     int version_in_file,
     int version_in_code);
+
+class SQL_TABLE_user; // forward
+class SQL_TABLE_book; // forward
+class SQL_TABLE_checkouts; // forward
 
 
 class SQL_TABLE_user {
@@ -69,6 +74,7 @@ protected:
 
 public:
     SQL_TABLE_user(sqlite3 *_pdb = NULL);
+    SQL_TABLE_user(const SQL_TABLE_user &other);
     virtual ~SQL_TABLE_user(void);
 
     static const int TABLE_VERSION = 19;
@@ -93,11 +99,16 @@ public:
     std::string proto;
     bool test2;
     sample::library2::EnumField_t test3;
+    // NOTE this is only populated by get_subtable_checkouts()
+    std::vector<SQL_TABLE_checkouts> checkouts;
 
     bool get_by_userid(int64_t v);
     bool get_by_SSN(int32_t v);
     bool get_by_test2(bool v);
     bool get_by_test3(sample::library2::EnumField_t v);
+// note this assumes foreign key userid2 is populated;
+// returns number of rows fetched.
+    int get_subtable_checkouts(void);
 
     bool get_by_lastname_like(const std::string &patt);
 
@@ -122,6 +133,8 @@ public:
 // WHERE ssn = ?
     bool delete_SSN(int32_t v1);
 
+// NOTE these only copy SUBTABLEs if you have called the
+//      get_subtable_* methods to populate them.
     void CopyToProto(library::TABLE_user_m &msg);
     void CopyFromProto(const library::TABLE_user_m &msg);
 
@@ -176,6 +189,7 @@ protected:
 
 public:
     SQL_TABLE_book(sqlite3 *_pdb = NULL);
+    SQL_TABLE_book(const SQL_TABLE_book &other);
     virtual ~SQL_TABLE_book(void);
 
     static const int TABLE_VERSION = 1;
@@ -196,9 +210,14 @@ public:
     std::string isbn;
     double price;
     int32_t quantity;
+    // NOTE this is only populated by get_subtable_checkouts()
+    std::vector<SQL_TABLE_checkouts> checkouts;
 
     bool get_by_bookid(int64_t v);
     bool get_by_isbn(const std::string & v);
+// note this assumes foreign key bookid2 is populated;
+// returns number of rows fetched.
+    int get_subtable_checkouts(void);
 
     bool get_by_title_like(const std::string &patt);
 
@@ -215,6 +234,8 @@ public:
     bool update_price(void);
 
 
+// NOTE these only copy SUBTABLEs if you have called the
+//      get_subtable_* methods to populate them.
     void CopyToProto(library::TABLE_book_m &msg);
     void CopyFromProto(const library::TABLE_book_m &msg);
 
@@ -243,8 +264,8 @@ class SQL_TABLE_checkouts {
     sqlite3_stmt * pStmt_delete_rowid;
     sqlite3_stmt * pStmt_get_by_rowid;
     sqlite3_stmt * pStmt_get_all;
-    sqlite3_stmt * pStmt_by_bookid;
-    sqlite3_stmt * pStmt_by_userid;
+    sqlite3_stmt * pStmt_by_bookid2;
+    sqlite3_stmt * pStmt_by_userid2;
 
 
     sqlite3_stmt * pStmt_get_due_now;
@@ -266,6 +287,7 @@ protected:
 
 public:
     SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
+    SQL_TABLE_checkouts(const SQL_TABLE_checkouts &other);
     virtual ~SQL_TABLE_checkouts(void);
 
     static const int TABLE_VERSION = 1;
@@ -281,12 +303,12 @@ public:
 
     sqlite3_int64 rowid;
 
-    int64_t bookid;
-    int64_t userid;
+    int64_t bookid2;
+    int64_t userid2;
     int64_t duedate;
 
-    bool get_by_bookid(int64_t v);
-    bool get_by_userid(int64_t v);
+    bool get_by_bookid2(int64_t v);
+    bool get_by_userid2(int64_t v);
 
 
 // WHERE duedate < ?
@@ -300,6 +322,8 @@ public:
     bool get_all(void);
 
 
+// NOTE these only copy SUBTABLEs if you have called the
+//      get_subtable_* methods to populate them.
     void CopyToProto(library::TABLE_checkouts_m &msg);
     void CopyFromProto(const library::TABLE_checkouts_m &msg);
 
