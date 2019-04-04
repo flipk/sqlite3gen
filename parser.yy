@@ -624,6 +624,25 @@ validate_schema(SchemaDef *sd)
                             fd->name.c_str());
                     exit(1);
                 }
+
+                // the other table better have a foreign key
+                // from this table.
+                FieldDef *fd2;
+                for (fd2 = tb2->fields; fd2; fd2 = fd2->next)
+                {
+                    if (fd2->attrs.foreign &&
+                        fd2->attrs.foreign_table == tb->name)
+                    {
+                        break;
+                    }
+                }
+                if (fd2 == NULL)
+                {
+                    fprintf(stderr, "ERROR: SUBTABLE '%s' has no FOREIGN "
+                            "key from this table '%s'\n",
+                            fd->name.c_str(), tb->name.c_str());
+                    exit(1);
+                }
             }
         }
     }

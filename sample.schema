@@ -48,11 +48,13 @@ TABLE user VERSION 19
 
 TABLE book VERSION 1
 {
-    bookid          INT64    INDEX   QUERY  NOTNULL UNIQUE
-    title           TEXT     LIKEQUERY      NOTNULL
-    isbn            TEXT     INDEX   QUERY  NOTNULL UNIQUE
-    price           DOUBLE
-    quantity        INT
+    bookid          INT64    INDEX   QUERY  NOTNULL UNIQUE PROTOID 1
+    title           TEXT     LIKEQUERY      NOTNULL        PROTOID 2
+    isbn            TEXT     INDEX   QUERY  NOTNULL UNIQUE PROTOID 3
+    price           DOUBLE                                 PROTOID 4
+    quantity        INT                                    PROTOID 5
+
+    SUBTABLE checkouts                                     PROTOID 6
 
     CUSTOM-GET out_of_stock ()  "quantity == 0"
 
@@ -62,9 +64,9 @@ TABLE book VERSION 1
 
 TABLE checkouts VERSION 1
 {
-    bookid          INT64  INDEX QUERY NOTNULL UNIQUE      PROTOID 1
-    userid          INT64  INDEX QUERY FOREIGN user.userid PROTOID 2
-    duedate         INT64                                  PROTOID 3
+    bookid          INT64  INDEX QUERY UNIQUE FOREIGN book.bookid PROTOID 1
+    userid          INT64  INDEX QUERY        FOREIGN user.userid PROTOID 2
+    duedate         INT64                                         PROTOID 3
 
     CUSTOM-GET due_now (INT64)  "duedate < ?"
 }

@@ -2310,6 +2310,49 @@ bool SQL_TABLE_book :: update_price(void)
 }
 
 
+void
+SQL_TABLE_book :: CopyToProto(
+              library::TABLE_book_m &msg)
+{
+    msg.set_bookid(bookid);
+    msg.set_title(title);
+    msg.set_isbn(isbn);
+    msg.set_price(price);
+    msg.set_quantity(quantity);
+
+}
+
+void
+SQL_TABLE_book :: CopyFromProto(
+              const library::TABLE_book_m &msg)
+{
+    if (msg.has_bookid())
+        bookid = msg.bookid();
+    else
+        bookid = 0;
+
+    if (msg.has_title())
+        title = msg.title();
+    else
+        title = "";
+
+    if (msg.has_isbn())
+        isbn = msg.isbn();
+    else
+        isbn = "";
+
+    if (msg.has_price())
+        price = msg.price();
+    else
+        price = 0;
+
+    if (msg.has_quantity())
+        quantity = msg.quantity();
+    else
+        quantity = 0;
+
+
+}
 
 
 //static
@@ -3080,11 +3123,11 @@ bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
     }
 
     sqlite3_exec(pdb, "CREATE TABLE checkouts "
-        "(bookid int64 NOT NULL UNIQUE, userid int64, duedate int64, FOREIGN KEY(userid) REFERENCES user(userid))",
+        "(bookid int64 UNIQUE, userid int64, duedate int64, FOREIGN KEY(bookid) REFERENCES book(bookid), FOREIGN KEY(userid) REFERENCES user(userid))",
         NULL, NULL, NULL);
 
     printf("CREATE TABLE: CREATE TABLE checkouts "
-           "(bookid int64 NOT NULL UNIQUE, userid int64, duedate int64, FOREIGN KEY(userid) REFERENCES user(userid))\n");
+           "(bookid int64 UNIQUE, userid int64, duedate int64, FOREIGN KEY(bookid) REFERENCES book(bookid), FOREIGN KEY(userid) REFERENCES user(userid))\n");
 
     sqlite3_exec(pdb,"CREATE INDEX checkouts_bookid "
                  "ON checkouts (bookid)",

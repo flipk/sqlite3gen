@@ -214,7 +214,8 @@ public:
     bool update_price(void);
 
 
-   // no proto IDs for this table
+    void CopyToProto(library::TABLE_book_m &msg);
+    void CopyFromProto(const library::TABLE_book_m &msg);
 
 
     static void register_log_funcs(sql_log_function_t _upd_func,

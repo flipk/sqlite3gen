@@ -37,9 +37,24 @@ message TABLE_user_m
 }
 
 
-message TABLE_checkouts_m
+message TABLE_book_m
 {
   /*required*/ optional int64 bookid = 1;
+  /*required*/ optional string title = 2;
+  /*required*/ optional string isbn = 3;
+  optional double price = 4;
+  optional int32 quantity = 5;
+  /* note users are required to deal with subtables
+     in protobufs themselves, the Copy methods won't
+     do it for you! */
+  /*SUBTABLE*/ repeated TABLE_checkouts_m checkouts = 6;
+
+}
+
+
+message TABLE_checkouts_m
+{
+  optional int64 bookid = 1;
   optional int64 userid = 2;
   optional int64 duedate = 3;
 
