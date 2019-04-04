@@ -53,6 +53,8 @@ TABLE <table-name> VERSION <number>
      <column-name>  TYPE  ATTRIBUTES
      <repeat the above for each column>
 
+     SUBTABLE <table-name> <protoid-attribute>
+
      CUSTOM-GET  <get-method-name>  (<list-of-types>)
                  "<where-clause-for-custom-get>"
 
@@ -73,8 +75,9 @@ Keywords must be in upper case. Recognized keywords are:
 ```
 protobuf package name : PACKAGE
 tables : TABLE VERSION
-types : INT INT64 TEXT DOUBLE BLOB BOOL ENUM
+types : INT INT64 TEXT DOUBLE BLOB BOOL ENUM SUBTABLE
 column attributes : INDEX LIKEQUERY QUERY DEFAULT PROTOID UPDATE
+                    NOTNULL UNIQUE FOREIGN
 customs : CUSTOM-GET CUSTOM-UPD CUSTOM-UPDBY CUSTOM-DEL
 literal text : %PROTOTOP{ %}    %PROTOBOTTOM{ %}
                %HEADERTOP{ %}   %HEADERBOTTOM{ %}
@@ -100,6 +103,10 @@ data types map to C++ data types as such:
 | BOOL    | int     | bool        | bool     |
 | ENUM    | int     | enum        | enum     |
 
+`SUBTABLE` is a special data type to refer to another table which
+uses a `FOREIGN` key back to this table. (Especially useful for
+1-to-many mappings.)
+
 ### INDEX, QUERY, and LIKEQUERY attributes
 
 Placing the `INDEX` keyword after a column TYPE provides the
@@ -115,7 +122,7 @@ database based on that field.
 bool get_by_<column-name>(TYPE v);
 ```
 
-The TYPE in the above statement will be the C++ type from the above
+The `TYPE` in the above statement will be the C++ type from the above
 table which maps to the SQL type for the column.
 
 NOTE this also populates "rowid" in the class so a successive
@@ -141,6 +148,60 @@ the database, using the named field as the WHERE clause.
 void update_by_<column-name>(void);
 ```
 
+The `NOTNULL` keyword causes the SQL definition to add a NOT NULL
+constraint to the SQL column, which is most useful if an outside tool
+or user manipulates the database file directory.
+
+The `UNIQUE` keyword adds the UNIQUE constraint to the SQL column,
+which will cause inserts to return an error if the value already exists
+in the table.
+
+The `FOREIGN` keyword adds a FOREIGN KEY constraint to the SQL column,
+and is required if you wish to use the `SUBTABLE` type. This is useful
+for establishing a one-to-many relationship between an entry in one table
+and several entries in another table, using a column value to link them.
+NOTE if you wish to use `SUBTABLE` in the other table, `QUERY` is
+required on the `FOREIGN` field in this table, because the other table's
+`get_subtable` method will invoke the query on the foreign key field.
+
+To use `FOREIGN` on a field of a `TABLE` you must name the other table
+and field this field references:
+
+```
+TABLE checkouts VERSION 1
+{
+    userid INT64 INDEX QUERY UNIQUE FOREIGN user.userid PROTOID 2
+    bookid INT64 INDEX QUERY UNIQUE FOREIGN book.bookid PROTOID 3
+}
+```
+
+You may then use `SUBTABLE` in the other table (`book` table in
+this example) to include all `checkouts` entries.
+
+```
+TABLE user VERSION 19
+{
+    SUBTABLE checkouts PROTOID 11
+}
+```
+
+This adds the following C++ elements to the SQL_TABLE_user class:
+
+```C++
+class SQL_TABLE_user {
+// NOTE this is only populated by get_subtable_checkouts()
+    std::vector<SQL_TABLE_checkouts> checkouts;
+// note this assumes foreign key userid is populated;
+// returns number of rows fetched.
+    int get_subtable_checkouts(void);
+}
+```
+
+Once the `userid` field of this class is populated with a valid userid,
+you may then invoke `get_subtable_checkouts()` to fetch all rows from
+the checkouts table matching the given userid, which will populate
+the vector.
+
 ### DEFAULT attribute
 
 Placing a DEFAULT followed by a number or string will automatically
@@ -155,6 +216,8 @@ values, including setting `rowid` to -1.
 
 NOTE: `BLOB` types cannot be defaulted; a BLOB field always defaults
 to zero-length.
+
+`DEFAULT` is required on an `ENUM` type.
 
 ### PROTOID attribute
 
@@ -337,6 +400,9 @@ It will also emit the following functions in the table classes:
 void CopyToProto(MessageName_m &msg);
 void CopyFromProto(const MessageName_m &msg);
 ```
+
+Note these Copy functions will also marshal data in and out of
+any subtable members, if possible.
 
 ## debug logging
 
