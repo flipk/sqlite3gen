@@ -1,5 +1,5 @@
 
-PROG_TARGETS = template_to_c sql3gen sample
+PROG_TARGETS = template_to_c sql3gen sample xmltest1 xmltest2
 
 export TARGET=native
 
@@ -47,6 +47,14 @@ sample_LIBS = $(OBJDIR)/sample.pb.o sqlite3/sqlite3.o $(OBJDIR)/sample.o \
 	-lpthread $(PROTOLIB) -ldl
 sample_INCS = -Isqlite3 $(PROTOINC)
 sample_PREMAKE = $(OBJDIR)/sample.o
+
+xmltest1_TARGET = $(OBJDIR)/xmltest1
+xmltest1_CXXSRCS = myXml.cc
+xmltest1_DEFS = -DINCLUDE_MYXML_TEST=1
+
+xmltest2_TARGET = $(OBJDIR)/xmltest2
+xmltest2_CXXSRCS = myXml.cc
+xmltest2_DEFS = -DINCLUDE_MYXML_TEST=2
 
 include Makefile.inc
 
