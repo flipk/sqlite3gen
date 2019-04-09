@@ -1667,7 +1667,7 @@ SQL_TABLE_user :: xml_decoder_test3(const MyXmlNode &node)
 {
     if (node.children.size() == 0)
         return false;
-    return EnumField_t_Parse(node.children[0].text, &test3);
+    return sample::library2::EnumField_t_Parse(node.children[0].text, &test3);
 }
 bool
 SQL_TABLE_user :: xml_decoder_checkouts(const MyXmlNode &node)

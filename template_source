@@ -1425,7 +1425,7 @@ SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
 {
     if (node.children.size() == 0)
         return false;
-    return EnumField_t_Parse(node.children[0].text, &@@fieldname@@);
+    return @@fieldtype@@_Parse(node.children[0].text, &@@fieldname@@);
 }
 ________ END
 
