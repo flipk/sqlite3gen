@@ -40,12 +40,12 @@ sql3gen_LIBS = $(TEMPLATE_OBJS)
 sql3gen_PREMAKE = $(template_to_c_TARGET) $(TEMPLATE_OBJS)
 
 sample_TARGET = $(OBJDIR)/sample
-sample_CXXSRCS = sample_test.cc
+sample_CXXSRCS = sample_test.cc myXml.cc
 sample_PROTOSRCS = sample2.proto
 sample_DEFS = -DSAMPLE_H_HDR=\"sample.h\" -DSAMPLE_PB_HDR=\"sample.pb.h\"
 sample_LIBS = $(OBJDIR)/sample.pb.o sqlite3/sqlite3.o $(OBJDIR)/sample.o \
 	-lpthread $(PROTOLIB) -ldl
-sample_INCS = -Isqlite3 $(PROTOINC)
+sample_INCS = -Isqlite3 $(PROTOINC) -I.
 sample_PREMAKE = $(OBJDIR)/sample.o
 
 xmltest1_TARGET = $(OBJDIR)/xmltest1

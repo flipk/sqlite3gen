@@ -11,8 +11,10 @@
 #include <inttypes.h>
 #include <string>
 #include <vector>
+#include <map>
 #include <sstream>
 #include "sqlite3.h"
+#include "myXml.h"
 #include "sample.pb.h"
 
 
@@ -71,6 +73,24 @@ protected:
     static void * err_log_arg;
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
+
+    typedef bool (SQL_TABLE_user::*xml_decoder_func_t)
+        (const MyXmlNode &node);
+    typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
+    xml_decoder_map_t xml_decoders;
+    bool xml_decoders_initialized;
+
+    bool xml_decoder_userid(const MyXmlNode &node);
+    bool xml_decoder_firstname(const MyXmlNode &node);
+    bool xml_decoder_lastname(const MyXmlNode &node);
+    bool xml_decoder_mi(const MyXmlNode &node);
+    bool xml_decoder_SSN(const MyXmlNode &node);
+    bool xml_decoder_balance(const MyXmlNode &node);
+    bool xml_decoder_proto(const MyXmlNode &node);
+    bool xml_decoder_test2(const MyXmlNode &node);
+    bool xml_decoder_test3(const MyXmlNode &node);
+    bool xml_decoder_checkouts(const MyXmlNode &node);
+
 
 public:
     SQL_TABLE_user(sqlite3 *_pdb = NULL);
@@ -138,6 +158,8 @@ public:
     void CopyToProto(library::TABLE_user_m &msg);
     void CopyFromProto(const library::TABLE_user_m &msg);
 
+    void CopyToXmlNode(MyXmlNode &node);
+    bool CopyFromXmlNode(const MyXmlNode &node);
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
@@ -186,6 +208,20 @@ protected:
     static void * err_log_arg;
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
+
+    typedef bool (SQL_TABLE_book::*xml_decoder_func_t)
+        (const MyXmlNode &node);
+    typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
+    xml_decoder_map_t xml_decoders;
+    bool xml_decoders_initialized;
+
+    bool xml_decoder_bookid(const MyXmlNode &node);
+    bool xml_decoder_title(const MyXmlNode &node);
+    bool xml_decoder_isbn(const MyXmlNode &node);
+    bool xml_decoder_price(const MyXmlNode &node);
+    bool xml_decoder_quantity(const MyXmlNode &node);
+    bool xml_decoder_checkouts(const MyXmlNode &node);
+
 
 public:
     SQL_TABLE_book(sqlite3 *_pdb = NULL);
@@ -239,6 +275,8 @@ public:
     void CopyToProto(library::TABLE_book_m &msg);
     void CopyFromProto(const library::TABLE_book_m &msg);
 
+    void CopyToXmlNode(MyXmlNode &node);
+    bool CopyFromXmlNode(const MyXmlNode &node);
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
@@ -285,6 +323,17 @@ protected:
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 
+    typedef bool (SQL_TABLE_checkouts::*xml_decoder_func_t)
+        (const MyXmlNode &node);
+    typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
+    xml_decoder_map_t xml_decoders;
+    bool xml_decoders_initialized;
+
+    bool xml_decoder_bookid2(const MyXmlNode &node);
+    bool xml_decoder_userid2(const MyXmlNode &node);
+    bool xml_decoder_duedate(const MyXmlNode &node);
+
+
 public:
     SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
     SQL_TABLE_checkouts(const SQL_TABLE_checkouts &other);
@@ -327,6 +376,8 @@ public:
     void CopyToProto(library::TABLE_checkouts_m &msg);
     void CopyFromProto(const library::TABLE_checkouts_m &msg);
 
+    void CopyToXmlNode(MyXmlNode &node);
+    bool CopyFromXmlNode(const MyXmlNode &node);
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,

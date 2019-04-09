@@ -40,6 +40,23 @@ static void dflt_log_err(void *arg, const std::string &msg)
     printf("SQL ERROR: %s\n", msg.c_str());
 }
 
+static inline char nibble_to_hex(unsigned char nib)
+{
+    if (nib > 9)
+        return nib - 10 + 'a';
+    return nib + '0';
+}
+
+static void blob_to_hex(std::string &out, const std::string &in)
+{
+    out.clear();
+    for (size_t ind = 0; ind < in.size(); ind++)
+    {
+        unsigned char c = (unsigned char) in[ind];
+        out += nibble_to_hex((c >> 4) & 0xf);
+        out += nibble_to_hex((c >> 0) & 0xf);
+    }
+}
 ________ END
 
 ________ TABLE_CLASS_IMPL
@@ -55,6 +72,7 @@ SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
     : pdb(_pdb)
 {
     init_statements();
+    xml_decoders_initialized = false;
 }
 
 // copy constructor, duplicates all the data fields (including rowid)
@@ -407,6 +425,7 @@ bool SQL_TABLE_@@tablename@@ :: get_all(void)
 @@custom_upd_implementations@@
 @@custom_del_implementations@@
 @@table_proto_copy_funcs@@
+@@table_xml_copy_funcs@@
 
 //static
 bool SQL_TABLE_@@tablename@@ :: init(sqlite3 *pdb, table_version_callback cb)
@@ -1239,6 +1258,203 @@ ________ TABLE_proto_copy_from_subtable
         @@fieldname@@[ind].set_db(pdb);
         @@fieldname@@[ind].CopyFromProto(msg.@@fieldname@@(ind));
     }
+________ END
+
+
+________ TABLE_xml_copy_funcs
+void
+SQL_TABLE_@@tablename@@ :: CopyToXmlNode(MyXmlNode &node)
+{
+    node.init();
+    node.name = "@@tablename@@";
+@@xml_copy_to@@
+}
+
+@@xml_decoder_functions@@
+
+bool
+SQL_TABLE_@@tablename@@ :: CopyFromXmlNode(const MyXmlNode &node)
+{
+    init();
+    if (xml_decoders_initialized == false)
+    {
+@@xml_decoder_initializers@@
+        xml_decoders_initialized = true;
+    }
+    if (node.name != "@@tablename@@")
+    {
+        if (err_log_func)
+        {
+            std::ostringstream err;
+            err << "SQL_TABLE_@@tablename@@ :: "
+                << "CopyFromXmlNode : node name is " << node.name
+                << " not '@@tablename@@'!\n";
+            err_log_func(err_log_arg, err.str().c_str());
+        }
+        return false;
+    }
+    for (size_t ind = 0; ind < node.children.size(); ind++)
+    {
+        const MyXmlNode &n = node.children[ind];
+        if (n.name.size() == 0)
+            continue;
+        xml_decoder_map_t::iterator it = xml_decoders.find(n.name);
+        if (it != xml_decoders.end())
+        {
+            xml_decoder_func_t f = it->second;
+            if ((this->*f)(n) == false)
+                return false;
+        }
+    }
+    return true;
+}
+________ END
+
+________ TABLE_xml_decoder_initializer
+        xml_decoders["@@fieldname@@"] =
+            &SQL_TABLE_@@tablename@@::xml_decoder_@@fieldname@@;
+________ END
+
+________ TABLE_copy_pod_to_xml
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "@@fieldname@@";
+        n.attributes["type"] = "pod";
+        std::ostringstream s; // not guaranteed to have C++11 features.
+        s << @@fieldname@@;
+        n.text = s.str();
+    }
+________ END
+
+________ TABLE_copy_xml_to_pod
+bool
+SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    std::istringstream s(node.children[0].text);
+    s >> @@fieldname@@;
+    if (s.fail())
+        return false;
+    return true;
+}
+________ END
+
+________ TABLE_copy_string_to_xml
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "@@fieldname@@";
+        n.attributes["type"] = "text";
+        n.text = @@fieldname@@;
+    }
+________ END
+
+________ TABLE_copy_xml_to_string
+bool
+SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        @@fieldname@@ = "";
+    else
+        @@fieldname@@ = node.children[0].text;
+    return true;
+}
+________ END
+
+________ TABLE_copy_blob_to_xml
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "@@fieldname@@";
+        n.attributes["type"] = "blob";
+        blob_to_hex(n.text, @@fieldname@@);
+    }
+________ END
+
+________ TABLE_copy_xml_to_blob
+bool
+SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        @@fieldname@@.clear();
+    else
+        @@fieldname@@ = node.children[0].text; // xxx decode blob
+    return true;
+}
+________ END
+
+________ TABLE_copy_bool_to_xml
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "@@fieldname@@";
+        n.attributes["type"] = "bool";
+        n.text = @@fieldname@@ ? "true" : "false";
+    }
+________ END
+
+________ TABLE_copy_xml_to_bool
+bool
+SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    std::istringstream s(node.children[0].text);
+    std::string s2;
+    s >> s2;
+    if (s2 == "true")
+        @@fieldname@@ = true;
+    else if (s2 == "false")
+        @@fieldname@@ = false;
+    else
+        return false;
+    return true;
+}
+________ END
+
+________ TABLE_copy_enum_to_xml
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "@@fieldname@@";
+        n.attributes["type"] = "enum @@fieldtype@@";
+        n.text = @@fieldtype@@_Name(@@fieldname@@);
+    }
+________ END
+
+________ TABLE_copy_xml_to_enum
+bool
+SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    return EnumField_t_Parse(node.children[0].text, &@@fieldname@@);
+}
+________ END
+
+________ TABLE_copy_subtable_to_xml
+// NOTE this adds a bunch of <@@fieldname@@> nodes at the same
+//      level as all the other fields of this row. need to decide
+//      if this is OK or we want a whole subnode for the list.
+    for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
+    {
+        MyXmlNode &n = node.add_child();
+        SQL_TABLE_@@fieldname@@ &f = @@fieldname@@[ind];
+        f.CopyToXmlNode(n);
+        n.attributes["type"] = "subtable";
+        std::ostringstream s;
+        s << ind;
+        n.attributes["index"] = s.str();
+    }
+________ END
+
+________ TABLE_copy_xml_to_subtable
+bool
+SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
+{
+    SQL_TABLE_@@fieldname@@  row(pdb);
+    if (row.CopyFromXmlNode(node) == false)
+        return false;
+    @@fieldname@@.push_back(row);
+    return true;
+}
 ________ END
 
 ________ TABLE_create_constraints

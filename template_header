@@ -14,8 +14,10 @@ ________ HEADER_TOP
 #include <inttypes.h>
 #include <string>
 #include <vector>
+#include <map>
 #include <sstream>
 #include "sqlite3.h"
+#include "myXml.h"
 @@protobuf_header@@
 
 @@headertop_block@@
@@ -59,6 +61,14 @@ protected:
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 
+    typedef bool (SQL_TABLE_@@tablename@@::*xml_decoder_func_t)
+        (const MyXmlNode &node);
+    typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
+    xml_decoder_map_t xml_decoders;
+    bool xml_decoders_initialized;
+
+@@xml_decoder_protos@@
+
 public:
     SQL_TABLE_@@tablename@@(sqlite3 *_pdb = NULL);
     SQL_TABLE_@@tablename@@(const SQL_TABLE_@@tablename@@ &other);
@@ -90,6 +100,8 @@ public:
 @@table_custom_upd_method_protos@@
 @@table_custom_del_method_protos@@
 @@table_proto_copy_protos@@
+    void CopyToXmlNode(MyXmlNode &node);
+    bool CopyFromXmlNode(const MyXmlNode &node);
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
@@ -173,6 +185,10 @@ ________ TABLE_CLASS_proto_copy_proto
 //      get_subtable_* methods to populate them.
     void CopyToProto(@@package@@::TABLE_@@tablename@@_m &msg);
     void CopyFromProto(const @@package@@::TABLE_@@tablename@@_m &msg);
+________ END
+
+________ TABLE_CLASS_xml_decoder_proto
+    bool xml_decoder_@@fieldname@@(const MyXmlNode &node);
 ________ END
 
 ________ CLASS_ALL_TABELS_DEFN

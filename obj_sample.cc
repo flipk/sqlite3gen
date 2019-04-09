@@ -40,6 +40,23 @@ static void dflt_log_err(void *arg, const std::string &msg)
     printf("SQL ERROR: %s\n", msg.c_str());
 }
 
+static inline char nibble_to_hex(unsigned char nib)
+{
+    if (nib > 9)
+        return nib - 10 + 'a';
+    return nib + '0';
+}
+
+static void blob_to_hex(std::string &out, const std::string &in)
+{
+    out.clear();
+    for (size_t ind = 0; ind < in.size(); ind++)
+    {
+        unsigned char c = (unsigned char) in[ind];
+        out += nibble_to_hex((c >> 4) & 0xf);
+        out += nibble_to_hex((c >> 0) & 0xf);
+    }
+}
 
 //static
 sql_log_function_t SQL_TABLE_user :: log_upd_func = &dflt_log_upd;
@@ -52,6 +69,7 @@ SQL_TABLE_user :: SQL_TABLE_user(sqlite3 *_pdb)
     : pdb(_pdb)
 {
     init_statements();
+    xml_decoders_initialized = false;
 }
 
 // copy constructor, duplicates all the data fields (including rowid)
@@ -1478,6 +1496,247 @@ SQL_TABLE_user :: CopyFromProto(
 
 }
 
+void
+SQL_TABLE_user :: CopyToXmlNode(MyXmlNode &node)
+{
+    node.init();
+    node.name = "user";
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "userid";
+        n.attributes["type"] = "pod";
+        std::ostringstream s; // not guaranteed to have C++11 features.
+        s << userid;
+        n.text = s.str();
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "firstname";
+        n.attributes["type"] = "text";
+        n.text = firstname;
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "lastname";
+        n.attributes["type"] = "text";
+        n.text = lastname;
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "mi";
+        n.attributes["type"] = "text";
+        n.text = mi;
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "SSN";
+        n.attributes["type"] = "pod";
+        std::ostringstream s; // not guaranteed to have C++11 features.
+        s << SSN;
+        n.text = s.str();
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "balance";
+        n.attributes["type"] = "pod";
+        std::ostringstream s; // not guaranteed to have C++11 features.
+        s << balance;
+        n.text = s.str();
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "proto";
+        n.attributes["type"] = "blob";
+        blob_to_hex(n.text, proto);
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "test2";
+        n.attributes["type"] = "bool";
+        n.text = test2 ? "true" : "false";
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "test3";
+        n.attributes["type"] = "enum sample::library2::EnumField_t";
+        n.text = sample::library2::EnumField_t_Name(test3);
+    }
+// NOTE this adds a bunch of <checkouts> nodes at the same
+//      level as all the other fields of this row. need to decide
+//      if this is OK or we want a whole subnode for the list.
+    for (size_t ind = 0; ind < checkouts.size(); ind++)
+    {
+        MyXmlNode &n = node.add_child();
+        SQL_TABLE_checkouts &f = checkouts[ind];
+        f.CopyToXmlNode(n);
+        n.attributes["type"] = "subtable";
+        std::ostringstream s;
+        s << ind;
+        n.attributes["index"] = s.str();
+    }
+
+}
+
+bool
+SQL_TABLE_user :: xml_decoder_userid(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    std::istringstream s(node.children[0].text);
+    s >> userid;
+    if (s.fail())
+        return false;
+    return true;
+}
+bool
+SQL_TABLE_user :: xml_decoder_firstname(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        firstname = "";
+    else
+        firstname = node.children[0].text;
+    return true;
+}
+bool
+SQL_TABLE_user :: xml_decoder_lastname(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        lastname = "";
+    else
+        lastname = node.children[0].text;
+    return true;
+}
+bool
+SQL_TABLE_user :: xml_decoder_mi(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        mi = "";
+    else
+        mi = node.children[0].text;
+    return true;
+}
+bool
+SQL_TABLE_user :: xml_decoder_SSN(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    std::istringstream s(node.children[0].text);
+    s >> SSN;
+    if (s.fail())
+        return false;
+    return true;
+}
+bool
+SQL_TABLE_user :: xml_decoder_balance(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    std::istringstream s(node.children[0].text);
+    s >> balance;
+    if (s.fail())
+        return false;
+    return true;
+}
+bool
+SQL_TABLE_user :: xml_decoder_proto(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        proto.clear();
+    else
+        proto = node.children[0].text; // xxx decode blob
+    return true;
+}
+bool
+SQL_TABLE_user :: xml_decoder_test2(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    std::istringstream s(node.children[0].text);
+    std::string s2;
+    s >> s2;
+    if (s2 == "true")
+        test2 = true;
+    else if (s2 == "false")
+        test2 = false;
+    else
+        return false;
+    return true;
+}
+bool
+SQL_TABLE_user :: xml_decoder_test3(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    return EnumField_t_Parse(node.children[0].text, &test3);
+}
+bool
+SQL_TABLE_user :: xml_decoder_checkouts(const MyXmlNode &node)
+{
+    SQL_TABLE_checkouts  row(pdb);
+    if (row.CopyFromXmlNode(node) == false)
+        return false;
+    checkouts.push_back(row);
+    return true;
+}
+
+
+bool
+SQL_TABLE_user :: CopyFromXmlNode(const MyXmlNode &node)
+{
+    init();
+    if (xml_decoders_initialized == false)
+    {
+        xml_decoders["userid"] =
+            &SQL_TABLE_user::xml_decoder_userid;
+        xml_decoders["firstname"] =
+            &SQL_TABLE_user::xml_decoder_firstname;
+        xml_decoders["lastname"] =
+            &SQL_TABLE_user::xml_decoder_lastname;
+        xml_decoders["mi"] =
+            &SQL_TABLE_user::xml_decoder_mi;
+        xml_decoders["SSN"] =
+            &SQL_TABLE_user::xml_decoder_SSN;
+        xml_decoders["balance"] =
+            &SQL_TABLE_user::xml_decoder_balance;
+        xml_decoders["proto"] =
+            &SQL_TABLE_user::xml_decoder_proto;
+        xml_decoders["test2"] =
+            &SQL_TABLE_user::xml_decoder_test2;
+        xml_decoders["test3"] =
+            &SQL_TABLE_user::xml_decoder_test3;
+        xml_decoders["checkouts"] =
+            &SQL_TABLE_user::xml_decoder_checkouts;
+
+        xml_decoders_initialized = true;
+    }
+    if (node.name != "user")
+    {
+        if (err_log_func)
+        {
+            std::ostringstream err;
+            err << "SQL_TABLE_user :: "
+                << "CopyFromXmlNode : node name is " << node.name
+                << " not 'user'!\n";
+            err_log_func(err_log_arg, err.str().c_str());
+        }
+        return false;
+    }
+    for (size_t ind = 0; ind < node.children.size(); ind++)
+    {
+        const MyXmlNode &n = node.children[ind];
+        if (n.name.size() == 0)
+            continue;
+        xml_decoder_map_t::iterator it = xml_decoders.find(n.name);
+        if (it != xml_decoders.end())
+        {
+            xml_decoder_func_t f = it->second;
+            if ((this->*f)(n) == false)
+                return false;
+        }
+    }
+    return true;
+}
+
 
 //static
 bool SQL_TABLE_user :: init(sqlite3 *pdb, table_version_callback cb)
@@ -1594,6 +1853,7 @@ SQL_TABLE_book :: SQL_TABLE_book(sqlite3 *_pdb)
     : pdb(_pdb)
 {
     init_statements();
+    xml_decoders_initialized = false;
 }
 
 // copy constructor, duplicates all the data fields (including rowid)
@@ -2497,6 +2757,174 @@ SQL_TABLE_book :: CopyFromProto(
 
 }
 
+void
+SQL_TABLE_book :: CopyToXmlNode(MyXmlNode &node)
+{
+    node.init();
+    node.name = "book";
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "bookid";
+        n.attributes["type"] = "pod";
+        std::ostringstream s; // not guaranteed to have C++11 features.
+        s << bookid;
+        n.text = s.str();
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "title";
+        n.attributes["type"] = "text";
+        n.text = title;
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "isbn";
+        n.attributes["type"] = "text";
+        n.text = isbn;
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "price";
+        n.attributes["type"] = "pod";
+        std::ostringstream s; // not guaranteed to have C++11 features.
+        s << price;
+        n.text = s.str();
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "quantity";
+        n.attributes["type"] = "pod";
+        std::ostringstream s; // not guaranteed to have C++11 features.
+        s << quantity;
+        n.text = s.str();
+    }
+// NOTE this adds a bunch of <checkouts> nodes at the same
+//      level as all the other fields of this row. need to decide
+//      if this is OK or we want a whole subnode for the list.
+    for (size_t ind = 0; ind < checkouts.size(); ind++)
+    {
+        MyXmlNode &n = node.add_child();
+        SQL_TABLE_checkouts &f = checkouts[ind];
+        f.CopyToXmlNode(n);
+        n.attributes["type"] = "subtable";
+        std::ostringstream s;
+        s << ind;
+        n.attributes["index"] = s.str();
+    }
+
+}
+
+bool
+SQL_TABLE_book :: xml_decoder_bookid(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    std::istringstream s(node.children[0].text);
+    s >> bookid;
+    if (s.fail())
+        return false;
+    return true;
+}
+bool
+SQL_TABLE_book :: xml_decoder_title(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        title = "";
+    else
+        title = node.children[0].text;
+    return true;
+}
+bool
+SQL_TABLE_book :: xml_decoder_isbn(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        isbn = "";
+    else
+        isbn = node.children[0].text;
+    return true;
+}
+bool
+SQL_TABLE_book :: xml_decoder_price(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    std::istringstream s(node.children[0].text);
+    s >> price;
+    if (s.fail())
+        return false;
+    return true;
+}
+bool
+SQL_TABLE_book :: xml_decoder_quantity(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    std::istringstream s(node.children[0].text);
+    s >> quantity;
+    if (s.fail())
+        return false;
+    return true;
+}
+bool
+SQL_TABLE_book :: xml_decoder_checkouts(const MyXmlNode &node)
+{
+    SQL_TABLE_checkouts  row(pdb);
+    if (row.CopyFromXmlNode(node) == false)
+        return false;
+    checkouts.push_back(row);
+    return true;
+}
+
+
+bool
+SQL_TABLE_book :: CopyFromXmlNode(const MyXmlNode &node)
+{
+    init();
+    if (xml_decoders_initialized == false)
+    {
+        xml_decoders["bookid"] =
+            &SQL_TABLE_book::xml_decoder_bookid;
+        xml_decoders["title"] =
+            &SQL_TABLE_book::xml_decoder_title;
+        xml_decoders["isbn"] =
+            &SQL_TABLE_book::xml_decoder_isbn;
+        xml_decoders["price"] =
+            &SQL_TABLE_book::xml_decoder_price;
+        xml_decoders["quantity"] =
+            &SQL_TABLE_book::xml_decoder_quantity;
+        xml_decoders["checkouts"] =
+            &SQL_TABLE_book::xml_decoder_checkouts;
+
+        xml_decoders_initialized = true;
+    }
+    if (node.name != "book")
+    {
+        if (err_log_func)
+        {
+            std::ostringstream err;
+            err << "SQL_TABLE_book :: "
+                << "CopyFromXmlNode : node name is " << node.name
+                << " not 'book'!\n";
+            err_log_func(err_log_arg, err.str().c_str());
+        }
+        return false;
+    }
+    for (size_t ind = 0; ind < node.children.size(); ind++)
+    {
+        const MyXmlNode &n = node.children[ind];
+        if (n.name.size() == 0)
+            continue;
+        xml_decoder_map_t::iterator it = xml_decoders.find(n.name);
+        if (it != xml_decoders.end())
+        {
+            xml_decoder_func_t f = it->second;
+            if ((this->*f)(n) == false)
+                return false;
+        }
+    }
+    return true;
+}
+
 
 //static
 bool SQL_TABLE_book :: init(sqlite3 *pdb, table_version_callback cb)
@@ -2613,6 +3041,7 @@ SQL_TABLE_checkouts :: SQL_TABLE_checkouts(sqlite3 *_pdb)
     : pdb(_pdb)
 {
     init_statements();
+    xml_decoders_initialized = false;
 }
 
 // copy constructor, duplicates all the data fields (including rowid)
@@ -3243,6 +3672,116 @@ SQL_TABLE_checkouts :: CopyFromProto(
         duedate = 0;
 
 
+}
+
+void
+SQL_TABLE_checkouts :: CopyToXmlNode(MyXmlNode &node)
+{
+    node.init();
+    node.name = "checkouts";
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "bookid2";
+        n.attributes["type"] = "pod";
+        std::ostringstream s; // not guaranteed to have C++11 features.
+        s << bookid2;
+        n.text = s.str();
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "userid2";
+        n.attributes["type"] = "pod";
+        std::ostringstream s; // not guaranteed to have C++11 features.
+        s << userid2;
+        n.text = s.str();
+    }
+    {
+        MyXmlNode &n = node.add_child();
+        n.name = "duedate";
+        n.attributes["type"] = "pod";
+        std::ostringstream s; // not guaranteed to have C++11 features.
+        s << duedate;
+        n.text = s.str();
+    }
+
+}
+
+bool
+SQL_TABLE_checkouts :: xml_decoder_bookid2(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    std::istringstream s(node.children[0].text);
+    s >> bookid2;
+    if (s.fail())
+        return false;
+    return true;
+}
+bool
+SQL_TABLE_checkouts :: xml_decoder_userid2(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    std::istringstream s(node.children[0].text);
+    s >> userid2;
+    if (s.fail())
+        return false;
+    return true;
+}
+bool
+SQL_TABLE_checkouts :: xml_decoder_duedate(const MyXmlNode &node)
+{
+    if (node.children.size() == 0)
+        return false;
+    std::istringstream s(node.children[0].text);
+    s >> duedate;
+    if (s.fail())
+        return false;
+    return true;
+}
+
+
+bool
+SQL_TABLE_checkouts :: CopyFromXmlNode(const MyXmlNode &node)
+{
+    init();
+    if (xml_decoders_initialized == false)
+    {
+        xml_decoders["bookid2"] =
+            &SQL_TABLE_checkouts::xml_decoder_bookid2;
+        xml_decoders["userid2"] =
+            &SQL_TABLE_checkouts::xml_decoder_userid2;
+        xml_decoders["duedate"] =
+            &SQL_TABLE_checkouts::xml_decoder_duedate;
+
+        xml_decoders_initialized = true;
+    }
+    if (node.name != "checkouts")
+    {
+        if (err_log_func)
+        {
+            std::ostringstream err;
+            err << "SQL_TABLE_checkouts :: "
+                << "CopyFromXmlNode : node name is " << node.name
+                << " not 'checkouts'!\n";
+            err_log_func(err_log_arg, err.str().c_str());
+        }
+        return false;
+    }
+    for (size_t ind = 0; ind < node.children.size(); ind++)
+    {
+        const MyXmlNode &n = node.children[ind];
+        if (n.name.size() == 0)
+            continue;
+        xml_decoder_map_t::iterator it = xml_decoders.find(n.name);
+        if (it != xml_decoders.end())
+        {
+            xml_decoder_func_t f = it->second;
+            if ((this->*f)(n) == false)
+                return false;
+        }
+    }
+    return true;
 }
 
 

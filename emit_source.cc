@@ -67,6 +67,10 @@ void emit_source(const std::string &fname,
         ostringstream table_proto_copy_funcs;
         ostringstream proto_copy_to;
         ostringstream proto_copy_from;
+        ostringstream table_xml_copy_funcs;
+        ostringstream xml_copy_to;
+        ostringstream xml_decoder_functions;
+        ostringstream xml_decoder_initializers;
         ostringstream table_create_fields;
         ostringstream table_create_constraints;
         ostringstream index_creation;
@@ -127,36 +131,78 @@ void emit_source(const std::string &fname,
             case TYPE_INT64:
                 initial_value
                     << " = " << fd->attrs.init_int << ";\n";
+                output_TABLE_copy_pod_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_DOUBLE:
                 initial_value
                     << " = " << fd->attrs.init_double << ";\n";
+                output_TABLE_copy_pod_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_TEXT:
                 initial_value
                     << " = \"" << fd->attrs.init_string << "\";\n";
+                output_TABLE_copy_string_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_BLOB:
                 initial_value << ".clear();\n";
+                output_TABLE_copy_blob_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_BOOL:
                 initial_value
                     << " = "
                     << (fd->attrs.init_int ? "true" : "false")
                     << ";\n";
+                output_TABLE_copy_bool_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_ENUM:
                 initial_value
                     << " = "
                     << Dots_to_Colons(fd->attrs.init_string)
                     << ";\n";
+                output_TABLE_copy_enum_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_SUBTABLE:
                 initial_value << ".clear();\n";
+                output_TABLE_copy_subtable_to_xml(xml_copy_to, patterns);
                 break;
             }
             initial_values << initial_value.str();
             SET_PATTERN(initial_value);
+
+            switch (t)
+            {
+            case TYPE_INT:
+            case TYPE_INT64:
+                output_TABLE_copy_xml_to_pod(
+                    xml_decoder_functions, patterns);
+                break;
+            case TYPE_DOUBLE:
+                output_TABLE_copy_xml_to_pod(
+                    xml_decoder_functions, patterns);
+                break;
+            case TYPE_TEXT:
+                output_TABLE_copy_xml_to_string(
+                    xml_decoder_functions, patterns);
+                break;
+            case TYPE_BLOB:
+                output_TABLE_copy_xml_to_blob(
+                    xml_decoder_functions, patterns);
+                break;
+            case TYPE_BOOL:
+                output_TABLE_copy_xml_to_bool(
+                    xml_decoder_functions, patterns);
+                break;
+            case TYPE_ENUM:
+                output_TABLE_copy_xml_to_enum(
+                    xml_decoder_functions, patterns);
+                break;
+            case TYPE_SUBTABLE:
+                output_TABLE_copy_xml_to_subtable(
+                    xml_decoder_functions, patterns);
+                break;
+            }
+            output_TABLE_xml_decoder_initializer(
+                xml_decoder_initializers, patterns);
 
             field_copies << "    " << fd->name
                          << " = other." << fd->name
@@ -631,6 +677,11 @@ void emit_source(const std::string &fname,
                 table_proto_copy_funcs, patterns);
         }
 
+        SET_PATTERN(xml_copy_to);
+        SET_PATTERN(xml_decoder_functions);
+        SET_PATTERN(xml_decoder_initializers);
+        output_TABLE_xml_copy_funcs(table_xml_copy_funcs, patterns);
+
         table_create_fields << table_create_constraints.str();
 
         SET_PATTERN(tableversion);
@@ -657,6 +708,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(custom_upd_implementations);
         SET_PATTERN(custom_del_implementations);
         SET_PATTERN(table_proto_copy_funcs);
+        SET_PATTERN(table_xml_copy_funcs);
         SET_PATTERN(table_create_fields);
         SET_PATTERN(index_creation);
         SET_PATTERN(get_subtable_implementations);

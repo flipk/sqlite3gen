@@ -297,11 +297,12 @@ test_subtables(sqlite3 * pdb)
         u.lastname = "las1";
         u.SSN = 11;
         u.balance = 4.00;
+        u.proto = "this is proto";
         u.insert();
 
         b.bookid = 2;
         b.title = "book 2 title";
-        b.isbn = 4;
+        b.isbn = 4.44;
         b.price = 8.00;
         b.quantity = 1;
         b.insert();
@@ -334,9 +335,76 @@ test_subtables(sqlite3 * pdb)
         library::TABLE_user_m  msg;
         u.CopyToProto(msg);
 
-        SQL_TABLE_user_custom  u2(pdb);
-        u2.CopyFromProto(msg);
-        printf("after protobuf marshaling:\n");
-        u2.print();
+        {
+            SQL_TABLE_user_custom  u2(pdb);
+            u2.CopyFromProto(msg);
+            printf("after protobuf marshaling:\n");
+            u2.print();
+        }
+
+        MyXmlNode n;
+        u.CopyToXmlNode(n);
+        std::string xml;
+        if (MyXmlGenerate(xml, n) == false)
+            printf("ERROR during XML generate\n");
+        else
+            printf("generated xml: %s\n", xml.c_str());
+
+        n.init();
+        if (MyXmlParse(n, xml) == 0)
+            printf("ERROR during XML parsing\n");
+        else
+        {
+            SQL_TABLE_user_custom  u2(pdb);
+            if (u2.CopyFromXmlNode(n) == false)
+                printf("ERROR in CopyFromXml\n");
+            else
+            {
+                printf("after xml marshaling:\n");
+                u2.print();
+            }
+        }
+    }
+
+
+    {
+        std::string xml(
+"<user> "
+"  <userid type=\"pod\"> 1 </userid>"
+"  <firstname type=\"text\">fir1</firstname>"
+"  <lastname type=\"text\">las1</lastname>"
+"  <mi type=\"text\"/>"
+"  <SSN type=\"pod\"> 11 </SSN>"
+"  <balance type=\"pod\"> 4 </balance>"
+"  <proto type=\"blob\">746869732069732070726f746f</proto>"
+"  <test2 type=\"bool\">false</test2>"
+"  <test3 type=\"enum sample::library2::EnumField_t\">ENUM_TWO</test3>"
+"  <checkouts index=\"0\" type=\"subtable\">"
+"    <bookid2 type=\"pod\">2</bookid2>"
+"    <userid2 type=\"pod\">1</userid2>"
+"    <duedate type=\"pod\">5</duedate>"
+"  </checkouts>"
+"  <checkouts index=\"1\" type=\"subtable\">"
+"    <bookid2 type=\"pod\">3</bookid2>"
+"    <userid2 type=\"pod\">1</userid2>"
+"    <duedate type=\"pod\">6</duedate>"
+"  </checkouts>"
+"</user>"
+            );
+
+        MyXmlNode n;
+        if (MyXmlParse(n, xml) == 0)
+            printf("ERROR during 2nd XML parsing\n");
+        else
+        {
+            SQL_TABLE_user_custom  u2(pdb);
+            if (u2.CopyFromXmlNode(n) == false)
+                printf("ERROR in 2nd CopyFromXml\n");
+            else
+            {
+                printf("after xml 2nd marshaling:\n");
+                u2.print();
+            }
+        } 
     }
 }

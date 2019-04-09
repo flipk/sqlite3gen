@@ -65,6 +65,7 @@ void emit_header(const std::string &fname,
         ostringstream table_custom_upd_method_protos;
         ostringstream table_custom_del_method_protos;
         ostringstream table_proto_copy_protos;
+        ostringstream xml_decoder_protos;
 
         const FieldDef *fd;
         const CustomGetUpdList * cust;
@@ -106,6 +107,9 @@ void emit_header(const std::string &fname,
                 table_field_type_name_decls, patterns);
             if (fd->attrs.protoid != -1)
                 include_protos = true;
+
+            output_TABLE_CLASS_xml_decoder_proto(
+                xml_decoder_protos, patterns);
         }
 
         for (cust = td->customs; cust; cust = cust->next)
@@ -189,6 +193,7 @@ void emit_header(const std::string &fname,
         SET_PATTERN(table_custom_upd_method_protos);
         SET_PATTERN(table_custom_del_method_protos);
         SET_PATTERN(table_proto_copy_protos);
+        SET_PATTERN(xml_decoder_protos);
 
         output_TABLE_CLASS_DEFN(out, patterns);
     }
