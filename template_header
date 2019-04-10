@@ -197,6 +197,11 @@ class SQL_TABLE_ALL_TABLES {
 public:
     static bool init_all(sqlite3 *pdb, table_version_callback cb);
     static void table_drop_all(sqlite3 *pdb);
+    static void register_log_funcs(sql_log_function_t _upd_func,
+                                   sql_log_function_t _get_func,
+                                   void *_arg,
+                                   sql_err_function_t _err_func,
+                                   void *_err_arg);
 };
 
 }; // namespace @@package@@

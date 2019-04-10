@@ -38,7 +38,7 @@ void emit_source(const std::string &fname,
 
     ostringstream create_all_tables;
     ostringstream drop_all_tables;
-
+    ostringstream register_all_logfuncs;
 
     for (td = schema->tables; td; td = td->next)
     {
@@ -718,10 +718,13 @@ void emit_source(const std::string &fname,
 
         output_CLASS_ALL_TABLES_create_a_table(create_all_tables, patterns);
         output_CLASS_ALL_TABLES_drop_a_table(drop_all_tables, patterns);
+        output_CLASS_ALL_TABLES_register_a_logfunc(
+            register_all_logfuncs, patterns);
     }
 
     SET_PATTERN(create_all_tables);
     SET_PATTERN(drop_all_tables);
+    SET_PATTERN(register_all_logfuncs);
 
     output_CLASS_ALL_TABELS_IMPL(out, patterns);
 }

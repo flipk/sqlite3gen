@@ -3936,6 +3936,22 @@ void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
                  NULL, NULL, NULL);
 }
 
+void SQL_TABLE_ALL_TABLES :: register_log_funcs(
+    sql_log_function_t _upd_func,
+    sql_log_function_t _get_func,
+    void *_arg,
+    sql_err_function_t _err_func,
+    void *_err_arg)
+{
+    SQL_TABLE_user::register_log_funcs(
+        _upd_func, _get_func, _arg, _err_func, _err_arg);
+    SQL_TABLE_book::register_log_funcs(
+        _upd_func, _get_func, _arg, _err_func, _err_arg);
+    SQL_TABLE_checkouts::register_log_funcs(
+        _upd_func, _get_func, _arg, _err_func, _err_arg);
+
+}
+
 }; // namespace library
 
 

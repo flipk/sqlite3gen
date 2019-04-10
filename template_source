@@ -1509,6 +1509,16 @@ void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
                  NULL, NULL, NULL);
 }
 
+void SQL_TABLE_ALL_TABLES :: register_log_funcs(
+    sql_log_function_t _upd_func,
+    sql_log_function_t _get_func,
+    void *_arg,
+    sql_err_function_t _err_func,
+    void *_err_arg)
+{
+@@register_all_logfuncs@@
+}
+
 }; // namespace @@package@@
 
 @@sourcebottom_block@@
@@ -1522,4 +1532,9 @@ ________ END
 
 ________ CLASS_ALL_TABLES_drop_a_table
     SQL_TABLE_@@tablename@@::table_drop(pdb);
+________ END
+
+________ CLASS_ALL_TABLES_register_a_logfunc
+    SQL_TABLE_@@tablename@@::register_log_funcs(
+        _upd_func, _get_func, _arg, _err_func, _err_arg);
 ________ END
