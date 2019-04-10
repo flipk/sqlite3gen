@@ -6,10 +6,3 @@
   maybe a way to specify the full sql query with column
   names and where-clause?
 
-- need a strategy for rolling back to older schema versions
-  (if you upgrade software, then fall back, old software won't
-   know how to reverse the modifications; maybe tables can be
-   renamed and archived using a well known convention so at least
-   it could load a copy of the old database which does not contain
-   updates made while on the new software?)
-
