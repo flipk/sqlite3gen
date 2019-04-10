@@ -58,6 +58,43 @@ static void blob_to_hex(std::string &out, const std::string &in)
     }
 }
 
+static char hex_to_nibble(char c)
+{
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    return 0xff;
+}
+
+static bool hex_to_blob(std::string &out, const std::string &in)
+{
+    if ((in.size() % 2) == 1)
+        return false;
+
+    out.clear();
+    for (size_t ind = 0; ind < in.size(); ind += 2)
+    {
+        char l = hex_to_nibble(in[ind]);
+        char r = hex_to_nibble(in[ind+1]);
+        if (l == 0xff || r == 0xff)
+            return false;
+        char c = (l << 4) + r;
+        out += c;
+    }
+
+    return true;
+}
+
+void _____dummy_blob_spacer(void)
+{
+    // this func exists only to eliminate 'defined but not used'
+    // warnings on the above static funcs.
+    std::string a,b;
+    hex_to_blob(a,b);
+    blob_to_hex(a,b);
+}
+
 //static
 sql_log_function_t SQL_TABLE_user :: log_upd_func = &dflt_log_upd;
 sql_log_function_t SQL_TABLE_user :: log_get_func = &dflt_log_get;
@@ -1641,10 +1678,12 @@ bool
 SQL_TABLE_user :: xml_decoder_proto(const MyXmlNode &node)
 {
     if (node.children.size() == 0)
+    {
         proto.clear();
-    else
-        proto = node.children[0].text; // xxx decode blob
-    return true;
+        return true;
+    }
+    //else
+    return hex_to_blob(proto, node.children[0].text);
 }
 bool
 SQL_TABLE_user :: xml_decoder_test2(const MyXmlNode &node)

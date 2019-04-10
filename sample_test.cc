@@ -63,11 +63,14 @@ public:
         return ret;
     }
     void print(void) {
+        // we can print a blob as a string only because
+        // this test program always sets 'blob' objects to
+        // strings.
         printf("row %" PRId64 " userid %" PRId64
-               " %s %s %s SSN %d %f proto (%d)\n",
+               " %s %s %s SSN %d %f proto (%d) '%s'\n",
                (int64_t) rowid, userid,
                firstname.c_str(), mi.c_str(), lastname.c_str(),
-               SSN, balance, (int) proto.length());
+               SSN, balance, (int) proto.length(), proto.c_str());
         printf("%d checkouts:\n", (int) checkouts.size());
         for (size_t ind = 0; ind < checkouts.size(); ind++)
         {
@@ -297,7 +300,7 @@ test_subtables(sqlite3 * pdb)
         u.lastname = "las1";
         u.SSN = 11;
         u.balance = 4.00;
-        u.proto = "this is proto";
+        u.proto = "this is proto blob";
         u.insert();
 
         b.bookid = 2;
@@ -376,7 +379,7 @@ test_subtables(sqlite3 * pdb)
 "  <mi type=\"text\"/>"
 "  <SSN type=\"pod\"> 11 </SSN>"
 "  <balance type=\"pod\"> 4 </balance>"
-"  <proto type=\"blob\">746869732069732070726f746f</proto>"
+"  <proto type=\"blob\">746869732069732070726f746f20626c6f62</proto>"
 "  <test2 type=\"bool\">false</test2>"
 "  <test3 type=\"enum sample::library2::EnumField_t\">ENUM_TWO</test3>"
 "  <checkouts index=\"0\" type=\"subtable\">"

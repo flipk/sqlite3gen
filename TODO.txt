@@ -1,4 +1,3 @@
-- finish blob decoding in xml decoder
 - add type="" validation in xml decoder
 - lots of error logging in xml encoder and decoder
 - maybe xml encoder can fancy-indent?
