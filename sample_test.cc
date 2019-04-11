@@ -348,13 +348,13 @@ test_subtables(sqlite3 * pdb)
         MyXmlNode n;
         u.CopyToXmlNode(n);
         std::string xml;
-        if (MyXmlGenerate(xml, n) == false)
+        if (n.generate(xml) == false)
             printf("ERROR during XML generate\n");
         else
-            printf("generated xml: %s\n", xml.c_str());
+            printf("generated xml:\n%s\n", xml.c_str());
 
         n.init();
-        if (MyXmlParse(n, xml) == 0)
+        if (n.parse(xml) == 0)
             printf("ERROR during XML parsing\n");
         else
         {
@@ -381,7 +381,7 @@ test_subtables(sqlite3 * pdb)
 "  <balance type=\"pod\"> 4 </balance>"
 "  <proto type=\"blob\">746869732069732070726f746f20626c6f62</proto>"
 "  <test2 type=\"bool\">false</test2>"
-"  <test3 type=\"enum sample::library2::EnumField_t\">ENUM_TWO</test3>"
+"  <test3 type=\"sample::library2::EnumField_t\">ENUM_TWO</test3>"
 "  <checkouts index=\"0\" type=\"subtable\">"
 "    <bookid2 type=\"pod\">2</bookid2>"
 "    <userid2 type=\"pod\">1</userid2>"
@@ -396,7 +396,7 @@ test_subtables(sqlite3 * pdb)
             );
 
         MyXmlNode n;
-        if (MyXmlParse(n, xml) == 0)
+        if (n.parse(xml) == 0)
             printf("ERROR during 2nd XML parsing\n");
         else
         {

@@ -25,12 +25,10 @@ struct MyXmlNode
         children.clear();
         text.clear();
     }
+    // return position after parsing, or 0 for error.
+    size_t parse(const std::string &xml, size_t start_pos = 0);
+    // return false for failure
+    bool generate(std::string &xml, int indent=0);
 };
-
-// return position after parsing, or 0 for error.
-size_t MyXmlParse(MyXmlNode &root, const std::string &xml,
-                  size_t start_pos = 0);
-// return false for failure
-bool MyXmlGenerate(std::string &xml, const MyXmlNode &root);
 
 #endif /* __MYXML_H__ */

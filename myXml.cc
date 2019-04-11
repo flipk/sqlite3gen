@@ -101,14 +101,15 @@ unescape(std::string &s)
     }
 }
 
-size_t MyXmlParse(MyXmlNode &node, const string &xml, size_t start_pos)
+size_t
+MyXmlNode :: parse(const string &xml, size_t start_pos)
 {
-    node.init();
+    init();
     size_t tag_start = xml.find_first_of('<', start_pos);
     if (tag_start != start_pos)
     {
-        node.text = xml.substr(start_pos,tag_start - start_pos);
-        unescape(node.text);
+        text = xml.substr(start_pos,tag_start - start_pos);
+        unescape(text);
         if (tag_start == string::npos)
             return xml.size();
         return tag_start;
@@ -117,8 +118,8 @@ size_t MyXmlParse(MyXmlNode &node, const string &xml, size_t start_pos)
     size_t tag_name_end = xml.find_first_of(" \r\n\t/>", tag_start);
     if (tag_name_end == string::npos)
         return 0;
-    node.name = xml.substr(start_pos+1,tag_name_end-start_pos-1);
-    if (validate_xmlness(node.name) == false)
+    name = xml.substr(start_pos+1,tag_name_end-start_pos-1);
+    if (validate_xmlness(name) == false)
         return 0;
 
     bool selfclosed = false;
@@ -159,7 +160,7 @@ size_t MyXmlParse(MyXmlNode &node, const string &xml, size_t start_pos)
                 else if (is_whitespace(c))
                 {
                     attbody = "";
-                    node.attributes[attname] = attbody;
+                    attributes[attname] = attbody;
                     attname = "";
                     st = st_ws;
                 }
@@ -175,7 +176,7 @@ size_t MyXmlParse(MyXmlNode &node, const string &xml, size_t start_pos)
                     if (attbody.size() != 0)
                     {
                         unescape(attbody);
-                        node.attributes[attname] = attbody;
+                        attributes[attname] = attbody;
                         attname = "";
                         attbody = "";
                         st = st_ws;
@@ -187,14 +188,14 @@ size_t MyXmlParse(MyXmlNode &node, const string &xml, size_t start_pos)
             }
         }
         if (attname.size() > 0)
-            node.attributes[attname] = "";
+            attributes[attname] = "";
     }
     tag_end ++;
 
     size_t tag_close = tag_end;
     if (selfclosed == false)
     {
-        tag_close = xml.find(string("</") + node.name + ">", tag_end);
+        tag_close = xml.find(string("</") + name + ">", tag_end);
         if (tag_close == string::npos)
             return 0;
     }
@@ -203,8 +204,8 @@ size_t MyXmlParse(MyXmlNode &node, const string &xml, size_t start_pos)
     size_t raw_pos = 0;
     while (raw_pos < text_raw.size())
     {
-        MyXmlNode &n = node.add_child();
-        size_t s = MyXmlParse(n, text_raw, raw_pos);
+        MyXmlNode &n = add_child();
+        size_t s = n.parse(text_raw, raw_pos);
         if (s <= 0)
             return s;
         raw_pos = s;
@@ -213,24 +214,31 @@ size_t MyXmlParse(MyXmlNode &node, const string &xml, size_t start_pos)
     return xml.find_first_of('>', tag_close) + 1;
 }
 
+static void do_indent(std::string &xml, int indent)
+{
+    xml += '\n';
+    for (int space_count = 0; space_count < indent; space_count++)
+        xml += ' ';
+}
+
 bool
-MyXmlGenerate(std::string &xml, const MyXmlNode &node)
+MyXmlNode :: generate(std::string &xml, int indent /*=0*/)
 {
     bool has_body = true;
-    if (node.name.size() == 0)
+    if (name.size() == 0)
     {
         // this is a text-only node
-        xml_escape_special(xml, node.text);
+        xml_escape_special(xml, text);
         return true;
     }
-    if (validate_xmlness(node.name) == false)
+    if (validate_xmlness(name) == false)
         return false;
-    if (node.text.size() == 0 && node.children.size() == 0)
+    if (text.size() == 0 && children.size() == 0)
         has_body = false;
-    xml += "<" + node.name;
+    xml += "<" + name;
     map<string,string>::const_iterator it;
-    for (it = node.attributes.begin();
-         it != node.attributes.end();
+    for (it = attributes.begin();
+         it != attributes.end();
          it++)
     {
         if (validate_xmlness(it->first) == false)
@@ -247,13 +255,17 @@ MyXmlGenerate(std::string &xml, const MyXmlNode &node)
     if (has_body)
     {
         xml += ">";
-        for (size_t ind = 0; ind < node.children.size(); ind++)
+        for (size_t ind = 0; ind < children.size(); ind++)
         {
-            if (MyXmlGenerate(xml, node.children[ind]) == false)
+            if (text.size() == 0)
+                do_indent(xml, indent+2);
+            if (children[ind].generate(xml, indent+2) == false)
                 return false;
         }
-        xml_escape_special(xml, node.text);
-        xml += "</" + node.name + ">";
+        xml_escape_special(xml, text);
+        if (text.size() == 0)
+            do_indent(xml, indent);
+        xml += "</" + name + ">";
     }
     else
         xml += "/>";
@@ -267,14 +279,14 @@ int main()
     string xml("<zero g><one/><five a=\"&amp;b\"/><two c=\"d\" e=\"f\">"
                " &lt;not a tag&gt; <eight> &quot;nine&quot; </eight> "
                "<four/></two>seven</zero>");
-    if (MyXmlParse(n, xml) == 0)
+    if (n.parse(xml) == 0)
     {
-        printf("MyXmlParse returns error\n");
+        printf("parse returns error\n");
         return 1;
     }
     printf("original xml:\n%s\n", xml.c_str());
     xml.clear();
-    if (MyXmlGenerate(xml, n) == false)
+    if (n.generate(xml) == false)
         cout << "generate returned false, error in some node?\n";
     else
         printf("generated xml:\n%s\n", xml.c_str());
@@ -328,17 +340,17 @@ main()
     }
     root.text = "\nTEH END\n";
     string xml;
-    if (MyXmlGenerate(xml, root) == false)
+    if (root.generate(xml) == false)
         cout << "generate returned false, error in some node?\n";
     cout << "generated xml:\n" << xml << "\n";
     cout << "generated xml is " << xml.size() << " bytes long\n";
     root.init();
-    if (MyXmlParse(root, xml) == 0)
-        printf("MyXmlParse returns error\n");
+    if (root.parse(xml) == 0)
+        printf("parse returns error\n");
     else
     {
         xml.clear();
-        MyXmlGenerate(xml, root);
+        root.generate(xml);
         cout << "regenerated xml:\n" << xml << "\n";
     }
 
