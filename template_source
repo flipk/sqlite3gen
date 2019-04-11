@@ -657,6 +657,13 @@ ________ TABLE_get_column_bool
 ________ END
 
 ________ TABLE_get_column_string
+#if 0 // coerce everything to string.
+      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
+      // NOTE: if you INSERT a string to a table that contains
+      //       all decimal digits, SQLITE3 does something very strange:
+      //       it stores it as SQLITE_INT! this means this validation
+      //       fails. but if you call sqlite_column_text, it will convert
+      //       it back to a text string for you.
     got = sqlite3_column_type(pStmt, @@column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
@@ -665,6 +672,7 @@ ________ TABLE_get_column_string
                 got, SQLITE_@@sqlite_type@@);
         return false;
     }
+#endif
     {
         const void * ptr = @@sqlite_column_func@@(
             pStmt, @@column_index@@);
