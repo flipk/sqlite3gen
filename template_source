@@ -1461,7 +1461,7 @@ ________ TABLE_copy_enum_to_xml
     {
         MyXmlNode &n = node.add_child();
         n.name = "@@fieldname@@";
-        n.attributes["type"] = "enum @@fieldtype@@";
+        n.attributes["type"] = "@@fieldtype@@";
         n.text = @@fieldtype@@_Name(@@fieldname@@);
     }
 ________ END
