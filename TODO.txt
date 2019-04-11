@@ -1,3 +1,10 @@
+- serious bug in xml parser: table name and field name
+  cannot be the same because it can't handle nested tags
+  of the same name.
+     - write a new xml parser that processes serially and
+       recurses as it goes, rather than searching for the
+       closing tag right after finding the opening tag.
+
 - add type="" validation in xml decoder
 - lots of error logging in xml encoder and decoder
 - maybe xml encoder can fancy-indent?

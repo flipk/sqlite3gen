@@ -278,6 +278,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     userid = sqlite3_column_int64(pStmt, 1);
+#if 0 // coerce everything to string
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_TEXT)
     {
@@ -286,6 +287,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
                 got, SQLITE_TEXT);
         return false;
     }
+#endif
     {
         const void * ptr = sqlite3_column_text(
             pStmt, 2);
@@ -293,6 +295,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         firstname.resize(len);
         memcpy((void*)firstname.c_str(), ptr, len);
     }
+#if 0 // coerce everything to string
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_TEXT)
     {
@@ -301,6 +304,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
                 got, SQLITE_TEXT);
         return false;
     }
+#endif
     {
         const void * ptr = sqlite3_column_text(
             pStmt, 3);
@@ -308,6 +312,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         lastname.resize(len);
         memcpy((void*)lastname.c_str(), ptr, len);
     }
+#if 0 // coerce everything to string
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_TEXT)
     {
@@ -316,6 +321,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
                 got, SQLITE_TEXT);
         return false;
     }
+#endif
     {
         const void * ptr = sqlite3_column_text(
             pStmt, 4);
@@ -341,6 +347,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     balance = sqlite3_column_double(pStmt, 6);
+#if 0 // coerce everything to string
     got = sqlite3_column_type(pStmt, 7);
     if (got != SQLITE_BLOB)
     {
@@ -349,6 +356,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
                 got, SQLITE_BLOB);
         return false;
     }
+#endif
     {
         const void * ptr = sqlite3_column_blob(
             pStmt, 7);
@@ -1595,7 +1603,7 @@ SQL_TABLE_user :: CopyToXmlNode(MyXmlNode &node)
     {
         MyXmlNode &n = node.add_child();
         n.name = "test3";
-        n.attributes["type"] = "enum sample::library2::EnumField_t";
+        n.attributes["type"] = "sample::library2::EnumField_t";
         n.text = sample::library2::EnumField_t_Name(test3);
     }
 // NOTE this adds a bunch of <checkouts> nodes at the same
@@ -2038,6 +2046,7 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     bookid = sqlite3_column_int64(pStmt, 1);
+#if 0 // coerce everything to string
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_TEXT)
     {
@@ -2046,6 +2055,7 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
                 got, SQLITE_TEXT);
         return false;
     }
+#endif
     {
         const void * ptr = sqlite3_column_text(
             pStmt, 2);
@@ -2053,6 +2063,7 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         title.resize(len);
         memcpy((void*)title.c_str(), ptr, len);
     }
+#if 0 // coerce everything to string
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_TEXT)
     {
@@ -2061,6 +2072,7 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
                 got, SQLITE_TEXT);
         return false;
     }
+#endif
     {
         const void * ptr = sqlite3_column_text(
             pStmt, 3);
