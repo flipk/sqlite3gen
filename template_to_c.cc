@@ -163,7 +163,7 @@ add_template(ostream &cc_out, ostream &h_out,
 
     string piece;
     int last_pos = 0;
-    int last_lineno = 1;
+    int last_lineno = -1;
     for (int ind = 0; ind < (int) patterns.size(); ind++)
     {
         pattern_info &pi = patterns[ind];
