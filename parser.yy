@@ -4,6 +4,7 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
 #include "../tokenizer.h"
 #include "../parser.h"
 
@@ -32,6 +33,7 @@ static void validate_schema(SchemaDef *sd);
     int64_t       number_int;
     double        number_double;
     CustomGetUpdList * getupdlist;
+    int line_no;
 }
 
 %token L_CURLY R_CURLY L_PAREN R_PAREN KW_TABLE
@@ -58,6 +60,9 @@ static void validate_schema(SchemaDef *sd);
 %type <word>    TOK_STRING
 %type <words>   WORDLIST
 %type <getupdlist> CUSTOMGET CUSTOMUPD CUSTOMUPDBY CUSTOMDEL CUSTOMS
+%type <line_no>    KW_PROTOTOP  KW_PROTOBOTTOM
+%type <line_no>    KW_HEADERTOP KW_HEADERBOTTOM
+%type <line_no>    KW_SOURCETOP KW_SOURCEBOTTOM
 
 %start SCHEMA_FILE
 
@@ -73,32 +78,46 @@ SCHEMA_FILE
 BLOCK
 	: KW_PROTOTOP     BLOCKBODY KW_CLOSEBLOCK
         {
-            schema_def->prototop = *$2;
+            std::ostringstream os;
+            os << "// NOTE this is PROTOTOP from line " << $1
+               << " of \"" << schema_def->fname << "\"\n";
+            schema_def->prototop = os.str() + *$2;
             delete $2;
         }
 	| KW_PROTOBOTTOM  BLOCKBODY KW_CLOSEBLOCK
         {
-            schema_def->protobottom = *$2;
+            std::ostringstream os;
+            os << "// NOTE this is PROTOBOTTOM from line " << $1
+               << " of \"" << schema_def->fname << "\"\n";
+            schema_def->protobottom = os.str() + *$2;
             delete $2;
         }
 	| KW_SOURCETOP    BLOCKBODY KW_CLOSEBLOCK
         {
-            schema_def->sourcetop = *$2;
+            std::ostringstream os;
+            os << "#line " << $1 << " \"" << schema_def->fname << "\"\n";
+            schema_def->sourcetop = os.str() + *$2;
             delete $2;
         }
 	| KW_SOURCEBOTTOM BLOCKBODY KW_CLOSEBLOCK
         {
-            schema_def->sourcebottom = *$2;
+            std::ostringstream os;
+            os << "#line " << $1 << " \"" << schema_def->fname << "\"\n";
+            schema_def->sourcebottom = os.str() + *$2;
             delete $2;
         }
 	| KW_HEADERTOP    BLOCKBODY KW_CLOSEBLOCK
         {
-            schema_def->headertop = *$2;
+            std::ostringstream os;
+            os << "#line " << $1 << " \"" << schema_def->fname << "\"\n";
+            schema_def->headertop = os.str() + *$2;
             delete $2;
         }
 	| KW_HEADERBOTTOM BLOCKBODY KW_CLOSEBLOCK
         {
-            schema_def->headerbottom = *$2;
+            std::ostringstream os;
+            os << "#line " << $1 << " \"" << schema_def->fname << "\"\n";
+            schema_def->headerbottom = os.str() + *$2;
             delete $2;
         }
 	;
@@ -415,6 +434,7 @@ parse_file(const std::string &fname)
         return NULL;
     }
     schema_def = new SchemaDef;
+    schema_def->fname = fname;
     tokenizer_init(f);
     yyparse();
     fclose(f);

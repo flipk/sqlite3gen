@@ -278,7 +278,13 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     userid = sqlite3_column_int64(pStmt, 1);
-#if 0 // coerce everything to string
+#if 0 // coerce everything to string.
+      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
+      // NOTE: if you INSERT a string to a table that contains
+      //       all decimal digits, SQLITE3 does something very strange:
+      //       it stores it as SQLITE_INT! this means this validation
+      //       fails. but if you call sqlite_column_text, it will convert
+      //       it back to a text string for you.
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_TEXT)
     {
@@ -295,7 +301,13 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         firstname.resize(len);
         memcpy((void*)firstname.c_str(), ptr, len);
     }
-#if 0 // coerce everything to string
+#if 0 // coerce everything to string.
+      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
+      // NOTE: if you INSERT a string to a table that contains
+      //       all decimal digits, SQLITE3 does something very strange:
+      //       it stores it as SQLITE_INT! this means this validation
+      //       fails. but if you call sqlite_column_text, it will convert
+      //       it back to a text string for you.
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_TEXT)
     {
@@ -312,7 +324,13 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         lastname.resize(len);
         memcpy((void*)lastname.c_str(), ptr, len);
     }
-#if 0 // coerce everything to string
+#if 0 // coerce everything to string.
+      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
+      // NOTE: if you INSERT a string to a table that contains
+      //       all decimal digits, SQLITE3 does something very strange:
+      //       it stores it as SQLITE_INT! this means this validation
+      //       fails. but if you call sqlite_column_text, it will convert
+      //       it back to a text string for you.
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_TEXT)
     {
@@ -347,7 +365,13 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     balance = sqlite3_column_double(pStmt, 6);
-#if 0 // coerce everything to string
+#if 0 // coerce everything to string.
+      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
+      // NOTE: if you INSERT a string to a table that contains
+      //       all decimal digits, SQLITE3 does something very strange:
+      //       it stores it as SQLITE_INT! this means this validation
+      //       fails. but if you call sqlite_column_text, it will convert
+      //       it back to a text string for you.
     got = sqlite3_column_type(pStmt, 7);
     if (got != SQLITE_BLOB)
     {
@@ -2046,7 +2070,13 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     bookid = sqlite3_column_int64(pStmt, 1);
-#if 0 // coerce everything to string
+#if 0 // coerce everything to string.
+      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
+      // NOTE: if you INSERT a string to a table that contains
+      //       all decimal digits, SQLITE3 does something very strange:
+      //       it stores it as SQLITE_INT! this means this validation
+      //       fails. but if you call sqlite_column_text, it will convert
+      //       it back to a text string for you.
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_TEXT)
     {
@@ -2063,7 +2093,13 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         title.resize(len);
         memcpy((void*)title.c_str(), ptr, len);
     }
-#if 0 // coerce everything to string
+#if 0 // coerce everything to string.
+      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
+      // NOTE: if you INSERT a string to a table that contains
+      //       all decimal digits, SQLITE3 does something very strange:
+      //       it stores it as SQLITE_INT! this means this validation
+      //       fails. but if you call sqlite_column_text, it will convert
+      //       it back to a text string for you.
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_TEXT)
     {

@@ -16,6 +16,7 @@
 using namespace std;
 
 static string * strvec(const char * w, int len);
+static int line_no;
 
 %}
 
@@ -25,18 +26,18 @@ static string * strvec(const char * w, int len);
 
 <BLOCK>%\}      { BEGIN(INITIAL); return KW_CLOSEBLOCK; }
 <BLOCK>.*       { yylval.word = strvec(yytext, yyleng); return TOK_STRING; }
-<BLOCK>(\r|\n)  { return TOK_NL; }
+<BLOCK>(\r|\n)  { line_no++; return TOK_NL; }
 
-<INITIAL>(\r|\n)         { /* skip nl */ }
-<INITIAL>#.*(\r|\n)+     { /* skip comments */ }
+<INITIAL>(\r|\n)         { line_no++; /* skip nl */ }
+<INITIAL>#.*(\r|\n)      { line_no++; /* skip comments */ }
 <INITIAL>[ \t]+          { /* skip whitespace */ }
 
-%PROTOTOP\{       { BEGIN(BLOCK); return KW_PROTOTOP; }
-%HEADERTOP\{      { BEGIN(BLOCK); return KW_HEADERTOP; }
-%SOURCETOP\{      { BEGIN(BLOCK); return KW_SOURCETOP; }
-%PROTOBOTTOM\{    { BEGIN(BLOCK); return KW_PROTOBOTTOM; }
-%HEADERBOTTOM\{   { BEGIN(BLOCK); return KW_HEADERBOTTOM; }
-%SOURCEBOTTOM\{   { BEGIN(BLOCK); return KW_SOURCEBOTTOM; }
+%PROTOTOP\{       { BEGIN(BLOCK); yylval.line_no = line_no; return KW_PROTOTOP; }
+%HEADERTOP\{      { BEGIN(BLOCK); yylval.line_no = line_no; return KW_HEADERTOP; }
+%SOURCETOP\{      { BEGIN(BLOCK); yylval.line_no = line_no; return KW_SOURCETOP; }
+%PROTOBOTTOM\{    { BEGIN(BLOCK); yylval.line_no = line_no; return KW_PROTOBOTTOM; }
+%HEADERBOTTOM\{   { BEGIN(BLOCK); yylval.line_no = line_no; return KW_HEADERBOTTOM; }
+%SOURCEBOTTOM\{   { BEGIN(BLOCK); yylval.line_no = line_no; return KW_SOURCEBOTTOM; }
 
 \{         { return L_CURLY; }
 \}         { return R_CURLY; }
@@ -92,6 +93,7 @@ void
 tokenizer_init(FILE *in)
 {
     yyin = in;
+    line_no = 1;
 }
 
 // quiet a warning about yyunput defined but not used.

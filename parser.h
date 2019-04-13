@@ -183,6 +183,7 @@ struct TableDef
 
 struct SchemaDef
 {
+    std::string fname;
     std::string package;
     std::string headertop;
     std::string headerbottom;

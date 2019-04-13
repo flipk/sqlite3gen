@@ -12,6 +12,7 @@ syntax = "proto2";
 
 package library;
 
+// NOTE this is PROTOTOP from line 6 of "../sample.schema"
 
 import "sample2.proto";
 // proto top line 2
@@ -84,6 +85,7 @@ message TABLE_checkouts_m
 
 }
 
+// NOTE this is PROTOBOTTOM from line 76 of "../sample.schema"
 
 // proto bottom line 1
 // proto bottom line 2

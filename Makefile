@@ -103,8 +103,8 @@ $(OBJDIR)/sample.cc: $(sql3gen_TARGET) sample.schema
 	$(Q)cd $(OBJDIR) ; ./sql3gen ../sample.schema \
 		sample.cc.tmp sample.h sample.proto
 	$(Q)mv $(OBJDIR)/sample.cc.tmp $(OBJDIR)/sample.cc
-	cp $(OBJDIR)/sample.cc    obj_sample.cc
-	cp $(OBJDIR)/sample.h     obj_sample.h
+	grep -v '^#line' $(OBJDIR)/sample.cc  >  obj_sample.cc
+	grep -v '^#line' $(OBJDIR)/sample.h   >  obj_sample.h
 	cp $(OBJDIR)/sample.proto obj_sample.proto
 
 tokenize:
