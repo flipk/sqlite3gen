@@ -17,7 +17,7 @@ ________ HEADER_TOP
 #include <map>
 #include <sstream>
 #include "sqlite3.h"
-#include "myXml.h"
+#include "tinyxml2.h"
 @@protobuf_header@@
 
 @@headertop_block@@
@@ -62,7 +62,7 @@ protected:
                           const char *format, ...);
 
     typedef bool (SQL_TABLE_@@tablename@@::*xml_decoder_func_t)
-        (const MyXmlNode &node);
+        (const tinyxml2::XMLElement *el);
     typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
     xml_decoder_map_t xml_decoders;
     bool xml_decoders_initialized;
@@ -89,6 +89,9 @@ public:
 
 @@table_field_type_name_decls@@
 @@table_query_method_protos@@
+    // get all subtables
+    void get_subtables(void);
+    void insert_subtables(void);
 @@table_query_like_method_protos@@
 @@table_custom_get_method_protos@@
     bool get_next(void);
@@ -100,8 +103,8 @@ public:
 @@table_custom_upd_method_protos@@
 @@table_custom_del_method_protos@@
 @@table_proto_copy_protos@@
-    void CopyToXmlNode(MyXmlNode &node);
-    bool CopyFromXmlNode(const MyXmlNode &node);
+    void CopyToXml(tinyxml2::XMLElement *el);
+    bool CopyFromXml(const tinyxml2::XMLElement *el);
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
@@ -118,6 +121,8 @@ public:
     static bool init(sqlite3 *pdb, table_version_callback cb);
     static bool table_create(sqlite3 *pdb);
     static void table_drop(sqlite3 *pdb);
+    static void export_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
+    static bool import_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
 };
 
 ________ END
@@ -158,6 +163,8 @@ ________ TABLE_CLASS_table_get_subtable_proto
 // note this assumes foreign key @@foreign_key@@ is populated;
 // returns number of rows fetched.
     int get_subtable_@@fieldname@@(void);
+// true if ok, false if failure inserting (duplicate keys?)
+    bool insert_subtable_@@fieldname@@(void);
 ________ END
 
 ________ TABLE_CLASS_table_query_method_protos_like
@@ -188,7 +195,7 @@ ________ TABLE_CLASS_proto_copy_proto
 ________ END
 
 ________ TABLE_CLASS_xml_decoder_proto
-    bool xml_decoder_@@fieldname@@(const MyXmlNode &node);
+    bool xml_decoder_@@fieldname@@(const tinyxml2::XMLElement *el);
 ________ END
 
 ________ CLASS_ALL_TABELS_DEFN
@@ -202,6 +209,8 @@ public:
                                    void *_arg,
                                    sql_err_function_t _err_func,
                                    void *_err_arg);
+    static void export_xml_all(sqlite3 *pdb, tinyxml2::XMLDocument &doc);
+    static bool import_xml_all(sqlite3 *pdb, tinyxml2::XMLDocument &doc);
 };
 
 }; // namespace @@package@@

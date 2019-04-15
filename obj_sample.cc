@@ -1054,6 +1054,29 @@ int SQL_TABLE_user :: get_subtable_checkouts(void)
     return count;
 }
 
+bool SQL_TABLE_user :: insert_subtable_checkouts(void)
+{
+    for (size_t ind = 0; ind < checkouts.size(); ind++)
+    {
+        SQL_TABLE_checkouts &row = checkouts[ind];
+        row.insert();
+    }
+    return true;
+}
+
+
+void SQL_TABLE_user :: get_subtables(void)
+{
+    get_subtable_checkouts();
+
+}
+
+void SQL_TABLE_user :: insert_subtables(void)
+{
+    insert_subtable_checkouts();
+
+}
+
 bool SQL_TABLE_user :: get_great_balance(double v1)
 {
     int r;
@@ -1566,193 +1589,282 @@ SQL_TABLE_user :: CopyFromProto(
 }
 
 void
-SQL_TABLE_user :: CopyToXmlNode(MyXmlNode &node)
+SQL_TABLE_user :: CopyToXml(tinyxml2::XMLElement *el)
 {
-    node.init();
-    node.name = "user";
+    el->SetValue("user");
+    el->SetAttribute("type", "row");
+    el->SetAttribute("rowid", (int64_t) rowid);
+
     {
-        MyXmlNode &n = node.add_child();
-        n.name = "userid";
-        n.attributes["type"] = "pod";
-        std::ostringstream s; // not guaranteed to have C++11 features.
-        s << userid;
-        n.text = s.str();
-    }
-    {
-        MyXmlNode &n = node.add_child();
-        n.name = "firstname";
-        n.attributes["type"] = "text";
-        n.text = firstname;
-    }
-    {
-        MyXmlNode &n = node.add_child();
-        n.name = "lastname";
-        n.attributes["type"] = "text";
-        n.text = lastname;
-    }
-    {
-        MyXmlNode &n = node.add_child();
-        n.name = "mi";
-        n.attributes["type"] = "text";
-        n.text = mi;
-    }
-    {
-        MyXmlNode &n = node.add_child();
-        n.name = "SSN";
-        n.attributes["type"] = "pod";
-        std::ostringstream s; // not guaranteed to have C++11 features.
-        s << SSN;
-        n.text = s.str();
-    }
-    {
-        MyXmlNode &n = node.add_child();
-        n.name = "balance";
-        n.attributes["type"] = "pod";
-        std::ostringstream s; // not guaranteed to have C++11 features.
-        s << balance;
-        n.text = s.str();
-    }
-    {
-        MyXmlNode &n = node.add_child();
-        n.name = "proto";
-        n.attributes["type"] = "blob";
-        blob_to_hex(n.text, proto);
-    }
-    {
-        MyXmlNode &n = node.add_child();
-        n.name = "test2";
-        n.attributes["type"] = "bool";
-        n.text = test2 ? "true" : "false";
-    }
-    {
-        MyXmlNode &n = node.add_child();
-        n.name = "test3";
-        n.attributes["type"] = "sample::library2::EnumField_t";
-        n.text = sample::library2::EnumField_t_Name(test3);
-    }
-// NOTE this adds a bunch of <checkouts> nodes at the same
-//      level as all the other fields of this row. need to decide
-//      if this is OK or we want a whole subnode for the list.
-    for (size_t ind = 0; ind < checkouts.size(); ind++)
-    {
-        MyXmlNode &n = node.add_child();
-        SQL_TABLE_checkouts &f = checkouts[ind];
-        f.CopyToXmlNode(n);
-        n.attributes["type"] = "subtable";
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("userid");
+        child->SetAttribute("type", "pod");
+        el->InsertEndChild(child);
         std::ostringstream s;
-        s << ind;
-        n.attributes["index"] = s.str();
+        s << userid;
+        tinyxml2::XMLText * v = el->GetDocument()->NewText(s.str().c_str());
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("firstname");
+        child->SetAttribute("type", "text");
+        el->InsertEndChild(child);
+        tinyxml2::XMLText * v =
+            el->GetDocument()->NewText(firstname.c_str());
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("lastname");
+        child->SetAttribute("type", "text");
+        el->InsertEndChild(child);
+        tinyxml2::XMLText * v =
+            el->GetDocument()->NewText(lastname.c_str());
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("mi");
+        child->SetAttribute("type", "text");
+        el->InsertEndChild(child);
+        tinyxml2::XMLText * v =
+            el->GetDocument()->NewText(mi.c_str());
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("SSN");
+        child->SetAttribute("type", "pod");
+        el->InsertEndChild(child);
+        std::ostringstream s;
+        s << SSN;
+        tinyxml2::XMLText * v = el->GetDocument()->NewText(s.str().c_str());
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("balance");
+        child->SetAttribute("type", "pod");
+        el->InsertEndChild(child);
+        std::ostringstream s;
+        s << balance;
+        tinyxml2::XMLText * v = el->GetDocument()->NewText(s.str().c_str());
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("proto");
+        child->SetAttribute("type", "blob");
+        el->InsertEndChild(child);
+        std::string hex;
+        blob_to_hex(hex, proto);
+        tinyxml2::XMLText * v =
+            el->GetDocument()->NewText(hex.c_str());
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("test2");
+        child->SetAttribute("type", "bool");
+        el->InsertEndChild(child);
+        tinyxml2::XMLText * v =
+            el->GetDocument()->NewText(test2 ? "true" : "false");
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("test3");
+        child->SetAttribute("type", "sample::library2::EnumField_t");
+        el->InsertEndChild(child);
+        tinyxml2::XMLText * v =
+            el->GetDocument()->NewText(
+                sample::library2::EnumField_t_Name(test3).c_str());
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("checkouts");
+        child->SetAttribute("type", "subtable");
+        el->InsertEndChild(child);
+        for (size_t ind = 0; ind < checkouts.size(); ind++)
+        {
+            tinyxml2::XMLElement * child2 =
+                el->GetDocument()->NewElement("checkouts");
+            child2->SetAttribute("type", "subtable_row");
+            child2->SetAttribute("index", (int) ind);
+            child->InsertEndChild(child2);
+            SQL_TABLE_checkouts &f = checkouts[ind];
+            f.CopyToXml(child2);
+        }
     }
 
 }
 
 bool
-SQL_TABLE_user :: xml_decoder_userid(const MyXmlNode &node)
+SQL_TABLE_user :: xml_decoder_userid(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        return false;
-    std::istringstream s(node.children[0].text);
-    s >> userid;
-    if (s.fail())
-        return false;
-    return true;
-}
-bool
-SQL_TABLE_user :: xml_decoder_firstname(const MyXmlNode &node)
-{
-    if (node.children.size() == 0)
-        firstname = "";
-    else
-        firstname = node.children[0].text;
-    return true;
-}
-bool
-SQL_TABLE_user :: xml_decoder_lastname(const MyXmlNode &node)
-{
-    if (node.children.size() == 0)
-        lastname = "";
-    else
-        lastname = node.children[0].text;
-    return true;
-}
-bool
-SQL_TABLE_user :: xml_decoder_mi(const MyXmlNode &node)
-{
-    if (node.children.size() == 0)
-        mi = "";
-    else
-        mi = node.children[0].text;
-    return true;
-}
-bool
-SQL_TABLE_user :: xml_decoder_SSN(const MyXmlNode &node)
-{
-    if (node.children.size() == 0)
-        return false;
-    std::istringstream s(node.children[0].text);
-    s >> SSN;
-    if (s.fail())
-        return false;
-    return true;
-}
-bool
-SQL_TABLE_user :: xml_decoder_balance(const MyXmlNode &node)
-{
-    if (node.children.size() == 0)
-        return false;
-    std::istringstream s(node.children[0].text);
-    s >> balance;
-    if (s.fail())
-        return false;
-    return true;
-}
-bool
-SQL_TABLE_user :: xml_decoder_proto(const MyXmlNode &node)
-{
-    if (node.children.size() == 0)
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
     {
-        proto.clear();
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+        {
+            std::istringstream s(v);
+            s >> userid;
+            if (s.fail())
+                return false;
+            return true;
+        }
+    }
+    return false;
+}
+bool
+SQL_TABLE_user :: xml_decoder_firstname(const tinyxml2::XMLElement *el)
+{
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    firstname = "";
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v)
+            firstname = v;
+    }
+    return true;
+}
+bool
+SQL_TABLE_user :: xml_decoder_lastname(const tinyxml2::XMLElement *el)
+{
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    lastname = "";
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v)
+            lastname = v;
+    }
+    return true;
+}
+bool
+SQL_TABLE_user :: xml_decoder_mi(const tinyxml2::XMLElement *el)
+{
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    mi = "";
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v)
+            mi = v;
+    }
+    return true;
+}
+bool
+SQL_TABLE_user :: xml_decoder_SSN(const tinyxml2::XMLElement *el)
+{
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+        {
+            std::istringstream s(v);
+            s >> SSN;
+            if (s.fail())
+                return false;
+            return true;
+        }
+    }
+    return false;
+}
+bool
+SQL_TABLE_user :: xml_decoder_balance(const tinyxml2::XMLElement *el)
+{
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+        {
+            std::istringstream s(v);
+            s >> balance;
+            if (s.fail())
+                return false;
+            return true;
+        }
+    }
+    return false;
+}
+bool
+SQL_TABLE_user :: xml_decoder_proto(const tinyxml2::XMLElement *el)
+{
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+            hex_to_blob(proto, v);
+        else
+            proto = "";
         return true;
     }
-    //else
-    return hex_to_blob(proto, node.children[0].text);
+    return false;
 }
 bool
-SQL_TABLE_user :: xml_decoder_test2(const MyXmlNode &node)
+SQL_TABLE_user :: xml_decoder_test2(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        return false;
-    std::istringstream s(node.children[0].text);
-    std::string s2;
-    s >> s2;
-    if (s2 == "true")
-        test2 = true;
-    else if (s2 == "false")
-        test2 = false;
-    else
-        return false;
-    return true;
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+        {
+            if (strcmp(v, "true") == 0)
+                test2 = true;
+            else if (strcmp(v, "false") == 0)
+                test2 = false;
+            else
+                return false;
+        }
+        return true;
+    }
+    return false;
 }
 bool
-SQL_TABLE_user :: xml_decoder_test3(const MyXmlNode &node)
+SQL_TABLE_user :: xml_decoder_test3(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        return false;
-    return sample::library2::EnumField_t_Parse(node.children[0].text, &test3);
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+            return sample::library2::EnumField_t_Parse(v, &test3);
+        return true;
+    }
+    return false;
 }
 bool
-SQL_TABLE_user :: xml_decoder_checkouts(const MyXmlNode &node)
+SQL_TABLE_user :: xml_decoder_checkouts(const tinyxml2::XMLElement *el)
 {
     SQL_TABLE_checkouts  row(pdb);
-    if (row.CopyFromXmlNode(node) == false)
+
+    if (strcmp(el->Value(), "checkouts") != 0)
         return false;
-    checkouts.push_back(row);
+
+    const tinyxml2::XMLElement *child = el->FirstChildElement();
+    while (child)
+    {
+        if (row.CopyFromXml(child) == false)
+            return false;
+        checkouts.push_back(row);
+        child = child->NextSiblingElement();
+    }
+
     return true;
 }
 
 
 bool
-SQL_TABLE_user :: CopyFromXmlNode(const MyXmlNode &node)
+SQL_TABLE_user :: CopyFromXml(const tinyxml2::XMLElement *el)
 {
     init();
     if (xml_decoders_initialized == false)
@@ -1780,30 +1892,33 @@ SQL_TABLE_user :: CopyFromXmlNode(const MyXmlNode &node)
 
         xml_decoders_initialized = true;
     }
-    if (node.name != "user")
+    if (strcmp(el->Value(), "user") != 0)
     {
         if (err_log_func)
         {
             std::ostringstream err;
             err << "SQL_TABLE_user :: "
-                << "CopyFromXmlNode : node name is " << node.name
+                << "CopyFromXml : node name is " << el->Value()
                 << " not 'user'!\n";
             err_log_func(err_log_arg, err.str().c_str());
         }
         return false;
     }
-    for (size_t ind = 0; ind < node.children.size(); ind++)
+    const tinyxml2::XMLElement * child = el->FirstChildElement();
+    while (child)
     {
-        const MyXmlNode &n = node.children[ind];
-        if (n.name.size() == 0)
-            continue;
-        xml_decoder_map_t::iterator it = xml_decoders.find(n.name);
-        if (it != xml_decoders.end())
+        const char * v = child->Value();
+        if (v && v[0] != 0)
         {
-            xml_decoder_func_t f = it->second;
-            if ((this->*f)(n) == false)
-                return false;
+            xml_decoder_map_t::iterator it = xml_decoders.find(v);
+            if (it != xml_decoders.end())
+            {
+                xml_decoder_func_t f = it->second;
+                if ((this->*f)(child) == false)
+                    return false;
+            }
         }
+        child = child->NextSiblingElement();
     }
     return true;
 }
@@ -1912,6 +2027,42 @@ void SQL_TABLE_user :: table_drop(sqlite3 *pdb)
                  NULL, NULL, NULL);
 }
 
+//static
+void SQL_TABLE_user :: export_xml(sqlite3 *pdb,
+                                           tinyxml2::XMLElement *el)
+{
+    SQL_TABLE_user row(pdb);
+
+    bool ok = row.get_all();
+    while (ok)
+    {
+        row.get_subtables();
+        tinyxml2::XMLElement * row_el =
+            el->GetDocument()->NewElement("user");
+        row.CopyToXml(row_el);
+        el->InsertEndChild(row_el);
+        ok = row.get_next();
+    }
+}
+
+//static
+bool SQL_TABLE_user :: import_xml(sqlite3 *pdb,
+                                           tinyxml2::XMLElement *el)
+{
+    tinyxml2::XMLElement * row_el;
+    SQL_TABLE_user  row(pdb);
+
+    for (row_el = el->FirstChildElement(); row_el;
+         row_el = row_el->NextSiblingElement())
+    {
+        row.CopyFromXml(row_el);
+        row.insert();
+        row.insert_subtables();
+    }
+
+    return true;
+}
+
 
 //static
 sql_log_function_t SQL_TABLE_book :: log_upd_func = &dflt_log_upd;
@@ -1942,7 +2093,6 @@ SQL_TABLE_book :: SQL_TABLE_book(
     isbn = other.isbn;
     price = other.price;
     quantity = other.quantity;
-    checkouts = other.checkouts;
 
 }
 
@@ -2019,7 +2169,6 @@ void SQL_TABLE_book :: init(void)
     isbn = "";
     price = 0;
     quantity = 0;
-    checkouts.clear();
 
     previous_get = NULL;
 }
@@ -2598,25 +2747,16 @@ bool SQL_TABLE_book :: get_all(void)
     return ret;
 }
 
-int SQL_TABLE_book :: get_subtable_checkouts(void)
+
+
+void SQL_TABLE_book :: get_subtables(void)
 {
-    SQL_TABLE_checkouts  row(pdb);
-    bool status;
-    int count = 0;
 
-    checkouts.clear();
-    status = row.get_by_bookid2(bookid);
-    while (status)
-    {
-        // note this uses the special table class
-        // copy constructor that only copies the data,
-        // not the prepared statements.
-        checkouts.push_back(row);
-        count++;
-        status = row.get_next();
-    }
+}
 
-    return count;
+void SQL_TABLE_book :: insert_subtables(void)
+{
+
 }
 
 bool SQL_TABLE_book :: get_out_of_stock(void)
@@ -2782,9 +2922,6 @@ SQL_TABLE_book :: CopyToProto(
     msg.set_isbn(isbn);
     msg.set_price(price);
     msg.set_quantity(quantity);
-    msg.clear_checkouts();
-    for (size_t ind = 0; ind < checkouts.size(); ind++)
-        checkouts[ind].CopyToProto(*msg.add_checkouts());
 
 }
 
@@ -2834,137 +2971,151 @@ SQL_TABLE_book :: CopyFromProto(
     else
         quantity = 0;
 
-    checkouts.clear();
-    checkouts.resize(msg.checkouts_size());
-    for (int ind = 0; ind < msg.checkouts_size(); ind++)
-    {
-        checkouts[ind].set_db(pdb);
-        checkouts[ind].CopyFromProto(msg.checkouts(ind));
-    }
 
 }
 
 void
-SQL_TABLE_book :: CopyToXmlNode(MyXmlNode &node)
+SQL_TABLE_book :: CopyToXml(tinyxml2::XMLElement *el)
 {
-    node.init();
-    node.name = "book";
+    el->SetValue("book");
+    el->SetAttribute("type", "row");
+    el->SetAttribute("rowid", (int64_t) rowid);
+
     {
-        MyXmlNode &n = node.add_child();
-        n.name = "bookid";
-        n.attributes["type"] = "pod";
-        std::ostringstream s; // not guaranteed to have C++11 features.
-        s << bookid;
-        n.text = s.str();
-    }
-    {
-        MyXmlNode &n = node.add_child();
-        n.name = "title";
-        n.attributes["type"] = "text";
-        n.text = title;
-    }
-    {
-        MyXmlNode &n = node.add_child();
-        n.name = "isbn";
-        n.attributes["type"] = "text";
-        n.text = isbn;
-    }
-    {
-        MyXmlNode &n = node.add_child();
-        n.name = "price";
-        n.attributes["type"] = "pod";
-        std::ostringstream s; // not guaranteed to have C++11 features.
-        s << price;
-        n.text = s.str();
-    }
-    {
-        MyXmlNode &n = node.add_child();
-        n.name = "quantity";
-        n.attributes["type"] = "pod";
-        std::ostringstream s; // not guaranteed to have C++11 features.
-        s << quantity;
-        n.text = s.str();
-    }
-// NOTE this adds a bunch of <checkouts> nodes at the same
-//      level as all the other fields of this row. need to decide
-//      if this is OK or we want a whole subnode for the list.
-    for (size_t ind = 0; ind < checkouts.size(); ind++)
-    {
-        MyXmlNode &n = node.add_child();
-        SQL_TABLE_checkouts &f = checkouts[ind];
-        f.CopyToXmlNode(n);
-        n.attributes["type"] = "subtable";
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("bookid");
+        child->SetAttribute("type", "pod");
+        el->InsertEndChild(child);
         std::ostringstream s;
-        s << ind;
-        n.attributes["index"] = s.str();
+        s << bookid;
+        tinyxml2::XMLText * v = el->GetDocument()->NewText(s.str().c_str());
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("title");
+        child->SetAttribute("type", "text");
+        el->InsertEndChild(child);
+        tinyxml2::XMLText * v =
+            el->GetDocument()->NewText(title.c_str());
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("isbn");
+        child->SetAttribute("type", "text");
+        el->InsertEndChild(child);
+        tinyxml2::XMLText * v =
+            el->GetDocument()->NewText(isbn.c_str());
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("price");
+        child->SetAttribute("type", "pod");
+        el->InsertEndChild(child);
+        std::ostringstream s;
+        s << price;
+        tinyxml2::XMLText * v = el->GetDocument()->NewText(s.str().c_str());
+        child->InsertEndChild(v);
+    }
+    {
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("quantity");
+        child->SetAttribute("type", "pod");
+        el->InsertEndChild(child);
+        std::ostringstream s;
+        s << quantity;
+        tinyxml2::XMLText * v = el->GetDocument()->NewText(s.str().c_str());
+        child->InsertEndChild(v);
     }
 
 }
 
 bool
-SQL_TABLE_book :: xml_decoder_bookid(const MyXmlNode &node)
+SQL_TABLE_book :: xml_decoder_bookid(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        return false;
-    std::istringstream s(node.children[0].text);
-    s >> bookid;
-    if (s.fail())
-        return false;
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+        {
+            std::istringstream s(v);
+            s >> bookid;
+            if (s.fail())
+                return false;
+            return true;
+        }
+    }
+    return false;
+}
+bool
+SQL_TABLE_book :: xml_decoder_title(const tinyxml2::XMLElement *el)
+{
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    title = "";
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v)
+            title = v;
+    }
     return true;
 }
 bool
-SQL_TABLE_book :: xml_decoder_title(const MyXmlNode &node)
+SQL_TABLE_book :: xml_decoder_isbn(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        title = "";
-    else
-        title = node.children[0].text;
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    isbn = "";
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v)
+            isbn = v;
+    }
     return true;
 }
 bool
-SQL_TABLE_book :: xml_decoder_isbn(const MyXmlNode &node)
+SQL_TABLE_book :: xml_decoder_price(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        isbn = "";
-    else
-        isbn = node.children[0].text;
-    return true;
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+        {
+            std::istringstream s(v);
+            s >> price;
+            if (s.fail())
+                return false;
+            return true;
+        }
+    }
+    return false;
 }
 bool
-SQL_TABLE_book :: xml_decoder_price(const MyXmlNode &node)
+SQL_TABLE_book :: xml_decoder_quantity(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        return false;
-    std::istringstream s(node.children[0].text);
-    s >> price;
-    if (s.fail())
-        return false;
-    return true;
-}
-bool
-SQL_TABLE_book :: xml_decoder_quantity(const MyXmlNode &node)
-{
-    if (node.children.size() == 0)
-        return false;
-    std::istringstream s(node.children[0].text);
-    s >> quantity;
-    if (s.fail())
-        return false;
-    return true;
-}
-bool
-SQL_TABLE_book :: xml_decoder_checkouts(const MyXmlNode &node)
-{
-    SQL_TABLE_checkouts  row(pdb);
-    if (row.CopyFromXmlNode(node) == false)
-        return false;
-    checkouts.push_back(row);
-    return true;
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+        {
+            std::istringstream s(v);
+            s >> quantity;
+            if (s.fail())
+                return false;
+            return true;
+        }
+    }
+    return false;
 }
 
 
 bool
-SQL_TABLE_book :: CopyFromXmlNode(const MyXmlNode &node)
+SQL_TABLE_book :: CopyFromXml(const tinyxml2::XMLElement *el)
 {
     init();
     if (xml_decoders_initialized == false)
@@ -2979,35 +3130,36 @@ SQL_TABLE_book :: CopyFromXmlNode(const MyXmlNode &node)
             &SQL_TABLE_book::xml_decoder_price;
         xml_decoders["quantity"] =
             &SQL_TABLE_book::xml_decoder_quantity;
-        xml_decoders["checkouts"] =
-            &SQL_TABLE_book::xml_decoder_checkouts;
 
         xml_decoders_initialized = true;
     }
-    if (node.name != "book")
+    if (strcmp(el->Value(), "book") != 0)
     {
         if (err_log_func)
         {
             std::ostringstream err;
             err << "SQL_TABLE_book :: "
-                << "CopyFromXmlNode : node name is " << node.name
+                << "CopyFromXml : node name is " << el->Value()
                 << " not 'book'!\n";
             err_log_func(err_log_arg, err.str().c_str());
         }
         return false;
     }
-    for (size_t ind = 0; ind < node.children.size(); ind++)
+    const tinyxml2::XMLElement * child = el->FirstChildElement();
+    while (child)
     {
-        const MyXmlNode &n = node.children[ind];
-        if (n.name.size() == 0)
-            continue;
-        xml_decoder_map_t::iterator it = xml_decoders.find(n.name);
-        if (it != xml_decoders.end())
+        const char * v = child->Value();
+        if (v && v[0] != 0)
         {
-            xml_decoder_func_t f = it->second;
-            if ((this->*f)(n) == false)
-                return false;
+            xml_decoder_map_t::iterator it = xml_decoders.find(v);
+            if (it != xml_decoders.end())
+            {
+                xml_decoder_func_t f = it->second;
+                if ((this->*f)(child) == false)
+                    return false;
+            }
         }
+        child = child->NextSiblingElement();
     }
     return true;
 }
@@ -3114,6 +3266,42 @@ void SQL_TABLE_book :: table_drop(sqlite3 *pdb)
     sqlite3_exec(pdb, "delete from tables "
                  "where name = \"user\"",
                  NULL, NULL, NULL);
+}
+
+//static
+void SQL_TABLE_book :: export_xml(sqlite3 *pdb,
+                                           tinyxml2::XMLElement *el)
+{
+    SQL_TABLE_book row(pdb);
+
+    bool ok = row.get_all();
+    while (ok)
+    {
+        row.get_subtables();
+        tinyxml2::XMLElement * row_el =
+            el->GetDocument()->NewElement("book");
+        row.CopyToXml(row_el);
+        el->InsertEndChild(row_el);
+        ok = row.get_next();
+    }
+}
+
+//static
+bool SQL_TABLE_book :: import_xml(sqlite3 *pdb,
+                                           tinyxml2::XMLElement *el)
+{
+    tinyxml2::XMLElement * row_el;
+    SQL_TABLE_book  row(pdb);
+
+    for (row_el = el->FirstChildElement(); row_el;
+         row_el = row_el->NextSiblingElement())
+    {
+        row.CopyFromXml(row_el);
+        row.insert();
+        row.insert_subtables();
+    }
+
+    return true;
 }
 
 
@@ -3657,6 +3845,17 @@ bool SQL_TABLE_checkouts :: get_all(void)
 }
 
 
+
+void SQL_TABLE_checkouts :: get_subtables(void)
+{
+
+}
+
+void SQL_TABLE_checkouts :: insert_subtables(void)
+{
+
+}
+
 bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
 {
     int r;
@@ -3762,74 +3961,103 @@ SQL_TABLE_checkouts :: CopyFromProto(
 }
 
 void
-SQL_TABLE_checkouts :: CopyToXmlNode(MyXmlNode &node)
+SQL_TABLE_checkouts :: CopyToXml(tinyxml2::XMLElement *el)
 {
-    node.init();
-    node.name = "checkouts";
+    el->SetValue("checkouts");
+    el->SetAttribute("type", "row");
+    el->SetAttribute("rowid", (int64_t) rowid);
+
     {
-        MyXmlNode &n = node.add_child();
-        n.name = "bookid2";
-        n.attributes["type"] = "pod";
-        std::ostringstream s; // not guaranteed to have C++11 features.
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("bookid2");
+        child->SetAttribute("type", "pod");
+        el->InsertEndChild(child);
+        std::ostringstream s;
         s << bookid2;
-        n.text = s.str();
+        tinyxml2::XMLText * v = el->GetDocument()->NewText(s.str().c_str());
+        child->InsertEndChild(v);
     }
     {
-        MyXmlNode &n = node.add_child();
-        n.name = "userid2";
-        n.attributes["type"] = "pod";
-        std::ostringstream s; // not guaranteed to have C++11 features.
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("userid2");
+        child->SetAttribute("type", "pod");
+        el->InsertEndChild(child);
+        std::ostringstream s;
         s << userid2;
-        n.text = s.str();
+        tinyxml2::XMLText * v = el->GetDocument()->NewText(s.str().c_str());
+        child->InsertEndChild(v);
     }
     {
-        MyXmlNode &n = node.add_child();
-        n.name = "duedate";
-        n.attributes["type"] = "pod";
-        std::ostringstream s; // not guaranteed to have C++11 features.
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("duedate");
+        child->SetAttribute("type", "pod");
+        el->InsertEndChild(child);
+        std::ostringstream s;
         s << duedate;
-        n.text = s.str();
+        tinyxml2::XMLText * v = el->GetDocument()->NewText(s.str().c_str());
+        child->InsertEndChild(v);
     }
 
 }
 
 bool
-SQL_TABLE_checkouts :: xml_decoder_bookid2(const MyXmlNode &node)
+SQL_TABLE_checkouts :: xml_decoder_bookid2(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        return false;
-    std::istringstream s(node.children[0].text);
-    s >> bookid2;
-    if (s.fail())
-        return false;
-    return true;
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+        {
+            std::istringstream s(v);
+            s >> bookid2;
+            if (s.fail())
+                return false;
+            return true;
+        }
+    }
+    return false;
 }
 bool
-SQL_TABLE_checkouts :: xml_decoder_userid2(const MyXmlNode &node)
+SQL_TABLE_checkouts :: xml_decoder_userid2(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        return false;
-    std::istringstream s(node.children[0].text);
-    s >> userid2;
-    if (s.fail())
-        return false;
-    return true;
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+        {
+            std::istringstream s(v);
+            s >> userid2;
+            if (s.fail())
+                return false;
+            return true;
+        }
+    }
+    return false;
 }
 bool
-SQL_TABLE_checkouts :: xml_decoder_duedate(const MyXmlNode &node)
+SQL_TABLE_checkouts :: xml_decoder_duedate(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        return false;
-    std::istringstream s(node.children[0].text);
-    s >> duedate;
-    if (s.fail())
-        return false;
-    return true;
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+        {
+            std::istringstream s(v);
+            s >> duedate;
+            if (s.fail())
+                return false;
+            return true;
+        }
+    }
+    return false;
 }
 
 
 bool
-SQL_TABLE_checkouts :: CopyFromXmlNode(const MyXmlNode &node)
+SQL_TABLE_checkouts :: CopyFromXml(const tinyxml2::XMLElement *el)
 {
     init();
     if (xml_decoders_initialized == false)
@@ -3843,30 +4071,33 @@ SQL_TABLE_checkouts :: CopyFromXmlNode(const MyXmlNode &node)
 
         xml_decoders_initialized = true;
     }
-    if (node.name != "checkouts")
+    if (strcmp(el->Value(), "checkouts") != 0)
     {
         if (err_log_func)
         {
             std::ostringstream err;
             err << "SQL_TABLE_checkouts :: "
-                << "CopyFromXmlNode : node name is " << node.name
+                << "CopyFromXml : node name is " << el->Value()
                 << " not 'checkouts'!\n";
             err_log_func(err_log_arg, err.str().c_str());
         }
         return false;
     }
-    for (size_t ind = 0; ind < node.children.size(); ind++)
+    const tinyxml2::XMLElement * child = el->FirstChildElement();
+    while (child)
     {
-        const MyXmlNode &n = node.children[ind];
-        if (n.name.size() == 0)
-            continue;
-        xml_decoder_map_t::iterator it = xml_decoders.find(n.name);
-        if (it != xml_decoders.end())
+        const char * v = child->Value();
+        if (v && v[0] != 0)
         {
-            xml_decoder_func_t f = it->second;
-            if ((this->*f)(n) == false)
-                return false;
+            xml_decoder_map_t::iterator it = xml_decoders.find(v);
+            if (it != xml_decoders.end())
+            {
+                xml_decoder_func_t f = it->second;
+                if ((this->*f)(child) == false)
+                    return false;
+            }
         }
+        child = child->NextSiblingElement();
     }
     return true;
 }
@@ -3975,6 +4206,42 @@ void SQL_TABLE_checkouts :: table_drop(sqlite3 *pdb)
                  NULL, NULL, NULL);
 }
 
+//static
+void SQL_TABLE_checkouts :: export_xml(sqlite3 *pdb,
+                                           tinyxml2::XMLElement *el)
+{
+    SQL_TABLE_checkouts row(pdb);
+
+    bool ok = row.get_all();
+    while (ok)
+    {
+        row.get_subtables();
+        tinyxml2::XMLElement * row_el =
+            el->GetDocument()->NewElement("checkouts");
+        row.CopyToXml(row_el);
+        el->InsertEndChild(row_el);
+        ok = row.get_next();
+    }
+}
+
+//static
+bool SQL_TABLE_checkouts :: import_xml(sqlite3 *pdb,
+                                           tinyxml2::XMLElement *el)
+{
+    tinyxml2::XMLElement * row_el;
+    SQL_TABLE_checkouts  row(pdb);
+
+    for (row_el = el->FirstChildElement(); row_el;
+         row_el = row_el->NextSiblingElement())
+    {
+        row.CopyFromXml(row_el);
+        row.insert();
+        row.insert_subtables();
+    }
+
+    return true;
+}
+
 
 bool SQL_TABLE_ALL_TABLES :: init_all(sqlite3 *pdb, table_version_callback cb)
 {
@@ -4037,6 +4304,98 @@ void SQL_TABLE_ALL_TABLES :: register_log_funcs(
     SQL_TABLE_checkouts::register_log_funcs(
         _upd_func, _get_func, _arg, _err_func, _err_arg);
 
+}
+
+//static
+void SQL_TABLE_ALL_TABLES :: export_xml_all(sqlite3 *pdb,
+                                            tinyxml2::XMLDocument &doc)
+{
+    doc.InsertEndChild(doc.NewDeclaration());
+    tinyxml2::XMLElement * root = doc.NewElement("library");
+    tinyxml2::XMLElement * tab = NULL;
+    doc.InsertEndChild(root);
+    root->SetAttribute("schema_time", "2019-0414-220421");
+    struct tm export_time;
+    time_t now = time(NULL);
+    localtime_r(&now, &export_time);
+    char export_time_str[100];
+    strftime(export_time_str, 100, "%Y-%m%d-%H%M%S", &export_time);
+    root->SetAttribute("export_time", export_time_str);
+    if (/*is_subtable*/ false)
+    {
+        tinyxml2::XMLComment * c = doc.NewComment(
+            "table user is a subtable of another table");
+        root->InsertEndChild(c);
+    }
+    else
+    {
+        tab = doc.NewElement("user");
+        tab->SetAttribute("type", "table");
+        tab->SetAttribute("version", 19);
+        SQL_TABLE_user :: export_xml(pdb, tab);
+        root->InsertEndChild(tab);
+    }
+    if (/*is_subtable*/ false)
+    {
+        tinyxml2::XMLComment * c = doc.NewComment(
+            "table book is a subtable of another table");
+        root->InsertEndChild(c);
+    }
+    else
+    {
+        tab = doc.NewElement("book");
+        tab->SetAttribute("type", "table");
+        tab->SetAttribute("version", 1);
+        SQL_TABLE_book :: export_xml(pdb, tab);
+        root->InsertEndChild(tab);
+    }
+    if (/*is_subtable*/ true)
+    {
+        tinyxml2::XMLComment * c = doc.NewComment(
+            "table checkouts is a subtable of another table");
+        root->InsertEndChild(c);
+    }
+    else
+    {
+        tab = doc.NewElement("checkouts");
+        tab->SetAttribute("type", "table");
+        tab->SetAttribute("version", 1);
+        SQL_TABLE_checkouts :: export_xml(pdb, tab);
+        root->InsertEndChild(tab);
+    }
+
+}
+
+//static
+bool SQL_TABLE_ALL_TABLES :: import_xml_all(sqlite3 *pdb,
+                                            tinyxml2::XMLDocument &doc)
+{
+    tinyxml2::XMLElement * root = doc.RootElement();
+    if (strcmp(root->Value(), "library") != 0)
+    {
+        fprintf(stderr, "ERROR: SQL_TABLE_ALL_TABLES :: import_xml_all : "
+                "root element '%s' does not match package '%s'\n",
+                root->Value(), "library");
+        return false;
+    }
+    tinyxml2::XMLElement * table;
+    for (table = root->FirstChildElement(); table;
+         table = table->NextSiblingElement())
+    {
+        const char * table_name = table->Value();
+    if (strcmp(table_name, "user") == 0)
+    {
+        if (SQL_TABLE_user::import_xml(pdb,table) == false)
+            return false;
+    }
+    if (strcmp(table_name, "book") == 0)
+    {
+        if (SQL_TABLE_book::import_xml(pdb,table) == false)
+            return false;
+    }
+
+    }
+    return true;
 }
 
 }; // namespace library

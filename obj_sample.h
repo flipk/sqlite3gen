@@ -14,7 +14,7 @@
 #include <map>
 #include <sstream>
 #include "sqlite3.h"
-#include "myXml.h"
+#include "tinyxml2.h"
 #include "sample.pb.h"
 
 
@@ -75,21 +75,21 @@ protected:
                           const char *format, ...);
 
     typedef bool (SQL_TABLE_user::*xml_decoder_func_t)
-        (const MyXmlNode &node);
+        (const tinyxml2::XMLElement *el);
     typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
     xml_decoder_map_t xml_decoders;
     bool xml_decoders_initialized;
 
-    bool xml_decoder_userid(const MyXmlNode &node);
-    bool xml_decoder_firstname(const MyXmlNode &node);
-    bool xml_decoder_lastname(const MyXmlNode &node);
-    bool xml_decoder_mi(const MyXmlNode &node);
-    bool xml_decoder_SSN(const MyXmlNode &node);
-    bool xml_decoder_balance(const MyXmlNode &node);
-    bool xml_decoder_proto(const MyXmlNode &node);
-    bool xml_decoder_test2(const MyXmlNode &node);
-    bool xml_decoder_test3(const MyXmlNode &node);
-    bool xml_decoder_checkouts(const MyXmlNode &node);
+    bool xml_decoder_userid(const tinyxml2::XMLElement *el);
+    bool xml_decoder_firstname(const tinyxml2::XMLElement *el);
+    bool xml_decoder_lastname(const tinyxml2::XMLElement *el);
+    bool xml_decoder_mi(const tinyxml2::XMLElement *el);
+    bool xml_decoder_SSN(const tinyxml2::XMLElement *el);
+    bool xml_decoder_balance(const tinyxml2::XMLElement *el);
+    bool xml_decoder_proto(const tinyxml2::XMLElement *el);
+    bool xml_decoder_test2(const tinyxml2::XMLElement *el);
+    bool xml_decoder_test3(const tinyxml2::XMLElement *el);
+    bool xml_decoder_checkouts(const tinyxml2::XMLElement *el);
 
 
 public:
@@ -129,7 +129,12 @@ public:
 // note this assumes foreign key userid2 is populated;
 // returns number of rows fetched.
     int get_subtable_checkouts(void);
+// true if ok, false if failure inserting (duplicate keys?)
+    bool insert_subtable_checkouts(void);
 
+    // get all subtables
+    void get_subtables(void);
+    void insert_subtables(void);
     bool get_by_lastname_like(const std::string &patt);
 
 // WHERE balance > ?
@@ -158,8 +163,8 @@ public:
     void CopyToProto(library::TABLE_user_m &msg);
     void CopyFromProto(const library::TABLE_user_m &msg);
 
-    void CopyToXmlNode(MyXmlNode &node);
-    bool CopyFromXmlNode(const MyXmlNode &node);
+    void CopyToXml(tinyxml2::XMLElement *el);
+    bool CopyFromXml(const tinyxml2::XMLElement *el);
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
@@ -176,6 +181,8 @@ public:
     static bool init(sqlite3 *pdb, table_version_callback cb);
     static bool table_create(sqlite3 *pdb);
     static void table_drop(sqlite3 *pdb);
+    static void export_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
+    static bool import_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
 };
 
 
@@ -210,17 +217,16 @@ protected:
                           const char *format, ...);
 
     typedef bool (SQL_TABLE_book::*xml_decoder_func_t)
-        (const MyXmlNode &node);
+        (const tinyxml2::XMLElement *el);
     typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
     xml_decoder_map_t xml_decoders;
     bool xml_decoders_initialized;
 
-    bool xml_decoder_bookid(const MyXmlNode &node);
-    bool xml_decoder_title(const MyXmlNode &node);
-    bool xml_decoder_isbn(const MyXmlNode &node);
-    bool xml_decoder_price(const MyXmlNode &node);
-    bool xml_decoder_quantity(const MyXmlNode &node);
-    bool xml_decoder_checkouts(const MyXmlNode &node);
+    bool xml_decoder_bookid(const tinyxml2::XMLElement *el);
+    bool xml_decoder_title(const tinyxml2::XMLElement *el);
+    bool xml_decoder_isbn(const tinyxml2::XMLElement *el);
+    bool xml_decoder_price(const tinyxml2::XMLElement *el);
+    bool xml_decoder_quantity(const tinyxml2::XMLElement *el);
 
 
 public:
@@ -246,15 +252,13 @@ public:
     std::string isbn;
     double price;
     int32_t quantity;
-    // NOTE this is only populated by get_subtable_checkouts()
-    std::vector<SQL_TABLE_checkouts> checkouts;
 
     bool get_by_bookid(int64_t v);
     bool get_by_isbn(const std::string & v);
-// note this assumes foreign key bookid2 is populated;
-// returns number of rows fetched.
-    int get_subtable_checkouts(void);
 
+    // get all subtables
+    void get_subtables(void);
+    void insert_subtables(void);
     bool get_by_title_like(const std::string &patt);
 
 // WHERE quantity == 0
@@ -275,8 +279,8 @@ public:
     void CopyToProto(library::TABLE_book_m &msg);
     void CopyFromProto(const library::TABLE_book_m &msg);
 
-    void CopyToXmlNode(MyXmlNode &node);
-    bool CopyFromXmlNode(const MyXmlNode &node);
+    void CopyToXml(tinyxml2::XMLElement *el);
+    bool CopyFromXml(const tinyxml2::XMLElement *el);
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
@@ -293,6 +297,8 @@ public:
     static bool init(sqlite3 *pdb, table_version_callback cb);
     static bool table_create(sqlite3 *pdb);
     static void table_drop(sqlite3 *pdb);
+    static void export_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
+    static bool import_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
 };
 
 
@@ -324,14 +330,14 @@ protected:
                           const char *format, ...);
 
     typedef bool (SQL_TABLE_checkouts::*xml_decoder_func_t)
-        (const MyXmlNode &node);
+        (const tinyxml2::XMLElement *el);
     typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
     xml_decoder_map_t xml_decoders;
     bool xml_decoders_initialized;
 
-    bool xml_decoder_bookid2(const MyXmlNode &node);
-    bool xml_decoder_userid2(const MyXmlNode &node);
-    bool xml_decoder_duedate(const MyXmlNode &node);
+    bool xml_decoder_bookid2(const tinyxml2::XMLElement *el);
+    bool xml_decoder_userid2(const tinyxml2::XMLElement *el);
+    bool xml_decoder_duedate(const tinyxml2::XMLElement *el);
 
 
 public:
@@ -359,6 +365,9 @@ public:
     bool get_by_bookid2(int64_t v);
     bool get_by_userid2(int64_t v);
 
+    // get all subtables
+    void get_subtables(void);
+    void insert_subtables(void);
 
 // WHERE duedate < ?
     bool get_due_now(int64_t v1);
@@ -376,8 +385,8 @@ public:
     void CopyToProto(library::TABLE_checkouts_m &msg);
     void CopyFromProto(const library::TABLE_checkouts_m &msg);
 
-    void CopyToXmlNode(MyXmlNode &node);
-    bool CopyFromXmlNode(const MyXmlNode &node);
+    void CopyToXml(tinyxml2::XMLElement *el);
+    bool CopyFromXml(const tinyxml2::XMLElement *el);
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
@@ -394,6 +403,8 @@ public:
     static bool init(sqlite3 *pdb, table_version_callback cb);
     static bool table_create(sqlite3 *pdb);
     static void table_drop(sqlite3 *pdb);
+    static void export_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
+    static bool import_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
 };
 
 
@@ -406,6 +417,8 @@ public:
                                    void *_arg,
                                    sql_err_function_t _err_func,
                                    void *_err_arg);
+    static void export_xml_all(sqlite3 *pdb, tinyxml2::XMLDocument &doc);
+    static bool import_xml_all(sqlite3 *pdb, tinyxml2::XMLDocument &doc);
 };
 
 }; // namespace library

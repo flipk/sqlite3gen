@@ -39,6 +39,8 @@ void emit_source(const std::string &fname,
     ostringstream create_all_tables;
     ostringstream drop_all_tables;
     ostringstream register_all_logfuncs;
+    ostringstream table_export_all;
+    ostringstream table_import_all;
 
     for (td = schema->tables; td; td = td->next)
     {
@@ -76,6 +78,8 @@ void emit_source(const std::string &fname,
         ostringstream index_creation;
         ostringstream get_subtable_implementations;
         ostringstream field_copies;
+        ostringstream get_all_subtables;
+        ostringstream insert_all_subtables;
 
         const FieldDef * fd;
         const CustomGetUpdList * cust;
@@ -164,6 +168,10 @@ void emit_source(const std::string &fname,
             case TYPE_SUBTABLE:
                 initial_value << ".clear();\n";
                 output_TABLE_copy_subtable_to_xml(xml_copy_to, patterns);
+                output_TABLE_CLASS_get_all_subtables_one(
+                    get_all_subtables, patterns);
+                output_TABLE_CLASS_insert_all_subtables_one(
+                    insert_all_subtables, patterns);
                 break;
             }
             initial_values << initial_value.str();
@@ -713,6 +721,18 @@ void emit_source(const std::string &fname,
         SET_PATTERN(index_creation);
         SET_PATTERN(get_subtable_implementations);
         SET_PATTERN(field_copies);
+        SET_PATTERN(get_all_subtables);
+        SET_PATTERN(insert_all_subtables);
+
+        patterns["is_subtable"] = td->is_subtable ? "true" : "false";
+
+        output_CLASS_ALL_TABLES_export_a_table(
+            table_export_all, patterns);
+        if (td->is_subtable == false)
+        {
+            output_CLASS_ALL_TABLES_import_a_table(
+                table_import_all, patterns);
+        }
 
         output_TABLE_CLASS_IMPL(out, patterns);
 
@@ -722,9 +742,12 @@ void emit_source(const std::string &fname,
             register_all_logfuncs, patterns);
     }
 
+    patterns["schema_time"] = schema->schema_time;
     SET_PATTERN(create_all_tables);
     SET_PATTERN(drop_all_tables);
     SET_PATTERN(register_all_logfuncs);
+    SET_PATTERN(table_export_all);
+    SET_PATTERN(table_import_all);
 
     output_CLASS_ALL_TABELS_IMPL(out, patterns);
 }

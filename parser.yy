@@ -513,7 +513,8 @@ print_field(FieldDef *fd)
 void
 print_table(TableDef *td)
 {
-    printf("TABLE %s\n", td->name.c_str());
+    printf("TABLE %s version %d %s\n", td->name.c_str(), td->version,
+           td->is_subtable ? "is_subtable" : "");
     FieldDef * fd = td->fields;
     while (fd)
     {
@@ -698,6 +699,8 @@ validate_schema(SchemaDef *sd)
                             tb->name.c_str());
                     exit(1);
                 }
+
+                tb2->is_subtable = true;
             }
         }
     }

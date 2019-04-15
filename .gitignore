@@ -41,3 +41,4 @@
 /build_*
 
 *.bundle
+/tinyxml2

@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <inttypes.h>
+#include <unistd.h>
 
 class SQL_TABLE_user_custom : public library::SQL_TABLE_user {
     sqlite3_stmt * pStmt_by_great_balance;
@@ -299,21 +300,21 @@ test_subtables(sqlite3 * pdb)
         u.firstname = "fir1";
         u.lastname = "las1";
         u.SSN = 11;
-        u.balance = 4.00;
+        u.balance = 4.25;
         u.proto = "this is proto blob";
         u.insert();
 
         b.bookid = 2;
         b.title = "book 2 title";
-        b.isbn = 4.44;
-        b.price = 8.00;
+        b.isbn = "444555";
+        b.price = 8.15;
         b.quantity = 1;
         b.insert();
 
         b.bookid = 3;
         b.title = "book 3 title";
         b.isbn = "12345";
-        b.price = 12.00;
+        b.price = 12.35;
         b.quantity = 2;
         b.insert();
 
@@ -345,69 +346,38 @@ test_subtables(sqlite3 * pdb)
             u2.print();
         }
 
-        MyXmlNode n;
-        u.CopyToXmlNode(n);
-        std::string xml;
-        if (n.generate(xml) == false)
-            printf("ERROR during XML generate\n");
-        else
-            printf("generated xml:\n%s\n", xml.c_str());
-
-        n.init();
-        if (n.parse(xml) == 0)
-            printf("ERROR during XML parsing\n");
-        else
         {
-            SQL_TABLE_user_custom  u2(pdb);
-            if (u2.CopyFromXmlNode(n) == false)
-                printf("ERROR in CopyFromXml\n");
-            else
+            tinyxml2::XMLPrinter printer;
+
             {
-                printf("after xml marshaling:\n");
-                u2.print();
+                tinyxml2::XMLDocument   doc;
+                library::SQL_TABLE_ALL_TABLES :: export_xml_all(pdb,doc);
+                doc.Print( &printer );
+                printf("xml:\n%s\n", printer.CStr());
+            }
+
+            {
+                tinyxml2::XMLDocument  doc;
+
+                doc.Parse( printer.CStr() );
+                if (0) // i trust this to work
+                {
+                    tinyxml2::XMLPrinter printer2;
+                    doc.Print( &printer2 );
+                    printf("reparsed xml:\n%s\n", printer2.CStr());
+                }
+
+                sqlite3 * pdb2;
+                printf("CREATING SECOND TEST DATABASE\n");
+                sqlite3_open("build_native/sample_test2.db", &pdb2);
+                library::SQL_TABLE_ALL_TABLES::init_all(pdb2, &table_callback);
+                library::SQL_TABLE_ALL_TABLES::import_xml_all(pdb2,doc);
+
+                int r = sqlite3_close(pdb2);
+                if (r != SQLITE_OK)
+                    printf("ERR!  close returns %d\n", r);
+                unlink("build_native/sample_test2.db");
             }
         }
-    }
-
-
-    {
-        std::string xml(
-"<user> "
-"  <userid type=\"pod\"> 1 </userid>"
-"  <firstname type=\"text\">fir1</firstname>"
-"  <lastname type=\"text\">las1</lastname>"
-"  <mi type=\"text\"/>"
-"  <SSN type=\"pod\"> 11 </SSN>"
-"  <balance type=\"pod\"> 4 </balance>"
-"  <proto type=\"blob\">746869732069732070726f746f20626c6f62</proto>"
-"  <test2 type=\"bool\">false</test2>"
-"  <test3 type=\"sample::library2::EnumField_t\">ENUM_TWO</test3>"
-"  <checkouts index=\"0\" type=\"subtable\">"
-"    <bookid2 type=\"pod\">2</bookid2>"
-"    <userid2 type=\"pod\">1</userid2>"
-"    <duedate type=\"pod\">5</duedate>"
-"  </checkouts>"
-"  <checkouts index=\"1\" type=\"subtable\">"
-"    <bookid2 type=\"pod\">3</bookid2>"
-"    <userid2 type=\"pod\">1</userid2>"
-"    <duedate type=\"pod\">6</duedate>"
-"  </checkouts>"
-"</user>"
-            );
-
-        MyXmlNode n;
-        if (n.parse(xml) == 0)
-            printf("ERROR during 2nd XML parsing\n");
-        else
-        {
-            SQL_TABLE_user_custom  u2(pdb);
-            if (u2.CopyFromXmlNode(n) == false)
-                printf("ERROR in 2nd CopyFromXml\n");
-            else
-            {
-                printf("after xml 2nd marshaling:\n");
-                u2.print();
-            }
-        } 
     }
 }

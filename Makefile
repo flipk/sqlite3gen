@@ -1,5 +1,5 @@
 
-PROG_TARGETS = template_to_c sql3gen sample xmltest1 xmltest2
+PROG_TARGETS = template_to_c sql3gen sample
 
 export TARGET=native
 
@@ -40,26 +40,21 @@ sql3gen_LIBS = $(TEMPLATE_OBJS)
 sql3gen_PREMAKE = $(template_to_c_TARGET) $(TEMPLATE_OBJS)
 
 sample_TARGET = $(OBJDIR)/sample
-sample_CXXSRCS = sample_test.cc myXml.cc
+sample_CXXSRCS = sample_test.cc
 sample_PROTOSRCS = sample2.proto
 sample_DEFS = -DSAMPLE_H_HDR=\"sample.h\" -DSAMPLE_PB_HDR=\"sample.pb.h\"
-sample_LIBS = $(OBJDIR)/sample.pb.o sqlite3/sqlite3.o $(OBJDIR)/sample.o \
+sample_LIBS = $(OBJDIR)/tinyxml2.o $(OBJDIR)/sample.pb.o \
+	sqlite3/sqlite3.o $(OBJDIR)/sample.o \
 	-lpthread $(PROTOLIB) -ldl
-sample_INCS = -Isqlite3 $(PROTOINC) -I.
-sample_PREMAKE = $(OBJDIR)/sample.o
-
-xmltest1_TARGET = $(OBJDIR)/xmltest1
-xmltest1_CXXSRCS = myXml.cc
-xmltest1_DEFS = -DINCLUDE_MYXML_TEST=1
-
-xmltest2_TARGET = $(OBJDIR)/xmltest2
-xmltest2_CXXSRCS = myXml.cc
-xmltest2_DEFS = -DINCLUDE_MYXML_TEST=2
+sample_INCS = -Isqlite3 $(PROTOINC) -I. -Itinyxml2
+sample_PREMAKE = $(OBJDIR)/tinyxml2.o $(OBJDIR)/sample.o
 
 include Makefile.inc
 
-echo:
-	@echo $(TEMPLATE_OBJS)
+$(OBJDIR)/tinyxml2.o: tinyxml2/tinyxml2.cpp
+	@echo compiling tinyxml2.cpp
+	@g++ -c -O3 -Wall -DTINYXML2_DEBUG tinyxml2/tinyxml2.cpp \
+		-o $(OBJDIR)/tinyxml2.o
 
 $(sql3gen_TARGET): $(foreach t,$(TEMPLATES),$(OBJDIR)/template_$(t).o)
 

@@ -458,6 +458,17 @@ bool SQL_TABLE_@@tablename@@ :: get_all(void)
 }
 
 @@get_subtable_implementations@@
+
+void SQL_TABLE_@@tablename@@ :: get_subtables(void)
+{
+@@get_all_subtables@@
+}
+
+void SQL_TABLE_@@tablename@@ :: insert_subtables(void)
+{
+@@insert_all_subtables@@
+}
+
 @@custom_get_implementations@@
 @@custom_upd_implementations@@
 @@custom_del_implementations@@
@@ -555,6 +566,42 @@ void SQL_TABLE_@@tablename@@ :: table_drop(sqlite3 *pdb)
     sqlite3_exec(pdb, "delete from tables "
                  "where name = \"user\"",
                  NULL, NULL, NULL);
+}
+
+//static
+void SQL_TABLE_@@tablename@@ :: export_xml(sqlite3 *pdb,
+                                           tinyxml2::XMLElement *el)
+{
+    SQL_TABLE_@@tablename@@ row(pdb);
+
+    bool ok = row.get_all();
+    while (ok)
+    {
+        row.get_subtables();
+        tinyxml2::XMLElement * row_el =
+            el->GetDocument()->NewElement("@@tablename@@");
+        row.CopyToXml(row_el);
+        el->InsertEndChild(row_el);
+        ok = row.get_next();
+    }
+}
+
+//static
+bool SQL_TABLE_@@tablename@@ :: import_xml(sqlite3 *pdb,
+                                           tinyxml2::XMLElement *el)
+{
+    tinyxml2::XMLElement * row_el;
+    SQL_TABLE_@@tablename@@  row(pdb);
+
+    for (row_el = el->FirstChildElement(); row_el;
+         row_el = row_el->NextSiblingElement())
+    {
+        row.CopyFromXml(row_el);
+        row.insert();
+        row.insert_subtables();
+    }
+
+    return true;
 }
 
 ________ END
@@ -873,6 +920,24 @@ int SQL_TABLE_@@tablename@@ :: get_subtable_@@fieldname@@(void)
 
     return count;
 }
+
+bool SQL_TABLE_@@tablename@@ :: insert_subtable_@@fieldname@@(void)
+{
+    for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
+    {
+        SQL_TABLE_@@fieldname@@ &row = @@fieldname@@[ind];
+        row.insert();
+    }
+    return true;
+}
+________ END
+
+________ TABLE_CLASS_get_all_subtables_one
+    get_subtable_@@fieldname@@();
+________ END
+
+________ TABLE_CLASS_insert_all_subtables_one
+    insert_subtable_@@fieldname@@();
 ________ END
 
 ________ TABLE_custom_get_implementation
@@ -1308,17 +1373,19 @@ ________ END
 
 ________ TABLE_xml_copy_funcs
 void
-SQL_TABLE_@@tablename@@ :: CopyToXmlNode(MyXmlNode &node)
+SQL_TABLE_@@tablename@@ :: CopyToXml(tinyxml2::XMLElement *el)
 {
-    node.init();
-    node.name = "@@tablename@@";
+    el->SetValue("@@tablename@@");
+    el->SetAttribute("type", "row");
+    el->SetAttribute("rowid", (int64_t) rowid);
+
 @@xml_copy_to@@
 }
 
 @@xml_decoder_functions@@
 
 bool
-SQL_TABLE_@@tablename@@ :: CopyFromXmlNode(const MyXmlNode &node)
+SQL_TABLE_@@tablename@@ :: CopyFromXml(const tinyxml2::XMLElement *el)
 {
     init();
     if (xml_decoders_initialized == false)
@@ -1326,30 +1393,33 @@ SQL_TABLE_@@tablename@@ :: CopyFromXmlNode(const MyXmlNode &node)
 @@xml_decoder_initializers@@
         xml_decoders_initialized = true;
     }
-    if (node.name != "@@tablename@@")
+    if (strcmp(el->Value(), "@@tablename@@") != 0)
     {
         if (err_log_func)
         {
             std::ostringstream err;
             err << "SQL_TABLE_@@tablename@@ :: "
-                << "CopyFromXmlNode : node name is " << node.name
+                << "CopyFromXml : node name is " << el->Value()
                 << " not '@@tablename@@'!\n";
             err_log_func(err_log_arg, err.str().c_str());
         }
         return false;
     }
-    for (size_t ind = 0; ind < node.children.size(); ind++)
+    const tinyxml2::XMLElement * child = el->FirstChildElement();
+    while (child)
     {
-        const MyXmlNode &n = node.children[ind];
-        if (n.name.size() == 0)
-            continue;
-        xml_decoder_map_t::iterator it = xml_decoders.find(n.name);
-        if (it != xml_decoders.end())
+        const char * v = child->Value();
+        if (v && v[0] != 0)
         {
-            xml_decoder_func_t f = it->second;
-            if ((this->*f)(n) == false)
-                return false;
+            xml_decoder_map_t::iterator it = xml_decoders.find(v);
+            if (it != xml_decoders.end())
+            {
+                xml_decoder_func_t f = it->second;
+                if ((this->*f)(child) == false)
+                    return false;
+            }
         }
+        child = child->NextSiblingElement();
     }
     return true;
 }
@@ -1362,144 +1432,199 @@ ________ END
 
 ________ TABLE_copy_pod_to_xml
     {
-        MyXmlNode &n = node.add_child();
-        n.name = "@@fieldname@@";
-        n.attributes["type"] = "pod";
-        std::ostringstream s; // not guaranteed to have C++11 features.
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("@@fieldname@@");
+        child->SetAttribute("type", "pod");
+        el->InsertEndChild(child);
+        std::ostringstream s;
         s << @@fieldname@@;
-        n.text = s.str();
+        tinyxml2::XMLText * v = el->GetDocument()->NewText(s.str().c_str());
+        child->InsertEndChild(v);
     }
 ________ END
 
 ________ TABLE_copy_xml_to_pod
 bool
-SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
+SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        return false;
-    std::istringstream s(node.children[0].text);
-    s >> @@fieldname@@;
-    if (s.fail())
-        return false;
-    return true;
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+        {
+            std::istringstream s(v);
+            s >> @@fieldname@@;
+            if (s.fail())
+                return false;
+            return true;
+        }
+    }
+    return false;
 }
 ________ END
 
 ________ TABLE_copy_string_to_xml
     {
-        MyXmlNode &n = node.add_child();
-        n.name = "@@fieldname@@";
-        n.attributes["type"] = "text";
-        n.text = @@fieldname@@;
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("@@fieldname@@");
+        child->SetAttribute("type", "text");
+        el->InsertEndChild(child);
+        tinyxml2::XMLText * v =
+            el->GetDocument()->NewText(@@fieldname@@.c_str());
+        child->InsertEndChild(v);
     }
 ________ END
 
 ________ TABLE_copy_xml_to_string
 bool
-SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
+SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        @@fieldname@@ = "";
-    else
-        @@fieldname@@ = node.children[0].text;
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    @@fieldname@@ = "";
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v)
+            @@fieldname@@ = v;
+    }
     return true;
 }
 ________ END
 
 ________ TABLE_copy_blob_to_xml
     {
-        MyXmlNode &n = node.add_child();
-        n.name = "@@fieldname@@";
-        n.attributes["type"] = "blob";
-        blob_to_hex(n.text, @@fieldname@@);
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("@@fieldname@@");
+        child->SetAttribute("type", "blob");
+        el->InsertEndChild(child);
+        std::string hex;
+        blob_to_hex(hex, @@fieldname@@);
+        tinyxml2::XMLText * v =
+            el->GetDocument()->NewText(hex.c_str());
+        child->InsertEndChild(v);
     }
 ________ END
 
 ________ TABLE_copy_xml_to_blob
 bool
-SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
+SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
     {
-        @@fieldname@@.clear();
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+            hex_to_blob(@@fieldname@@, v);
+        else
+            @@fieldname@@ = "";
         return true;
     }
-    //else
-    return hex_to_blob(@@fieldname@@, node.children[0].text);
+    return false;
 }
 ________ END
 
 ________ TABLE_copy_bool_to_xml
     {
-        MyXmlNode &n = node.add_child();
-        n.name = "@@fieldname@@";
-        n.attributes["type"] = "bool";
-        n.text = @@fieldname@@ ? "true" : "false";
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("@@fieldname@@");
+        child->SetAttribute("type", "bool");
+        el->InsertEndChild(child);
+        tinyxml2::XMLText * v =
+            el->GetDocument()->NewText(@@fieldname@@ ? "true" : "false");
+        child->InsertEndChild(v);
     }
 ________ END
 
 ________ TABLE_copy_xml_to_bool
 bool
-SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
+SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        return false;
-    std::istringstream s(node.children[0].text);
-    std::string s2;
-    s >> s2;
-    if (s2 == "true")
-        @@fieldname@@ = true;
-    else if (s2 == "false")
-        @@fieldname@@ = false;
-    else
-        return false;
-    return true;
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+        {
+            if (strcmp(v, "true") == 0)
+                @@fieldname@@ = true;
+            else if (strcmp(v, "false") == 0)
+                @@fieldname@@ = false;
+            else
+                return false;
+        }
+        return true;
+    }
+    return false;
 }
 ________ END
 
 ________ TABLE_copy_enum_to_xml
     {
-        MyXmlNode &n = node.add_child();
-        n.name = "@@fieldname@@";
-        n.attributes["type"] = "@@fieldtype@@";
-        n.text = @@fieldtype@@_Name(@@fieldname@@);
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("@@fieldname@@");
+        child->SetAttribute("type", "@@fieldtype@@");
+        el->InsertEndChild(child);
+        tinyxml2::XMLText * v =
+            el->GetDocument()->NewText(
+                @@fieldtype@@_Name(@@fieldname@@).c_str());
+        child->InsertEndChild(v);
     }
 ________ END
 
 ________ TABLE_copy_xml_to_enum
 bool
-SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
+SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const tinyxml2::XMLElement *el)
 {
-    if (node.children.size() == 0)
-        return false;
-    return @@fieldtype@@_Parse(node.children[0].text, &@@fieldname@@);
+    const tinyxml2::XMLNode * n = el->FirstChild();
+    if (n)
+    {
+        const char * v = n->Value();
+        if (v && v[0] != 0)
+            return @@fieldtype@@_Parse(v, &@@fieldname@@);
+        return true;
+    }
+    return false;
 }
 ________ END
 
 ________ TABLE_copy_subtable_to_xml
-// NOTE this adds a bunch of <@@fieldname@@> nodes at the same
-//      level as all the other fields of this row. need to decide
-//      if this is OK or we want a whole subnode for the list.
-    for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
     {
-        MyXmlNode &n = node.add_child();
-        SQL_TABLE_@@fieldname@@ &f = @@fieldname@@[ind];
-        f.CopyToXmlNode(n);
-        n.attributes["type"] = "subtable";
-        std::ostringstream s;
-        s << ind;
-        n.attributes["index"] = s.str();
+        tinyxml2::XMLElement * child =
+            el->GetDocument()->NewElement("@@fieldname@@");
+        child->SetAttribute("type", "subtable");
+        el->InsertEndChild(child);
+        for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
+        {
+            tinyxml2::XMLElement * child2 =
+                el->GetDocument()->NewElement("@@fieldname@@");
+            child2->SetAttribute("type", "subtable_row");
+            child2->SetAttribute("index", (int) ind);
+            child->InsertEndChild(child2);
+            SQL_TABLE_@@fieldname@@ &f = @@fieldname@@[ind];
+            f.CopyToXml(child2);
+        }
     }
 ________ END
 
 ________ TABLE_copy_xml_to_subtable
 bool
-SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const MyXmlNode &node)
+SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const tinyxml2::XMLElement *el)
 {
     SQL_TABLE_@@fieldname@@  row(pdb);
-    if (row.CopyFromXmlNode(node) == false)
+
+    if (strcmp(el->Value(), "@@fieldname@@") != 0)
         return false;
-    @@fieldname@@.push_back(row);
+
+    const tinyxml2::XMLElement *child = el->FirstChildElement();
+    while (child)
+    {
+        if (row.CopyFromXml(child) == false)
+            return false;
+        @@fieldname@@.push_back(row);
+        child = child->NextSiblingElement();
+    }
+
     return true;
 }
 ________ END
@@ -1566,6 +1691,46 @@ void SQL_TABLE_ALL_TABLES :: register_log_funcs(
 @@register_all_logfuncs@@
 }
 
+//static
+void SQL_TABLE_ALL_TABLES :: export_xml_all(sqlite3 *pdb,
+                                            tinyxml2::XMLDocument &doc)
+{
+    doc.InsertEndChild(doc.NewDeclaration());
+    tinyxml2::XMLElement * root = doc.NewElement("@@package@@");
+    tinyxml2::XMLElement * tab = NULL;
+    doc.InsertEndChild(root);
+    root->SetAttribute("schema_time", "@@schema_time@@");
+    struct tm export_time;
+    time_t now = time(NULL);
+    localtime_r(&now, &export_time);
+    char export_time_str[100];
+    strftime(export_time_str, 100, "%Y-%m%d-%H%M%S", &export_time);
+    root->SetAttribute("export_time", export_time_str);
+@@table_export_all@@
+}
+
+//static
+bool SQL_TABLE_ALL_TABLES :: import_xml_all(sqlite3 *pdb,
+                                            tinyxml2::XMLDocument &doc)
+{
+    tinyxml2::XMLElement * root = doc.RootElement();
+    if (strcmp(root->Value(), "@@package@@") != 0)
+    {
+        fprintf(stderr, "ERROR: SQL_TABLE_ALL_TABLES :: import_xml_all : "
+                "root element '%s' does not match package '%s'\n",
+                root->Value(), "@@package@@");
+        return false;
+    }
+    tinyxml2::XMLElement * table;
+    for (table = root->FirstChildElement(); table;
+         table = table->NextSiblingElement())
+    {
+        const char * table_name = table->Value();
+@@table_import_all@@
+    }
+    return true;
+}
+
 }; // namespace @@package@@
 
 @@sourcebottom_block@@
@@ -1584,4 +1749,29 @@ ________ END
 ________ CLASS_ALL_TABLES_register_a_logfunc
     SQL_TABLE_@@tablename@@::register_log_funcs(
         _upd_func, _get_func, _arg, _err_func, _err_arg);
+________ END
+
+________ CLASS_ALL_TABLES_export_a_table
+    if (/*is_subtable*/ @@is_subtable@@)
+    {
+        tinyxml2::XMLComment * c = doc.NewComment(
+            "table @@tablename@@ is a subtable of another table");
+        root->InsertEndChild(c);
+    }
+    else
+    {
+        tab = doc.NewElement("@@tablename@@");
+        tab->SetAttribute("type", "table");
+        tab->SetAttribute("version", @@tableversion@@);
+        SQL_TABLE_@@tablename@@ :: export_xml(pdb, tab);
+        root->InsertEndChild(tab);
+    }
+________ END
+
+________ CLASS_ALL_TABLES_import_a_table
+    if (strcmp(table_name, "@@tablename@@") == 0)
+    {
+        if (SQL_TABLE_@@tablename@@::import_xml(pdb,table) == false)
+            return false;
+    }
 ________ END

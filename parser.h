@@ -161,6 +161,7 @@ struct TableDef
     struct TableDef * next;
     std::string name;
     int version;
+    bool is_subtable;
     FieldDef * fields;
     CustomGetUpdList * customs;
     TableDef(const std::string &_name)
@@ -169,6 +170,7 @@ struct TableDef
         next = NULL;
         fields = NULL;
         customs = NULL;
+        is_subtable = false;
     }
     ~TableDef(void)
     {
@@ -184,6 +186,7 @@ struct TableDef
 struct SchemaDef
 {
     std::string fname;
+    std::string schema_time;
     std::string package;
     std::string headertop;
     std::string headerbottom;

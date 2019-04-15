@@ -55,8 +55,6 @@ TABLE book VERSION 1
     price           DOUBLE                                 PROTOID 5
     quantity        INT                                    PROTOID 6
 
-    SUBTABLE checkouts                                     PROTOID 7
-
     CUSTOM-GET out_of_stock ()  "quantity == 0"
 
     CUSTOM-UPD quantity (quantity)

@@ -1,7 +1,12 @@
 
 #include <stdio.h>
 #include <string>
+#include <string.h>
 #include <stdlib.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "parser.h"
 #include PARSER_YY_HDR
@@ -63,6 +68,16 @@ main(int argc, char ** argv)
                     "ERROR: schema does not contain PACKAGE\n");
             return 1;
         }
+
+        struct stat sb;
+        memset(&sb, 0, sizeof(sb));
+        stat(schema_file.c_str(), &sb);
+        struct tm schema_time;
+        localtime_r(&sb.st_mtime, &schema_time);
+        schema->schema_time.resize(100);
+        schema->schema_time.resize(
+            strftime((char*) schema->schema_time.c_str(), 100,
+                     "%Y-%m%d-%H%M%S", &schema_time));
 
         print_tables(schema->tables);
         emit_source(cc_file, h_file, schema);

@@ -62,7 +62,6 @@ message TABLE_book_m
   /*required*/ optional string isbn = 4;
   optional double price = 5;
   optional int32 quantity = 6;
-  /*SUBTABLE*/ repeated TABLE_checkouts_m checkouts = 7;
 
 }
 
@@ -85,7 +84,7 @@ message TABLE_checkouts_m
 
 }
 
-// NOTE this is PROTOBOTTOM from line 76 of "../sample.schema"
+// NOTE this is PROTOBOTTOM from line 74 of "../sample.schema"
 
 // proto bottom line 1
 // proto bottom line 2
