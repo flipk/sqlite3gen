@@ -1490,7 +1490,7 @@ bool SQL_TABLE_user :: delete_SSN(int32_t v1)
 }
 
 void
-SQL_TABLE_user :: CopyToProto(
+SQL_TABLE_user :: copy_to_proto(
               library::TABLE_user_m &msg)
 {
     msg.set_schema_version(TABLE_VERSION);
@@ -1508,12 +1508,12 @@ SQL_TABLE_user :: CopyToProto(
     msg.set_test3(test3);
     msg.clear_checkouts();
     for (size_t ind = 0; ind < checkouts.size(); ind++)
-        checkouts[ind].CopyToProto(*msg.add_checkouts());
+        checkouts[ind].copy_to_proto(*msg.add_checkouts());
 
 }
 
 void
-SQL_TABLE_user :: CopyFromProto(
+SQL_TABLE_user :: copy_from_proto(
               const library::TABLE_user_m &msg)
 {
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
@@ -1524,7 +1524,7 @@ SQL_TABLE_user :: CopyFromProto(
         //        one schema version to another.
         std::ostringstream err;
         err << "SQL_TABLE_user :: "
-            << "CopyFromProto : recvd protobuf message with "
+            << "copy_from_proto : recvd protobuf message with "
             << "schema version " << msg.schema_version()
             << " (supported is " << TABLE_VERSION
             << ")\n";
@@ -1583,13 +1583,13 @@ SQL_TABLE_user :: CopyFromProto(
     for (int ind = 0; ind < msg.checkouts_size(); ind++)
     {
         checkouts[ind].set_db(pdb);
-        checkouts[ind].CopyFromProto(msg.checkouts(ind));
+        checkouts[ind].copy_from_proto(msg.checkouts(ind));
     }
 
 }
 
 void
-SQL_TABLE_user :: CopyToXml(tinyxml2::XMLElement *el)
+SQL_TABLE_user :: copy_to_xml(tinyxml2::XMLElement *el)
 {
     el->SetValue("user");
     el->SetAttribute("type", "row");
@@ -1695,7 +1695,7 @@ SQL_TABLE_user :: CopyToXml(tinyxml2::XMLElement *el)
             child2->SetAttribute("index", (int) ind);
             child->InsertEndChild(child2);
             SQL_TABLE_checkouts &f = checkouts[ind];
-            f.CopyToXml(child2);
+            f.copy_to_xml(child2);
         }
     }
 
@@ -1853,7 +1853,7 @@ SQL_TABLE_user :: xml_decoder_checkouts(const tinyxml2::XMLElement *el)
     const tinyxml2::XMLElement *child = el->FirstChildElement();
     while (child)
     {
-        if (row.CopyFromXml(child) == false)
+        if (row.copy_from_xml(child) == false)
             return false;
         checkouts.push_back(row);
         child = child->NextSiblingElement();
@@ -1864,7 +1864,7 @@ SQL_TABLE_user :: xml_decoder_checkouts(const tinyxml2::XMLElement *el)
 
 
 bool
-SQL_TABLE_user :: CopyFromXml(const tinyxml2::XMLElement *el)
+SQL_TABLE_user :: copy_from_xml(const tinyxml2::XMLElement *el)
 {
     init();
     if (xml_decoders_initialized == false)
@@ -1898,7 +1898,7 @@ SQL_TABLE_user :: CopyFromXml(const tinyxml2::XMLElement *el)
         {
             std::ostringstream err;
             err << "SQL_TABLE_user :: "
-                << "CopyFromXml : node name is " << el->Value()
+                << "copy_from_xml : node name is " << el->Value()
                 << " not 'user'!\n";
             err_log_func(err_log_arg, err.str().c_str());
         }
@@ -2039,7 +2039,7 @@ void SQL_TABLE_user :: export_xml(sqlite3 *pdb,
         row.get_subtables();
         tinyxml2::XMLElement * row_el =
             el->GetDocument()->NewElement("user");
-        row.CopyToXml(row_el);
+        row.copy_to_xml(row_el);
         el->InsertEndChild(row_el);
         ok = row.get_next();
     }
@@ -2055,7 +2055,7 @@ bool SQL_TABLE_user :: import_xml(sqlite3 *pdb,
     for (row_el = el->FirstChildElement(); row_el;
          row_el = row_el->NextSiblingElement())
     {
-        row.CopyFromXml(row_el);
+        row.copy_from_xml(row_el);
         row.insert();
         row.insert_subtables();
     }
@@ -2913,7 +2913,7 @@ bool SQL_TABLE_book :: update_price(void)
 
 
 void
-SQL_TABLE_book :: CopyToProto(
+SQL_TABLE_book :: copy_to_proto(
               library::TABLE_book_m &msg)
 {
     msg.set_schema_version(TABLE_VERSION);
@@ -2926,7 +2926,7 @@ SQL_TABLE_book :: CopyToProto(
 }
 
 void
-SQL_TABLE_book :: CopyFromProto(
+SQL_TABLE_book :: copy_from_proto(
               const library::TABLE_book_m &msg)
 {
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
@@ -2937,7 +2937,7 @@ SQL_TABLE_book :: CopyFromProto(
         //        one schema version to another.
         std::ostringstream err;
         err << "SQL_TABLE_book :: "
-            << "CopyFromProto : recvd protobuf message with "
+            << "copy_from_proto : recvd protobuf message with "
             << "schema version " << msg.schema_version()
             << " (supported is " << TABLE_VERSION
             << ")\n";
@@ -2975,7 +2975,7 @@ SQL_TABLE_book :: CopyFromProto(
 }
 
 void
-SQL_TABLE_book :: CopyToXml(tinyxml2::XMLElement *el)
+SQL_TABLE_book :: copy_to_xml(tinyxml2::XMLElement *el)
 {
     el->SetValue("book");
     el->SetAttribute("type", "row");
@@ -3115,7 +3115,7 @@ SQL_TABLE_book :: xml_decoder_quantity(const tinyxml2::XMLElement *el)
 
 
 bool
-SQL_TABLE_book :: CopyFromXml(const tinyxml2::XMLElement *el)
+SQL_TABLE_book :: copy_from_xml(const tinyxml2::XMLElement *el)
 {
     init();
     if (xml_decoders_initialized == false)
@@ -3139,7 +3139,7 @@ SQL_TABLE_book :: CopyFromXml(const tinyxml2::XMLElement *el)
         {
             std::ostringstream err;
             err << "SQL_TABLE_book :: "
-                << "CopyFromXml : node name is " << el->Value()
+                << "copy_from_xml : node name is " << el->Value()
                 << " not 'book'!\n";
             err_log_func(err_log_arg, err.str().c_str());
         }
@@ -3280,7 +3280,7 @@ void SQL_TABLE_book :: export_xml(sqlite3 *pdb,
         row.get_subtables();
         tinyxml2::XMLElement * row_el =
             el->GetDocument()->NewElement("book");
-        row.CopyToXml(row_el);
+        row.copy_to_xml(row_el);
         el->InsertEndChild(row_el);
         ok = row.get_next();
     }
@@ -3296,7 +3296,7 @@ bool SQL_TABLE_book :: import_xml(sqlite3 *pdb,
     for (row_el = el->FirstChildElement(); row_el;
          row_el = row_el->NextSiblingElement())
     {
-        row.CopyFromXml(row_el);
+        row.copy_from_xml(row_el);
         row.insert();
         row.insert_subtables();
     }
@@ -3911,7 +3911,7 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
 
 
 void
-SQL_TABLE_checkouts :: CopyToProto(
+SQL_TABLE_checkouts :: copy_to_proto(
               library::TABLE_checkouts_m &msg)
 {
     msg.set_schema_version(TABLE_VERSION);
@@ -3922,7 +3922,7 @@ SQL_TABLE_checkouts :: CopyToProto(
 }
 
 void
-SQL_TABLE_checkouts :: CopyFromProto(
+SQL_TABLE_checkouts :: copy_from_proto(
               const library::TABLE_checkouts_m &msg)
 {
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
@@ -3933,7 +3933,7 @@ SQL_TABLE_checkouts :: CopyFromProto(
         //        one schema version to another.
         std::ostringstream err;
         err << "SQL_TABLE_checkouts :: "
-            << "CopyFromProto : recvd protobuf message with "
+            << "copy_from_proto : recvd protobuf message with "
             << "schema version " << msg.schema_version()
             << " (supported is " << TABLE_VERSION
             << ")\n";
@@ -3961,7 +3961,7 @@ SQL_TABLE_checkouts :: CopyFromProto(
 }
 
 void
-SQL_TABLE_checkouts :: CopyToXml(tinyxml2::XMLElement *el)
+SQL_TABLE_checkouts :: copy_to_xml(tinyxml2::XMLElement *el)
 {
     el->SetValue("checkouts");
     el->SetAttribute("type", "row");
@@ -4057,7 +4057,7 @@ SQL_TABLE_checkouts :: xml_decoder_duedate(const tinyxml2::XMLElement *el)
 
 
 bool
-SQL_TABLE_checkouts :: CopyFromXml(const tinyxml2::XMLElement *el)
+SQL_TABLE_checkouts :: copy_from_xml(const tinyxml2::XMLElement *el)
 {
     init();
     if (xml_decoders_initialized == false)
@@ -4077,7 +4077,7 @@ SQL_TABLE_checkouts :: CopyFromXml(const tinyxml2::XMLElement *el)
         {
             std::ostringstream err;
             err << "SQL_TABLE_checkouts :: "
-                << "CopyFromXml : node name is " << el->Value()
+                << "copy_from_xml : node name is " << el->Value()
                 << " not 'checkouts'!\n";
             err_log_func(err_log_arg, err.str().c_str());
         }
@@ -4218,7 +4218,7 @@ void SQL_TABLE_checkouts :: export_xml(sqlite3 *pdb,
         row.get_subtables();
         tinyxml2::XMLElement * row_el =
             el->GetDocument()->NewElement("checkouts");
-        row.CopyToXml(row_el);
+        row.copy_to_xml(row_el);
         el->InsertEndChild(row_el);
         ok = row.get_next();
     }
@@ -4234,7 +4234,7 @@ bool SQL_TABLE_checkouts :: import_xml(sqlite3 *pdb,
     for (row_el = el->FirstChildElement(); row_el;
          row_el = row_el->NextSiblingElement())
     {
-        row.CopyFromXml(row_el);
+        row.copy_from_xml(row_el);
         row.insert();
         row.insert_subtables();
     }

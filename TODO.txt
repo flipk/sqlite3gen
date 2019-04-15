@@ -1,5 +1,4 @@
 - add type="" validation in xml decoder
-- stop mixing underscores and CamelCaps in the API, boo
 - make protobuf and xml support optional in sqlite3gen
 - support stupid "cpp" files in Makefile.inc
 - subscriptions to updates?

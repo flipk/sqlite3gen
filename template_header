@@ -103,8 +103,8 @@ public:
 @@table_custom_upd_method_protos@@
 @@table_custom_del_method_protos@@
 @@table_proto_copy_protos@@
-    void CopyToXml(tinyxml2::XMLElement *el);
-    bool CopyFromXml(const tinyxml2::XMLElement *el);
+    void copy_to_xml(tinyxml2::XMLElement *el);
+    bool copy_from_xml(const tinyxml2::XMLElement *el);
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
@@ -190,8 +190,8 @@ ________ END
 ________ TABLE_CLASS_proto_copy_proto
 // NOTE these only copy SUBTABLEs if you have called the
 //      get_subtable_* methods to populate them.
-    void CopyToProto(@@package@@::TABLE_@@tablename@@_m &msg);
-    void CopyFromProto(const @@package@@::TABLE_@@tablename@@_m &msg);
+    void copy_to_proto(@@package@@::TABLE_@@tablename@@_m &msg);
+    void copy_from_proto(const @@package@@::TABLE_@@tablename@@_m &msg);
 ________ END
 
 ________ TABLE_CLASS_xml_decoder_proto

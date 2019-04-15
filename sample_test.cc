@@ -170,13 +170,13 @@ test_protobuf(sqlite3 *pdb, int64_t userid)
     do {
         library::TABLE_user_m  msg;
         std::string binary;
-        u.CopyToProto(msg);
+        u.copy_to_proto(msg);
         msg.SerializeToString(&binary);
         printf("encoded user to protobuf %d bytes long\n",
                (int) binary.size());
         msg.Clear();
         msg.ParseFromString(binary);
-        t.CopyFromProto(msg);
+        t.copy_from_proto(msg);
         t.print();
     } while (u.get_next());
 }
@@ -337,11 +337,11 @@ test_subtables(sqlite3 * pdb)
         u.get_subtable_checkouts();
         u.print();
         library::TABLE_user_m  msg;
-        u.CopyToProto(msg);
+        u.copy_to_proto(msg);
 
         {
             SQL_TABLE_user_custom  u2(pdb);
-            u2.CopyFromProto(msg);
+            u2.copy_from_proto(msg);
             printf("after protobuf marshaling:\n");
             u2.print();
         }

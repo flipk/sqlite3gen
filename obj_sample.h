@@ -160,11 +160,11 @@ public:
 
 // NOTE these only copy SUBTABLEs if you have called the
 //      get_subtable_* methods to populate them.
-    void CopyToProto(library::TABLE_user_m &msg);
-    void CopyFromProto(const library::TABLE_user_m &msg);
+    void copy_to_proto(library::TABLE_user_m &msg);
+    void copy_from_proto(const library::TABLE_user_m &msg);
 
-    void CopyToXml(tinyxml2::XMLElement *el);
-    bool CopyFromXml(const tinyxml2::XMLElement *el);
+    void copy_to_xml(tinyxml2::XMLElement *el);
+    bool copy_from_xml(const tinyxml2::XMLElement *el);
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
@@ -276,11 +276,11 @@ public:
 
 // NOTE these only copy SUBTABLEs if you have called the
 //      get_subtable_* methods to populate them.
-    void CopyToProto(library::TABLE_book_m &msg);
-    void CopyFromProto(const library::TABLE_book_m &msg);
+    void copy_to_proto(library::TABLE_book_m &msg);
+    void copy_from_proto(const library::TABLE_book_m &msg);
 
-    void CopyToXml(tinyxml2::XMLElement *el);
-    bool CopyFromXml(const tinyxml2::XMLElement *el);
+    void copy_to_xml(tinyxml2::XMLElement *el);
+    bool copy_from_xml(const tinyxml2::XMLElement *el);
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
@@ -382,11 +382,11 @@ public:
 
 // NOTE these only copy SUBTABLEs if you have called the
 //      get_subtable_* methods to populate them.
-    void CopyToProto(library::TABLE_checkouts_m &msg);
-    void CopyFromProto(const library::TABLE_checkouts_m &msg);
+    void copy_to_proto(library::TABLE_checkouts_m &msg);
+    void copy_from_proto(const library::TABLE_checkouts_m &msg);
 
-    void CopyToXml(tinyxml2::XMLElement *el);
-    bool CopyFromXml(const tinyxml2::XMLElement *el);
+    void copy_to_xml(tinyxml2::XMLElement *el);
+    bool copy_from_xml(const tinyxml2::XMLElement *el);
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,

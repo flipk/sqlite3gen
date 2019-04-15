@@ -580,7 +580,7 @@ void SQL_TABLE_@@tablename@@ :: export_xml(sqlite3 *pdb,
         row.get_subtables();
         tinyxml2::XMLElement * row_el =
             el->GetDocument()->NewElement("@@tablename@@");
-        row.CopyToXml(row_el);
+        row.copy_to_xml(row_el);
         el->InsertEndChild(row_el);
         ok = row.get_next();
     }
@@ -596,7 +596,7 @@ bool SQL_TABLE_@@tablename@@ :: import_xml(sqlite3 *pdb,
     for (row_el = el->FirstChildElement(); row_el;
          row_el = row_el->NextSiblingElement())
     {
-        row.CopyFromXml(row_el);
+        row.copy_from_xml(row_el);
         row.insert();
         row.insert_subtables();
     }
@@ -1294,7 +1294,7 @@ ________ END
 
 ________ TABLE_proto_copy_funcs
 void
-SQL_TABLE_@@tablename@@ :: CopyToProto(
+SQL_TABLE_@@tablename@@ :: copy_to_proto(
               @@package@@::TABLE_@@tablename@@_m &msg)
 {
     msg.set_schema_version(TABLE_VERSION);
@@ -1302,7 +1302,7 @@ SQL_TABLE_@@tablename@@ :: CopyToProto(
 }
 
 void
-SQL_TABLE_@@tablename@@ :: CopyFromProto(
+SQL_TABLE_@@tablename@@ :: copy_from_proto(
               const @@package@@::TABLE_@@tablename@@_m &msg)
 {
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
@@ -1313,7 +1313,7 @@ SQL_TABLE_@@tablename@@ :: CopyFromProto(
         //        one schema version to another.
         std::ostringstream err;
         err << "SQL_TABLE_@@tablename@@ :: "
-            << "CopyFromProto : recvd protobuf message with "
+            << "copy_from_proto : recvd protobuf message with "
             << "schema version " << msg.schema_version()
             << " (supported is " << TABLE_VERSION
             << ")\n";
@@ -1357,7 +1357,7 @@ ________ END
 ________ TABLE_proto_copy_to_subtable
     msg.clear_@@fieldname@@();
     for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
-        @@fieldname@@[ind].CopyToProto(*msg.add_@@fieldname@@());
+        @@fieldname@@[ind].copy_to_proto(*msg.add_@@fieldname@@());
 ________ END
 
 ________ TABLE_proto_copy_from_subtable
@@ -1366,14 +1366,14 @@ ________ TABLE_proto_copy_from_subtable
     for (int ind = 0; ind < msg.@@fieldname@@_size(); ind++)
     {
         @@fieldname@@[ind].set_db(pdb);
-        @@fieldname@@[ind].CopyFromProto(msg.@@fieldname@@(ind));
+        @@fieldname@@[ind].copy_from_proto(msg.@@fieldname@@(ind));
     }
 ________ END
 
 
 ________ TABLE_xml_copy_funcs
 void
-SQL_TABLE_@@tablename@@ :: CopyToXml(tinyxml2::XMLElement *el)
+SQL_TABLE_@@tablename@@ :: copy_to_xml(tinyxml2::XMLElement *el)
 {
     el->SetValue("@@tablename@@");
     el->SetAttribute("type", "row");
@@ -1385,7 +1385,7 @@ SQL_TABLE_@@tablename@@ :: CopyToXml(tinyxml2::XMLElement *el)
 @@xml_decoder_functions@@
 
 bool
-SQL_TABLE_@@tablename@@ :: CopyFromXml(const tinyxml2::XMLElement *el)
+SQL_TABLE_@@tablename@@ :: copy_from_xml(const tinyxml2::XMLElement *el)
 {
     init();
     if (xml_decoders_initialized == false)
@@ -1399,7 +1399,7 @@ SQL_TABLE_@@tablename@@ :: CopyFromXml(const tinyxml2::XMLElement *el)
         {
             std::ostringstream err;
             err << "SQL_TABLE_@@tablename@@ :: "
-                << "CopyFromXml : node name is " << el->Value()
+                << "copy_from_xml : node name is " << el->Value()
                 << " not '@@tablename@@'!\n";
             err_log_func(err_log_arg, err.str().c_str());
         }
@@ -1602,7 +1602,7 @@ ________ TABLE_copy_subtable_to_xml
             child2->SetAttribute("index", (int) ind);
             child->InsertEndChild(child2);
             SQL_TABLE_@@fieldname@@ &f = @@fieldname@@[ind];
-            f.CopyToXml(child2);
+            f.copy_to_xml(child2);
         }
     }
 ________ END
@@ -1619,7 +1619,7 @@ SQL_TABLE_@@tablename@@ :: xml_decoder_@@fieldname@@(const tinyxml2::XMLElement 
     const tinyxml2::XMLElement *child = el->FirstChildElement();
     while (child)
     {
-        if (row.CopyFromXml(child) == false)
+        if (row.copy_from_xml(child) == false)
             return false;
         @@fieldname@@.push_back(row);
         child = child->NextSiblingElement();
