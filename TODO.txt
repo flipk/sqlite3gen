@@ -1,4 +1,3 @@
-- unused variable "got" warnings
 - add type="" validation in xml decoder
 - make protobuf and xml support optional in sqlite3gen
 - support stupid "cpp" files in Makefile.inc

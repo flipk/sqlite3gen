@@ -278,7 +278,6 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     userid = sqlite3_column_int64(pStmt, 1);
-#if 0 // coerce everything to string.
       // SQLITE3 appears to ignore the column type in a CREATE TABLE!
       // NOTE: if you INSERT a string to a table that contains
       //       all decimal digits, SQLITE3 does something very strange:
@@ -288,12 +287,13 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_TEXT)
     {
+#if 0 // coerce everything to string.
         PRINT_ERR("get_columns (firstname) : "
                 "column 2 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
-    }
 #endif
+    }
     {
         const void * ptr = sqlite3_column_text(
             pStmt, 2);
@@ -301,7 +301,6 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         firstname.resize(len);
         memcpy((void*)firstname.c_str(), ptr, len);
     }
-#if 0 // coerce everything to string.
       // SQLITE3 appears to ignore the column type in a CREATE TABLE!
       // NOTE: if you INSERT a string to a table that contains
       //       all decimal digits, SQLITE3 does something very strange:
@@ -311,12 +310,13 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_TEXT)
     {
+#if 0 // coerce everything to string.
         PRINT_ERR("get_columns (lastname) : "
                 "column 3 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
-    }
 #endif
+    }
     {
         const void * ptr = sqlite3_column_text(
             pStmt, 3);
@@ -324,7 +324,6 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         lastname.resize(len);
         memcpy((void*)lastname.c_str(), ptr, len);
     }
-#if 0 // coerce everything to string.
       // SQLITE3 appears to ignore the column type in a CREATE TABLE!
       // NOTE: if you INSERT a string to a table that contains
       //       all decimal digits, SQLITE3 does something very strange:
@@ -334,12 +333,13 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_TEXT)
     {
+#if 0 // coerce everything to string.
         PRINT_ERR("get_columns (mi) : "
                 "column 4 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
-    }
 #endif
+    }
     {
         const void * ptr = sqlite3_column_text(
             pStmt, 4);
@@ -365,7 +365,6 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     balance = sqlite3_column_double(pStmt, 6);
-#if 0 // coerce everything to string.
       // SQLITE3 appears to ignore the column type in a CREATE TABLE!
       // NOTE: if you INSERT a string to a table that contains
       //       all decimal digits, SQLITE3 does something very strange:
@@ -375,12 +374,13 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 7);
     if (got != SQLITE_BLOB)
     {
+#if 0 // coerce everything to string.
         PRINT_ERR("get_columns (proto) : "
                 "column 7 wrong type (%d %d)",
                 got, SQLITE_BLOB);
         return false;
-    }
 #endif
+    }
     {
         const void * ptr = sqlite3_column_blob(
             pStmt, 7);
@@ -2219,7 +2219,6 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     bookid = sqlite3_column_int64(pStmt, 1);
-#if 0 // coerce everything to string.
       // SQLITE3 appears to ignore the column type in a CREATE TABLE!
       // NOTE: if you INSERT a string to a table that contains
       //       all decimal digits, SQLITE3 does something very strange:
@@ -2229,12 +2228,13 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_TEXT)
     {
+#if 0 // coerce everything to string.
         PRINT_ERR("get_columns (title) : "
                 "column 2 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
-    }
 #endif
+    }
     {
         const void * ptr = sqlite3_column_text(
             pStmt, 2);
@@ -2242,7 +2242,6 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         title.resize(len);
         memcpy((void*)title.c_str(), ptr, len);
     }
-#if 0 // coerce everything to string.
       // SQLITE3 appears to ignore the column type in a CREATE TABLE!
       // NOTE: if you INSERT a string to a table that contains
       //       all decimal digits, SQLITE3 does something very strange:
@@ -2252,12 +2251,13 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_TEXT)
     {
+#if 0 // coerce everything to string.
         PRINT_ERR("get_columns (isbn) : "
                 "column 3 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
-    }
 #endif
+    }
     {
         const void * ptr = sqlite3_column_text(
             pStmt, 3);
