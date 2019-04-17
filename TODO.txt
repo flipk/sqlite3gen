@@ -1,8 +1,9 @@
+- unused variable "got" warnings
 - add type="" validation in xml decoder
 - make protobuf and xml support optional in sqlite3gen
 - support stupid "cpp" files in Makefile.inc
 - subscriptions to updates?
-
+- health metrics? (what did i mean by this?)
 - custom query type needed for things like 'select unique',
   maybe a way to specify the full sql query with column
   names and where-clause?

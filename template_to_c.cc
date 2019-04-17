@@ -66,11 +66,13 @@ escape(const string &in, int line_no)
             {
                 if (!did_line_no)
                 {
+#ifdef TRUE_LINE_NUMBERS
                     ostringstream os;
                     os << "        << \""
                        << "#line " << line_no << " \\\""
                        << template_file_name << "\\\"\\n\"\n";
                     out += os.str();
+#endif
                     did_line_no = true;
                 }
             }
@@ -140,11 +142,13 @@ add_template(ostream &cc_out, ostream &h_out,
            << "(std::ostream &out, const pattern_value_map &pattern_values)\n"
            << "{\n";
 
+#ifdef TRUE_LINE_NUMBERS
     if (in_line_no != -1 && enable_line_numbers)
     {
         cc_out << "    out << \"#line " << in_line_no << " \\\""
                << template_file_name << "\\\"\\n\";\n";
     }
+#endif
 
     h_out << "// " << template_file_name << " line " << in_line_no << "\n"
           << "// must define patterns:\n";

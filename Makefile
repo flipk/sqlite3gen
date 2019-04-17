@@ -25,6 +25,9 @@ CXXFLAGS = -Wall -Werror $(PROTOINC)
 
 template_to_c_TARGET = $(OBJDIR)/template_to_c
 template_to_c_CXXSRCS = template_to_c.cc
+ifneq ($(TRUE_LINE_NUMBERS),)
+template_to_c_DEFS = -DTRUE_LINE_NUMBERS=1
+endif
 
 TEMPLATES = header source proto
 TEMPLATE_OBJS = $(foreach t,$(TEMPLATES),$(OBJDIR)/template_$(t).o)
