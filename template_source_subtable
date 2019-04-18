@@ -1,0 +1,42 @@
+
+________ TABLE_get_subtable_implementation
+int SQL_TABLE_@@tablename@@ :: get_subtable_@@fieldname@@(void)
+{
+    SQL_TABLE_@@fieldname@@  row(pdb);
+    bool status;
+    int count = 0;
+
+    @@fieldname@@.clear();
+    status = row.get_by_@@other_key@@(@@this_key@@);
+    while (status)
+    {
+        // note this uses the special table class
+        // copy constructor that only copies the data,
+        // not the prepared statements.
+        @@fieldname@@.push_back(row);
+        count++;
+        status = row.get_next();
+    }
+
+    return count;
+}
+
+bool SQL_TABLE_@@tablename@@ :: insert_subtable_@@fieldname@@(void)
+{
+    for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
+    {
+        SQL_TABLE_@@fieldname@@ &row = @@fieldname@@[ind];
+        row.insert();
+    }
+    return true;
+}
+________ END
+
+________ TABLE_CLASS_get_all_subtables_one
+    get_subtable_@@fieldname@@();
+________ END
+
+________ TABLE_CLASS_insert_all_subtables_one
+    insert_subtable_@@fieldname@@();
+________ END
+

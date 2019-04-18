@@ -1,0 +1,77 @@
+________ TABLE_proto_copy_funcs
+void
+SQL_TABLE_@@tablename@@ :: copy_to_proto(
+              @@package@@::TABLE_@@tablename@@_m &msg)
+{
+    msg.set_schema_version(TABLE_VERSION);
+@@proto_copy_to@@
+}
+
+void
+SQL_TABLE_@@tablename@@ :: copy_from_proto(
+              const @@package@@::TABLE_@@tablename@@_m &msg)
+{
+    if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
+    {
+        // NOTE : if this becomes a problem in the future, we could
+        //        enhance sql3gen to allow the user to register a
+        //        callback function which can convert a message from
+        //        one schema version to another.
+        std::ostringstream err;
+        err << "SQL_TABLE_@@tablename@@ :: "
+            << "copy_from_proto : recvd protobuf message with "
+            << "schema version " << msg.schema_version()
+            << " (supported is " << TABLE_VERSION
+            << ")\n";
+        if (err_log_func)
+            err_log_func(err_log_arg, err.str());
+        else
+            std::cerr << err.str();
+    }
+@@proto_copy_from@@
+}
+________ END
+
+________ TABLE_proto_copy_to_field
+    msg.set_@@fieldname_lower@@(@@fieldname@@);
+________ END
+
+________ TABLE_proto_copy_to_field_bool
+    msg.set_@@fieldname_lower@@(@@fieldname@@ ? true : false);
+________ END
+
+________ TABLE_proto_copy_to_field_enum
+    if (!@@fieldtype@@_IsValid(@@fieldname@@))
+    @@initial_value@@
+    msg.set_@@fieldname_lower@@(@@fieldname@@);
+________ END
+
+________ TABLE_proto_copy_from_field
+    if (msg.has_@@fieldname_lower@@())
+        @@fieldname@@ = msg.@@fieldname_lower@@();
+    else
+    @@initial_value@@
+________ END
+
+________ TABLE_proto_copy_from_field_bool
+    if (msg.has_@@fieldname_lower@@())
+        @@fieldname@@ = msg.@@fieldname_lower@@() ? true : false;
+    else
+    @@initial_value@@
+________ END
+
+________ TABLE_proto_copy_to_subtable
+    msg.clear_@@fieldname@@();
+    for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
+        @@fieldname@@[ind].copy_to_proto(*msg.add_@@fieldname@@());
+________ END
+
+________ TABLE_proto_copy_from_subtable
+    @@fieldname@@.clear();
+    @@fieldname@@.resize(msg.@@fieldname@@_size());
+    for (int ind = 0; ind < msg.@@fieldname@@_size(); ind++)
+    {
+        @@fieldname@@[ind].set_db(pdb);
+        @@fieldname@@[ind].copy_from_proto(msg.@@fieldname@@(ind));
+    }
+________ END

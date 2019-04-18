@@ -1,0 +1,129 @@
+________ QUERY_CLASS_IMPL
+
+
+//static
+sql_log_function_t SQL_QUERY_@@queryname@@ :: log_upd_func = &dflt_log_upd;
+sql_log_function_t SQL_QUERY_@@queryname@@ :: log_get_func = &dflt_log_get;
+void *             SQL_QUERY_@@queryname@@ :: log_arg  = NULL;
+sql_err_function_t SQL_QUERY_@@queryname@@ :: err_log_func = &dflt_log_err;
+void *             SQL_QUERY_@@queryname@@ :: err_log_arg  = NULL;
+
+SQL_QUERY_@@queryname@@ :: SQL_QUERY_@@queryname@@(sqlite3 *_pdb /*= NULL*/)
+{
+    pStmt_get_query = NULL;
+    pdb = _pdb;
+}
+
+SQL_QUERY_@@queryname@@ :: ~SQL_QUERY_@@queryname@@(void)
+{
+    if (pStmt_get_query != NULL)
+        sqlite3_finalize(pStmt_get_query);
+}
+
+void
+SQL_QUERY_@@queryname@@ :: set_db(sqlite3 *_pdb)
+{
+    if (pStmt_get_query != NULL)
+        sqlite3_finalize(pStmt_get_query);
+    pStmt_get_query = NULL;
+    pdb = _pdb;
+}
+
+//static
+void
+SQL_QUERY_@@queryname@@ :: print_err(const char *function, int lineno,
+                                     const char *format, ...)
+{
+    if (err_log_func == NULL)
+        // don't bother formatting the args.
+        return;
+
+    std::ostringstream msg_out;
+    msg_out << function << ":" << lineno << ": ";
+    std::string msg = msg_out.str();
+
+    size_t offset = msg.size();
+    msg.resize(offset + 250);
+
+    va_list ap;
+    va_start(ap, format);
+    size_t l = vsnprintf((char*)msg.c_str() + offset,
+                         250, format, ap);
+    va_end(ap);
+    // note that *snprintf returns what it WOULD have written
+    // if there was space! so l > msg.size means it truncated.
+    if (l < 250)
+        msg.resize(l + offset);
+    err_log_func(err_log_arg, msg);
+}
+
+bool
+SQL_QUERY_@@queryname@@ :: get_columns(void)
+{
+    int got;
+    sqlite3_stmt * pStmt = pStmt_get_query;
+
+@@get_columns@@
+
+    return true;
+}
+
+bool
+SQL_QUERY_@@queryname@@ :: get(@@queryargs@@)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+        return false;
+
+    if (pStmt_get_query == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT @@queryfields@@ "
+            "FROM @@querytables@@ "
+            "WHERE @@querywhere@@",
+            -1, &pStmt_get_query, NULL);
+        if (r != SQLITE_OK)
+        {
+            PRINT_ERR("ERROR %d preparing SELECT", r);
+            return false;
+        }
+    }
+
+    sqlite3_reset(pStmt_get_query);
+
+@@querybinders@@
+
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_query);
+
+    r = sqlite3_step(pStmt_get_query);
+    if (r == SQLITE_ROW)
+        ret = get_columns();
+
+    return ret;
+}
+
+bool
+SQL_QUERY_@@queryname@@ :: get_next(void)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL || pStmt_get_query == NULL)
+        return false;
+
+    r = sqlite3_step(pStmt_get_query);
+    if (r == SQLITE_ROW)
+        ret = get_columns();
+
+    return ret;
+}
+________ END
+
+________ CLASS_SQL_QUERY_register_a_logfunc
+    SQL_QUERY_@@queryname@@::register_log_funcs(
+        _upd_func, _get_func, _arg, _err_func, _err_arg);
+________ END

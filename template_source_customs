@@ -1,0 +1,352 @@
+________ TABLE_custom_get_implementation
+bool SQL_TABLE_@@tablename@@ :: get_@@customname@@(@@type_and_vX@@)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted GET before set_db");
+        return false;
+    }
+
+    if(pStmt_get_@@customname@@ == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ "
+            "WHERE @@querystring@@",
+            -1, &pStmt_get_@@customname@@, NULL);
+        if (r != SQLITE_OK)
+        {
+            PRINT_ERR("ERROR %d preparing SELECT for "
+                   "CUSTOM-GET @@customname@@", r);
+            return false;
+        }
+    }
+
+    sqlite3_reset(pStmt_get_@@customname@@);
+
+@@custom_get_binders@@
+
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_@@customname@@);
+
+    r = sqlite3_step(pStmt_get_@@customname@@);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_get_@@customname@@);
+        previous_get = pStmt_get_@@customname@@;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+________ END
+
+________ TABLE_custom_get_binder_pod
+    r = @@sqlite_bind_func@@(pStmt_get_@@customname@@,
+                             @@arg_index@@, v@@arg_index@@);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_get_binder_bool
+    r = @@sqlite_bind_func@@(pStmt_get_@@customname@@,
+                             @@arg_index@@, v@@arg_index@@ ? 1 : 0);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_get_binder_enum
+    r = @@sqlite_bind_func@@(pStmt_get_@@customname@@,
+                             @@arg_index@@, (int) v@@arg_index@@);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_get_binder_string
+    r = @@sqlite_bind_func@@(pStmt_get_@@customname@@, @@arg_index@@, 
+                          v@@arg_index@@.c_str(), v@@arg_index@@.length(),
+                          SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_upd_implementation
+bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted UPDATE before set_db");
+        return false;
+    }
+
+    if(pStmt_update_@@customname@@ == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "UPDATE @@tablename@@ SET (@@custom_fieldlist@@) = "
+            "(@@custom_questionmarks@@) WHERE rowid = ?",
+            -1, &pStmt_update_@@customname@@, NULL);
+        if (r != SQLITE_OK)
+        {
+            PRINT_ERR("ERROR %d preparing CUSTOM-UPD "
+                   "@@customname@@", r);
+            return false;
+        }
+    }
+
+    sqlite3_reset(pStmt_update_@@customname@@);
+
+@@custom_update_binders@@
+
+    r = sqlite3_bind_int64(pStmt_update_@@customname@@,
+                           @@fieldindex@@, rowid);
+
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update_@@customname@@);
+
+    r = sqlite3_step(pStmt_update_@@customname@@);
+    if (r != SQLITE_DONE)
+    {
+        PRINT_ERR("update @@customname@@: r = %d", r);
+        return false;
+    }
+    previous_get = NULL;
+
+    return ret;
+}
+________ END
+
+________ TABLE_custom_updby_implementation
+bool SQL_TABLE_@@tablename@@ :: update_by_@@customname@@(@@type_and_vX@@)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted UPDATE before set_db");
+        return false;
+    }
+
+    if(pStmt_update_by_@@customname@@ == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "UPDATE @@tablename@@ SET (@@custom_fieldlist@@) = "
+            "(@@custom_questionmarks@@) WHERE @@querystring@@",
+            -1, &pStmt_update_by_@@customname@@, NULL);
+        if (r != SQLITE_OK)
+        {
+            PRINT_ERR("ERROR %d preparing CUSTOM-UPDBY "
+                      "@@customname@@", r);
+            return false;
+        }
+    }
+
+    sqlite3_reset(pStmt_update_by_@@customname@@);
+
+@@custom_update_binders@@
+
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update_by_@@customname@@);
+
+    r = sqlite3_step(pStmt_update_by_@@customname@@);
+    if (r != SQLITE_DONE)
+    {
+        PRINT_ERR("update @@customname@@: r = %d", r);
+        return false;
+    }
+    previous_get = NULL;
+
+    return ret;
+}
+________ END
+
+________ TABLE_custom_upd_binder_pod
+    r = @@sqlite_bind_func@@(pStmt_@@by@@_@@customname@@,
+                             @@fieldindex@@, @@fieldname@@);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind @@fieldname@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_upd_binder_bool
+    r = @@sqlite_bind_func@@(pStmt_@@by@@_@@customname@@,
+                             @@fieldindex@@, @@fieldname@@ ? 1 : 0);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind @@fieldname@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_upd_binder_enum
+    r = @@sqlite_bind_func@@(pStmt_@@by@@_@@customname@@,
+                             @@fieldindex@@, (int) @@fieldname@@);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind @@fieldname@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_upd_binder_string
+    r = @@sqlite_bind_func@@(
+        pStmt_@@by@@_@@customname@@, @@fieldindex@@,
+         @@fieldname@@.c_str(), @@fieldname@@.length(),
+         SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind @@fieldname@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_updby_binder_pod
+    r = @@sqlite_bind_func@@(pStmt_update_by_@@customname@@,
+                             @@arg_index@@, v@@fieldindex@@);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind field @@fieldindex@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_updby_binder_bool
+    r = @@sqlite_bind_func@@(pStmt_update_by_@@customname@@,
+                             @@arg_index@@, v@@fieldindex@@ ? 1 : 0);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind field @@fieldindex@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_updby_binder_enum
+    r = @@sqlite_bind_func@@(pStmt_update_by_@@customname@@,
+                             @@arg_index@@, (int) v@@fieldindex@@);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind field @@fieldindex@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_updby_binder_string
+    r = @@sqlite_bind_func@@(pStmt_update_by_@@customname@@, @@arg_index@@,
+                          v@@fieldindex@@.c_str(), v@@fieldindex@@.length(),
+                          SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind field @@fieldindex@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_del_implementation
+bool SQL_TABLE_@@tablename@@ :: delete_@@customname@@(@@type_and_vX@@)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted DELETE before set_db");
+        return false;
+    }
+
+    if(pStmt_del_@@customname@@ == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "DELETE FROM @@tablename@@ WHERE @@querystring@@",
+            -1, &pStmt_del_@@customname@@, NULL);
+        if (r != SQLITE_OK)
+        {
+            PRINT_ERR("ERROR %d preparing CUSTOM-DEL", r);
+            return false;
+        }
+    }
+
+    sqlite3_reset(pStmt_del_@@customname@@);
+
+@@custom_del_binders@@
+
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_del_@@customname@@);
+
+    r = sqlite3_step(pStmt_del_@@customname@@);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_del_@@customname@@);
+        previous_get = pStmt_del_@@customname@@;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+________ END
+
+________ TABLE_custom_del_binder_pod
+    r = @@sqlite_bind_func@@(pStmt_del_@@customname@@,
+                             @@arg_index@@, v@@arg_index@@);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind arg @@arg_index@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_del_binder_bool
+    r = @@sqlite_bind_func@@(pStmt_del_@@customname@@,
+                             @@arg_index@@, v@@arg_index@@ ? 1 : 0);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind arg @@arg_index@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_del_binder_enum
+    r = @@sqlite_bind_func@@(pStmt_del_@@customname@@,
+                             @@arg_index@@, (int) v@@arg_index@@);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind arg @@arg_index@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_custom_del_binder_string
+    r = @@sqlite_bind_func@@(pStmt_del_@@customname@@, @@arg_index@@,
+                          v@@arg_index@@.c_str(), v@@arg_index@@.length(),
+                          SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind arg @@arg_index@@: r = %d", r);
+        return false;
+    }
+________ END
+

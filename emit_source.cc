@@ -10,7 +10,16 @@
 
 #include "emit.h"
 #ifndef DEPENDING
-#include "template_source.h"
+#include "template_source_top.h"
+#include "template_source_alltabs.h"
+#include "template_source_custom_select.h"
+#include "template_source_customs.h"
+#include "template_source_proto.h"
+#include "template_source_table.h"
+#include "template_source_table_get.h"
+#include "template_source_table_insert.h"
+#include "template_source_subtable.h"
+#include "template_source_xml.h"
 #endif
 
 using namespace std;

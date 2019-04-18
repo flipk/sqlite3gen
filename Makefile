@@ -29,7 +29,19 @@ ifneq ($(TRUE_LINE_NUMBERS),)
 template_to_c_DEFS = -DTRUE_LINE_NUMBERS=1
 endif
 
-TEMPLATES = header source proto
+TEMPLATES = \
+	header proto \
+	source_top \
+	source_alltabs \
+	source_custom_select \
+	source_customs \
+	source_subtable \
+	source_proto \
+	source_table \
+	source_table_get \
+	source_table_insert \
+	source_xml
+
 TEMPLATE_OBJS = $(foreach t,$(TEMPLATES),$(OBJDIR)/template_$(t).o)
 
 sql3gen_TARGET = $(OBJDIR)/sql3gen

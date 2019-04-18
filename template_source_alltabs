@@ -1,0 +1,121 @@
+________ TABLE_create_constraints
+, FOREIGN KEY(@@fieldname@@) REFERENCES @@foreign_table@@(@@foreign_field@@)
+________ ENDNL
+
+________ TABLE_create_index
+    sqlite3_exec(pdb,"CREATE INDEX @@tablename@@_@@fieldname@@ "
+                 "ON @@tablename@@ (@@fieldname@@)",
+        NULL, NULL, NULL);
+    printf("CREATE INDEX: CREATE INDEX @@tablename@@_@@fieldname@@ "
+           "ON @@tablename@@ (@@fieldname@@)\n");
+________ END
+
+________ CLASS_ALL_TABELS_IMPL
+
+bool SQL_TABLE_ALL_TABLES :: init_all(sqlite3 *pdb, table_version_callback cb)
+{
+    sqlite3_stmt * s;
+    sqlite3_prepare_v2(pdb,
+        "select * from sqlite_master "
+        "where name = \"tables\" and type = \"table\"",
+        -1, &s, NULL);
+    sqlite3_reset(s);
+    int r = sqlite3_step(s);
+    if (r == SQLITE_DONE)
+    {
+        // the table does NOT exist, create it
+        sqlite3_exec(pdb,
+                     "CREATE TABLE tables (name text, version int)",
+                     NULL, NULL, NULL);
+    }
+    sqlite3_finalize(s);
+
+@@create_all_tables@@
+
+    return true;
+}
+
+void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
+{
+    if (pdb == NULL)
+    {
+        fprintf(stderr, "attempted DROP (all) with null db\n");
+        return;
+    }
+
+@@drop_all_tables@@
+
+    sqlite3_exec(pdb,
+                 "DROP TABLE tables",
+                 NULL, NULL, NULL);
+}
+
+void SQL_TABLE_ALL_TABLES :: register_log_funcs(
+    sql_log_function_t _upd_func,
+    sql_log_function_t _get_func,
+    void *_arg,
+    sql_err_function_t _err_func,
+    void *_err_arg)
+{
+@@register_all_logfuncs@@
+}
+
+//static
+void SQL_TABLE_ALL_TABLES :: export_xml_all(sqlite3 *pdb,
+                                            tinyxml2::XMLDocument &doc)
+{
+    doc.InsertEndChild(doc.NewDeclaration());
+    tinyxml2::XMLElement * root = doc.NewElement("@@package@@");
+    tinyxml2::XMLElement * tab = NULL;
+    doc.InsertEndChild(root);
+    struct tm export_time;
+    time_t now = time(NULL);
+    localtime_r(&now, &export_time);
+    char export_time_str[100];
+    strftime(export_time_str, 100, "%Y-%m%d-%H%M%S", &export_time);
+    root->SetAttribute("export_time", export_time_str);
+@@table_export_all@@
+}
+
+//static
+bool SQL_TABLE_ALL_TABLES :: import_xml_all(sqlite3 *pdb,
+                                            tinyxml2::XMLDocument &doc)
+{
+    tinyxml2::XMLElement * root = doc.RootElement();
+    if (strcmp(root->Value(), "@@package@@") != 0)
+    {
+        fprintf(stderr, "ERROR: SQL_TABLE_ALL_TABLES :: import_xml_all : "
+                "root element '%s' does not match package '%s'\n",
+                root->Value(), "@@package@@");
+        return false;
+    }
+    tinyxml2::XMLElement * table;
+    for (table = root->FirstChildElement(); table;
+         table = table->NextSiblingElement())
+    {
+        const char * table_name = table->Value();
+@@table_import_all@@
+    }
+    return true;
+}
+
+}; // namespace @@package@@
+
+@@sourcebottom_block@@
+
+________ END
+
+________ CLASS_ALL_TABLES_create_a_table
+    if (!SQL_TABLE_@@tablename@@::init(pdb, cb))
+        return false;
+________ END
+
+________ CLASS_ALL_TABLES_drop_a_table
+    SQL_TABLE_@@tablename@@::table_drop(pdb);
+________ END
+
+________ CLASS_ALL_TABLES_register_a_logfunc
+    SQL_TABLE_@@tablename@@::register_log_funcs(
+        _upd_func, _get_func, _arg, _err_func, _err_arg);
+________ END
+

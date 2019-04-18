@@ -1,0 +1,564 @@
+
+________ TABLE_CLASS_IMPL
+
+//static
+sql_log_function_t SQL_TABLE_@@tablename@@ :: log_upd_func = &dflt_log_upd;
+sql_log_function_t SQL_TABLE_@@tablename@@ :: log_get_func = &dflt_log_get;
+void *             SQL_TABLE_@@tablename@@ :: log_arg  = NULL;
+sql_err_function_t SQL_TABLE_@@tablename@@ :: err_log_func = &dflt_log_err;
+void *             SQL_TABLE_@@tablename@@ :: err_log_arg  = NULL;
+
+SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
+    : pdb(_pdb)
+{
+    init_statements();
+    xml_decoders_initialized = false;
+}
+
+// copy constructor, duplicates all the data fields (including rowid)
+// but does not duplicate the statement pointers, because then they'd
+// get double-freed.
+SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(
+    const SQL_TABLE_@@tablename@@ &other)
+{
+    init_statements();
+
+    pdb = other.pdb;
+    rowid = other.rowid;
+@@field_copies@@
+}
+
+void
+SQL_TABLE_@@tablename@@ :: init_statements(void)
+{
+    pStmt_insert = NULL;
+    pStmt_update = NULL;
+    pStmt_delete_rowid = NULL;
+    pStmt_get_by_rowid = NULL;
+    pStmt_get_all = NULL;
+
+@@prepare_queries@@
+@@prepare_like_queries@@
+@@prepare_custom_get_queries@@
+@@prepare_custom_upd@@
+@@prepare_custom_del@@
+
+    previous_get = NULL;
+    init();
+}
+
+SQL_TABLE_@@tablename@@ :: ~SQL_TABLE_@@tablename@@(void)
+{
+    finalize();
+}
+
+void
+SQL_TABLE_@@tablename@@ :: finalize(void)
+{
+    if (pStmt_insert)
+        sqlite3_finalize(pStmt_insert);
+    if (pStmt_update)
+        sqlite3_finalize(pStmt_update);
+    if (pStmt_delete_rowid)
+        sqlite3_finalize(pStmt_delete_rowid);
+    if (pStmt_get_by_rowid)
+        sqlite3_finalize(pStmt_get_by_rowid);
+    if (pStmt_get_all)
+        sqlite3_finalize(pStmt_get_all);
+
+@@finalize_queries@@
+@@finalize_like_queries@@
+@@finalize_custom_get_queries@@
+@@finalize_custom_upd@@
+@@finalize_custom_del@@
+
+    init_statements();
+}
+
+void SQL_TABLE_@@tablename@@ :: init(void)
+{
+    rowid = -1;
+@@initial_values@@
+    previous_get = NULL;
+}
+
+//static
+void
+SQL_TABLE_@@tablename@@ :: print_err(const char *function, int lineno,
+                                     const char *format, ...)
+{
+    if (err_log_func == NULL)
+        // don't bother formatting the args.
+        return;
+
+    std::ostringstream msg_out;
+    msg_out << function << ":" << lineno << ": ";
+    std::string msg = msg_out.str();
+
+    size_t offset = msg.size();
+    msg.resize(offset + 250);
+
+    va_list ap;
+    va_start(ap, format);
+    size_t l = vsnprintf((char*)msg.c_str() + offset,
+                         250, format, ap);
+    va_end(ap);
+    // note that *snprintf returns what it WOULD have written
+    // if there was space! so l > msg.size means it truncated.
+    if (l < 250)
+        msg.resize(l + offset);
+    err_log_func(err_log_arg, msg);
+}
+
+#undef  PRINT_ERR
+#define PRINT_ERR(args...) print_err(__PRETTY_FUNCTION__, __LINE__, args)
+
+bool SQL_TABLE_@@tablename@@ :: get_columns(sqlite3_stmt * pStmt)
+{
+    int got;
+
+    rowid = sqlite3_column_int64(pStmt, 0);
+
+@@get_columns@@
+
+    return true;
+}
+
+@@query_implementations@@
+@@query_like_implementations@@
+
+bool SQL_TABLE_@@tablename@@ :: get_next(void)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL || previous_get == NULL)
+        return false;
+
+    r = sqlite3_step(previous_get);
+    if (r == SQLITE_ROW)
+        ret = get_columns(previous_get);
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+
+bool SQL_TABLE_@@tablename@@ :: insert(void)
+{
+    int r;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted INSERT before set_db");
+        return false;
+    }
+
+    if (pStmt_insert == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb, "INSERT INTO @@tablename@@ "
+            "(@@fieldnames@@) "
+            "values (@@questionmarks@@)",
+            -1, &pStmt_insert, NULL);
+        if (r != SQLITE_OK)
+        {
+            PRINT_ERR("ERROR %d preparing INSERT", r);
+            return false;
+        }
+    }
+    sqlite3_reset(pStmt_insert);
+
+@@insert_binders@@
+
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_insert);
+
+    r = sqlite3_step(pStmt_insert);
+    if (r != SQLITE_DONE)
+    {
+        PRINT_ERR("insert: r = %d", r);
+        return false;
+    }
+
+    rowid = sqlite3_last_insert_rowid(pdb);
+
+    return true;
+}
+
+bool SQL_TABLE_@@tablename@@ :: update(void)
+{
+    int r;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted UPDATE before set_db");
+        return false;
+    }
+
+    if (pStmt_update == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb, "UPDATE @@tablename@@ SET "
+            "(@@fieldnames@@) "
+            "= (@@questionmarks@@) WHERE rowid = ?",
+            -1, &pStmt_update, NULL);
+        if (r != SQLITE_OK)
+        {
+            PRINT_ERR("ERROR %d preparing UPDATE", r);
+            return false;
+        }
+    }
+
+    sqlite3_reset(pStmt_update);
+
+@@update_binders@@
+
+    r = sqlite3_bind_int64(pStmt_update,
+                           @@column_index@@, rowid);
+
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_update);
+
+    r = sqlite3_step(pStmt_update);
+    if (r != SQLITE_DONE)
+    {
+        PRINT_ERR("update: r = %d", r);
+        return false;
+    }
+
+    return true;
+}
+
+bool SQL_TABLE_@@tablename@@ :: delete_rowid(void)
+{
+    int r;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted DELETE before set_db");
+        return false;
+    }
+
+    if (pStmt_delete_rowid == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb, "DELETE FROM @@tablename@@ WHERE rowid = ?",
+            -1, &pStmt_delete_rowid, NULL);
+        if (r != SQLITE_OK)
+        {
+            PRINT_ERR("ERROR %d preparing DELETE", r);
+            return false;
+        }
+    }
+
+    sqlite3_reset(pStmt_delete_rowid);
+
+    r = sqlite3_bind_int64(pStmt_delete_rowid,
+                           1, rowid);
+
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_delete_rowid);
+
+    r = sqlite3_step(pStmt_delete_rowid);
+    if (r != SQLITE_DONE)
+    {
+        PRINT_ERR("delete: r = %d", r);
+        return false;
+    }
+
+    return true;
+}
+
+bool SQL_TABLE_@@tablename@@ :: get_by_rowid(int64_t v1)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted GET before set_db");
+        return false;
+    }
+
+    if(pStmt_get_by_rowid == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ WHERE rowid = ?",
+            -1, &pStmt_get_by_rowid, NULL);
+        if (r != SQLITE_OK)
+        {
+            PRINT_ERR("ERROR %d preparing SELECT for get_by_rowid", r);
+            return false;
+        }
+    }
+
+    sqlite3_reset(pStmt_get_by_rowid);
+
+    r = sqlite3_bind_int64(pStmt_get_by_rowid,
+                             1, v1);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind: r = %d", r);
+        return false;
+    }
+
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_by_rowid);
+
+    r = sqlite3_step(pStmt_get_by_rowid);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_get_by_rowid);
+        previous_get = pStmt_get_by_rowid;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+
+bool SQL_TABLE_@@tablename@@ :: get_all(void)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted GET before set_db");
+        return false;
+    }
+
+    if(pStmt_get_all == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@",
+            -1, &pStmt_get_all, NULL);
+        if (r != SQLITE_OK)
+        {
+            PRINT_ERR("ERROR %d preparing SELECT for get_all", r);
+            return false;
+        }
+    }
+
+    sqlite3_reset(pStmt_get_all);
+
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_all);
+
+    r = sqlite3_step(pStmt_get_all);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_get_all);
+        previous_get = pStmt_get_all;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
+
+@@get_subtable_implementations@@
+
+void SQL_TABLE_@@tablename@@ :: get_subtables(void)
+{
+@@get_all_subtables@@
+}
+
+void SQL_TABLE_@@tablename@@ :: insert_subtables(void)
+{
+@@insert_all_subtables@@
+}
+
+@@custom_get_implementations@@
+@@custom_upd_implementations@@
+@@custom_del_implementations@@
+@@table_proto_copy_funcs@@
+@@table_xml_copy_funcs@@
+
+//static
+bool SQL_TABLE_@@tablename@@ :: init(sqlite3 *pdb, table_version_callback cb)
+{
+    bool ret = true;
+    sqlite3_stmt * s;
+    int r = sqlite3_prepare_v2(pdb,
+        "select version from tables where name = \"@@tablename@@\"",
+        -1, &s, NULL);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("select from tables: %d", r);
+        return false;
+    }
+    sqlite3_reset(s);
+    r = sqlite3_step(s);
+
+    if (r == SQLITE_DONE)
+    {
+        if (!table_create(pdb))
+            ret = false;
+        sqlite3_exec(
+            pdb,
+            "INSERT INTO tables (name,version) "
+            "values (\"@@tablename@@\",@@tableversion@@)",
+            NULL, NULL, NULL);
+    }
+    else if (r == SQLITE_ROW)
+    {
+        int v = sqlite3_column_int(s,0);
+        cb(pdb, "@@tablename@@", v, @@tableversion@@);
+        sqlite3_exec(
+            pdb,
+            "UPDATE tables SET (version) = (@@tableversion@@) "
+            "WHERE name = \"@@tablename@@\"",
+            NULL, NULL, NULL);
+    }
+    else
+    {
+        PRINT_ERR("select from tables / step r = %d", r);
+        ret = false;
+    }
+    sqlite3_finalize(s);
+    return ret;
+}
+
+//static
+bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
+{
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted CREATE with null db");
+        return false;
+    }
+
+    sqlite3_exec(pdb, "CREATE TABLE @@tablename@@ "
+        "(@@table_create_fields@@)",
+        NULL, NULL, NULL);
+
+    printf("CREATE TABLE: CREATE TABLE @@tablename@@ "
+           "(@@table_create_fields@@)\n");
+
+@@index_creation@@
+
+    return true;
+}
+
+//static
+void SQL_TABLE_@@tablename@@ :: table_drop(sqlite3 *pdb)
+{
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted DROP with null db");
+        return;
+    }
+
+    char * errmsg = NULL;
+    sqlite3_exec(pdb, "DROP TABLE @@tablename@@",
+         NULL, NULL, &errmsg);
+    if (errmsg != NULL)
+    {
+        // if you get error 6 tables is locked, some prepared
+        // statement is still in a SQLITE_ROW state.
+        PRINT_ERR("DROP error: %s", errmsg);
+        sqlite3_free(errmsg);
+    }
+
+    printf("DROP: DROP TABLE @@tablename@@\n");
+
+    sqlite3_exec(pdb, "delete from tables "
+                 "where name = \"user\"",
+                 NULL, NULL, NULL);
+}
+
+//static
+void SQL_TABLE_@@tablename@@ :: export_xml(sqlite3 *pdb,
+                                           tinyxml2::XMLElement *el)
+{
+    SQL_TABLE_@@tablename@@ row(pdb);
+
+    bool ok = row.get_all();
+    while (ok)
+    {
+        row.get_subtables();
+        tinyxml2::XMLElement * row_el =
+            el->GetDocument()->NewElement("@@tablename@@");
+        row.copy_to_xml(row_el);
+        el->InsertEndChild(row_el);
+        ok = row.get_next();
+    }
+}
+
+//static
+bool SQL_TABLE_@@tablename@@ :: import_xml(sqlite3 *pdb,
+                                           tinyxml2::XMLElement *el)
+{
+    tinyxml2::XMLElement * row_el;
+    SQL_TABLE_@@tablename@@  row(pdb);
+
+    for (row_el = el->FirstChildElement(); row_el;
+         row_el = row_el->NextSiblingElement())
+    {
+        row.copy_from_xml(row_el);
+        row.insert();
+        row.insert_subtables();
+    }
+
+    return true;
+}
+
+________ END
+
+________ TABLE_prepare_query
+    pStmt_by_@@fieldname@@ = NULL;
+________ END
+
+________ TABLE_prepare_like_query
+    pStmt_by_@@fieldname@@_like = NULL;
+________ END
+
+________ TABLE_prepare_custom_get_query
+    pStmt_get_@@customname@@ = NULL;
+________ END
+
+________ TABLE_prepare_custom_upd
+    pStmt_update_@@customname@@ = NULL;
+________ END
+
+________ TABLE_prepare_custom_updby
+    pStmt_update_by_@@customname@@ = NULL;
+________ END
+
+________ TABLE_prepare_custom_del
+    pStmt_del_@@customname@@ = NULL;
+________ END
+
+________ TABLE_finalize_query
+    if (pStmt_by_@@fieldname@@)
+        sqlite3_finalize(pStmt_by_@@fieldname@@);
+________ END
+
+________ TABLE_finalize_like_query
+    if (pStmt_by_@@fieldname@@_like)
+        sqlite3_finalize(pStmt_by_@@fieldname@@_like);
+________ END
+
+________ TABLE_finalize_custom_get_query
+    if (pStmt_get_@@customname@@)
+        sqlite3_finalize(pStmt_get_@@customname@@);
+________ END
+
+________ TABLE_finalize_custom_upd
+    if (pStmt_update_@@customname@@)
+        sqlite3_finalize(pStmt_update_@@customname@@);
+________ END
+
+________ TABLE_finalize_custom_updby
+    if (pStmt_update_by_@@customname@@)
+        sqlite3_finalize(pStmt_update_by_@@customname@@);
+________ END
+
+________ TABLE_finalize_custom_del
+    if (pStmt_del_@@customname@@)
+        sqlite3_finalize(pStmt_del_@@customname@@);
+________ END

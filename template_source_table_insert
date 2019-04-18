@@ -1,0 +1,41 @@
+
+________ TABLE_insert_binder_pod
+    r = @@sqlite_bind_func@@(pStmt_@@stmt@@, @@column_index@@,
+                             @@fieldname@@);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("@@stmt@@: bind @@fieldname@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_insert_binder_bool
+    r = @@sqlite_bind_func@@(pStmt_@@stmt@@, @@column_index@@,
+                             @@fieldname@@ ? 1 : 0);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("@@stmt@@: bind @@fieldname@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_insert_binder_enum
+    r = @@sqlite_bind_func@@(pStmt_@@stmt@@, @@column_index@@,
+                             (int) @@fieldname@@);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("@@stmt@@: bind @@fieldname@@: r = %d", r);
+        return false;
+    }
+________ END
+
+________ TABLE_insert_binder_string
+    r = @@sqlite_bind_func@@(pStmt_@@stmt@@, @@column_index@@,
+         @@fieldname@@.c_str(), @@fieldname@@.length(),
+         SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("@@stmt@@: bind @@fieldname@@: r = %d", r);
+        return false;
+    }
+________ END
