@@ -41,7 +41,7 @@ static void validate_schema(SchemaDef *sd);
 %token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD KW_BOOL
 %token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_UPDBY KW_CUSTOM_DEL
 %token KW_DEFAULT KW_PROTOID KW_PACKAGE KW_VERSION KW_SUBTABLE
-%token KW_FOREIGN KW_NOTNULL KW_UNIQUE
+%token KW_FOREIGN KW_NOTNULL KW_UNIQUE KW_CUSTOM_SELECT
 
 %token KW_PROTOTOP  KW_PROTOBOTTOM
 %token KW_HEADERTOP KW_HEADERBOTTOM
@@ -73,6 +73,7 @@ SCHEMA_FILE
 	| PACKAGE SCHEMA_FILE
 	| TABLE SCHEMA_FILE
 	| BLOCK SCHEMA_FILE
+	| CUSTOM_SELECT SCHEMA_FILE
 	;
 
 BLOCK
@@ -147,6 +148,24 @@ PACKAGE
             delete $2;
 	}
         ;
+
+CUSTOM_SELECT
+	: KW_CUSTOM_SELECT KW_WORD
+	  L_PAREN WORDLIST R_PAREN
+	  L_PAREN WORDLIST R_PAREN
+	  L_PAREN TYPELIST R_PAREN TOK_STRING
+        {
+            CustomSelect * csel = new CustomSelect;
+            csel->name = *$2;
+            delete $2;
+            csel->field_names = $4;
+            csel->table_names = $7;
+            csel->types = $10;
+            csel->where_clause = *$12;
+            delete $12;
+            schema_def->add_custom_select(csel);
+	}
+	;
 
 TABLE
 	: KW_TABLE KW_WORD KW_VERSION TOK_INTEGER
@@ -460,8 +479,8 @@ print_tokenized_file(const std::string &fname)
 	     << " ("
 	     << (c <= YYMAXUTOK ? yytname[yytranslate[c]] : "")
              << ")";
-        if (c == KW_WORD)
-            cout << " (" << *yylval.word << ")";
+        if (c == KW_WORD || c == TOK_STRING)
+            cout << " \"" << *yylval.word << "\"";
         cout << endl;
         if (c <= 0)
             break;
@@ -551,24 +570,24 @@ print_table(TableDef *td)
     }
 }
 
-void
-print_tables(TableDef *tds)
+static TableDef *
+is_table(SchemaDef *schema, const std::string &table)
 {
-    while (tds)
-    {
-        print_table(tds);
-        tds = tds->next;
-    }
+    TableDef *tb;
+    for (tb = schema->tables; tb; tb = tb->next)
+        if (tb->name == table)
+            return tb;
+    return NULL;
 }
 
-static bool
-is_column(TableDef *tb, const std::string &name)
+static FieldDef *
+is_field(TableDef *tb, const std::string &name)
 {
     FieldDef * f;
     for (f = tb->fields; f; f = f->next)
         if (name == f->name)
-            return true;
-    return false;
+            return f;
+    return NULL;
 }
 
 static void
@@ -588,7 +607,7 @@ validate_table(TableDef *tb)
                 (cust->type == CustomGetUpdList::UPD) ? "" : "BY";
             for (w = cust->wordlist; w; w = w->next)
             {
-                if (!is_column(tb, w->word))
+                if (is_field(tb, w->word) == NULL)
                 {
                     fprintf(stderr, "ERROR: column '%s' in CUSTOM-UPD%s "
                             "'%s' is not a known column in table '%s'\n",
@@ -627,10 +646,7 @@ validate_schema(SchemaDef *sd)
         {
             if (fd->attrs.foreign)
             {
-                TableDef *tb2;
-                for (tb2 = sd->tables; tb2; tb2 = tb2->next)
-                    if (tb2->name == fd->attrs.foreign_table)
-                        break;
+                TableDef *tb2 = is_table(sd, fd->attrs.foreign_table);
                 if (tb2 == NULL)
                 {
                     fprintf(stderr, "ERROR: unknown table '%s' in FOREIGN "
@@ -659,10 +675,7 @@ validate_schema(SchemaDef *sd)
             if (fd->attrs.subtable)
             {
                 // fd->name should be a table
-                TableDef *tb2;
-                for (tb2 = sd->tables; tb2; tb2 = tb2->next)
-                    if (tb2->name == fd->name)
-                        break;
+                TableDef *tb2 = is_table(sd, fd->name);
                 if (tb2 == NULL)
                 {
                     fprintf(stderr, "ERROR: SUBTABLE field name '%s' "
@@ -703,5 +716,111 @@ validate_schema(SchemaDef *sd)
                 tb2->is_subtable = true;
             }
         }
+    }
+
+    CustomSelect * csel;
+    for (csel = sd->custom_selects; csel; csel = csel->next)
+    {
+        // validate field_names are actually valid "table.field"
+        WordList * wl;
+        for (wl = csel->field_names; wl; wl = wl->next)
+        {
+            size_t dotpos = wl->word.find_first_of('.');
+            if (dotpos == string::npos)
+            {
+                fprintf(stderr, "ERROR: CUSTOM-SELECT fields should be "
+                        "of the form 'table.field'\n");
+                exit(1);
+            }
+            string table = wl->word.substr(0,dotpos);
+            string field = wl->word.substr(dotpos+1);
+            TableDef * tb = is_table(sd, table);
+            if (tb == NULL)
+            {
+                fprintf(stderr, "ERROR: CUSTOM-SELECT field table '%s' "
+                        "is not a table\n", table.c_str());
+                exit(1);
+            }
+            csel->field_table_ptrs.push_back(tb);
+            FieldDef * f = NULL;
+            if (field != "rowid")
+            {
+                f = is_field(tb, field);
+                if (f == NULL)
+                {
+                    fprintf(stderr, "ERROR: CUSTOM-SELECT field '%s' "
+                            "is not a field in table '%s'\n",
+                            wl->word.c_str(), table.c_str());
+                    exit(1);
+                }
+            }
+            // it's ok we're pushing a NULL in the case
+            // of a rowid: it's by design.
+            csel->field_ptrs.push_back(f);
+        }
+        // validate table_names are valid tables
+        for (wl = csel->table_names; wl; wl = wl->next)
+        {
+            TableDef * tb = is_table(sd, wl->word);
+            if (tb == NULL)
+            {
+                fprintf(stderr, "ERROR: CUSTOM-SELECT table '%s' "
+                        "is not a table\n", wl->word.c_str());
+                exit(1);
+            }
+            csel->table_ptrs.push_back(tb);
+        }
+    }
+}
+
+static void
+print_custom_select(CustomSelect * csel)
+{
+    printf("custom select %s(", csel->name.c_str());
+    TypeDefValue *type = csel->types;
+    int count = 1;
+    while (type)
+    {
+        printf("%s v%d", get_type(*type).c_str(), count++);
+        if (type->next)
+            printf(", ");
+        type = type->next;
+    }
+    printf("): SELECT ");
+    WordList * wl = csel->field_names;
+    while (wl)
+    {
+        printf("%s", wl->word.c_str());
+        if (wl->next)
+            printf(", ");
+        wl = wl->next;
+    }
+    printf(" FROM ");
+    wl = csel->table_names;
+    while (wl)
+    {
+        printf("%s", wl->word.c_str());
+        if (wl->next)
+            printf(", ");
+        wl = wl->next;
+    }
+    printf(" WHERE %s\n", csel->where_clause.c_str());
+}
+
+void
+print_schema(SchemaDef * schema)
+{
+    TableDef *tds = schema->tables;
+    while (tds)
+    {
+        print_table(tds);
+        tds = tds->next;
+    }
+
+    CustomSelect * csel = schema->custom_selects;
+    while (csel)
+    {
+        print_custom_select(csel);
+        csel = csel->next;
     }
 }

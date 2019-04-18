@@ -84,7 +84,7 @@ message TABLE_checkouts_m
 
 }
 
-// NOTE this is PROTOBOTTOM from line 74 of "../sample.schema"
+// NOTE this is PROTOBOTTOM from line 95 of "../sample.schema"
 
 // proto bottom line 1
 // proto bottom line 2

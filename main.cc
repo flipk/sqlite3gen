@@ -69,17 +69,7 @@ main(int argc, char ** argv)
             return 1;
         }
 
-        struct stat sb;
-        memset(&sb, 0, sizeof(sb));
-        stat(schema_file.c_str(), &sb);
-        struct tm schema_time;
-        localtime_r(&sb.st_mtime, &schema_time);
-        schema->schema_time.resize(100);
-        schema->schema_time.resize(
-            strftime((char*) schema->schema_time.c_str(), 100,
-                     "%Y-%m%d-%H%M%S", &schema_time));
-
-        print_tables(schema->tables);
+        print_schema(schema);
         emit_source(cc_file, h_file, schema);
         emit_header(h_file, proto_h_file, schema);
         emit_proto(proto_file, schema);

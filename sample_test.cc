@@ -223,7 +223,7 @@ main()
     user.set_db(pdb);
     u.set_db(pdb);
 
-    library::SQL_TABLE_user::register_log_funcs(
+    library::SQL_TABLE_ALL_TABLES::register_log_funcs(
         &log_sql_upd, &log_sql_get, NULL, &log_sql_err, NULL);
     library::SQL_TABLE_ALL_TABLES::init_all(pdb, &table_callback);
     {
@@ -304,6 +304,29 @@ test_subtables(sqlite3 * pdb)
         u.proto = "this is proto blob";
         u.insert();
 
+        u.userid = 2;
+        u.firstname = "fir2";
+        u.lastname = "las2";
+        u.SSN = 22;
+        u.balance = 8.50;
+        u.proto = "this is proto blob 2";
+        u.insert();
+
+        u.userid = 3;
+        u.firstname = "fir3";
+        u.lastname = "las3";
+        u.SSN = 33;
+        u.balance = 12.75;
+        u.proto = "this is proto blob 3";
+        u.insert();
+
+        b.bookid = 1;
+        b.title = "book 1 title";
+        b.isbn = "111222";
+        b.price = 4.55;
+        b.quantity = 6;
+        b.insert();
+
         b.bookid = 2;
         b.title = "book 2 title";
         b.isbn = "444555";
@@ -327,57 +350,92 @@ test_subtables(sqlite3 * pdb)
         c.userid2 = 1;
         c.duedate = 6;
         c.insert();
+
+        c.bookid2 = 1;
+        c.userid2 = 2;
+        c.duedate = 12;
+        c.insert();
+
+        c.bookid2 = 3;
+        c.userid2 = 3;
+        c.duedate = 2;
+        c.insert();
     }
 
-    SQL_TABLE_user_custom        u(pdb);
-
-    if (u.get_by_userid(1))
     {
-        printf("got user id 1!\n");
-        u.get_subtable_checkouts();
-        u.print();
-        library::TABLE_user_m  msg;
-        u.copy_to_proto(msg);
+        SQL_TABLE_user_custom        u(pdb);
 
+        if (u.get_by_userid(1))
         {
-            SQL_TABLE_user_custom  u2(pdb);
-            u2.copy_from_proto(msg);
-            printf("after protobuf marshaling:\n");
-            u2.print();
-        }
-
-        {
-            tinyxml2::XMLPrinter printer;
+            printf("got user id 1!\n");
+            u.get_subtable_checkouts();
+            u.print();
+            library::TABLE_user_m  msg;
+            u.copy_to_proto(msg);
 
             {
-                tinyxml2::XMLDocument   doc;
-                library::SQL_TABLE_ALL_TABLES :: export_xml_all(pdb,doc);
-                doc.Print( &printer );
-                printf("xml:\n%s\n", printer.CStr());
-            }
-
-            {
-                tinyxml2::XMLDocument  doc;
-
-                doc.Parse( printer.CStr() );
-                if (0) // i trust this to work
-                {
-                    tinyxml2::XMLPrinter printer2;
-                    doc.Print( &printer2 );
-                    printf("reparsed xml:\n%s\n", printer2.CStr());
-                }
-
-                sqlite3 * pdb2;
-                printf("CREATING SECOND TEST DATABASE\n");
-                sqlite3_open("build_native/sample_test2.db", &pdb2);
-                library::SQL_TABLE_ALL_TABLES::init_all(pdb2, &table_callback);
-                library::SQL_TABLE_ALL_TABLES::import_xml_all(pdb2,doc);
-
-                int r = sqlite3_close(pdb2);
-                if (r != SQLITE_OK)
-                    printf("ERR!  close returns %d\n", r);
-                unlink("build_native/sample_test2.db");
+                SQL_TABLE_user_custom  u2(pdb);
+                u2.copy_from_proto(msg);
+                printf("after protobuf marshaling:\n");
+                u2.print();
             }
         }
     }
+
+    {
+        tinyxml2::XMLPrinter printer;
+
+        {
+            tinyxml2::XMLDocument   doc;
+            library::SQL_TABLE_ALL_TABLES :: export_xml_all(pdb,doc);
+            doc.Print( &printer );
+            printf("xml:\n%s\n", printer.CStr());
+        }
+
+        {
+            tinyxml2::XMLDocument  doc;
+
+            doc.Parse( printer.CStr() );
+            if (0) // i trust this to work
+            {
+                tinyxml2::XMLPrinter printer2;
+                doc.Print( &printer2 );
+                printf("reparsed xml:\n%s\n", printer2.CStr());
+            }
+
+            sqlite3 * pdb2;
+            printf("CREATING SECOND TEST DATABASE\n");
+            sqlite3_open("build_native/sample_test2.db", &pdb2);
+            library::SQL_TABLE_ALL_TABLES::init_all(pdb2, &table_callback);
+            library::SQL_TABLE_ALL_TABLES::import_xml_all(pdb2,doc);
+
+            int r = sqlite3_close(pdb2);
+            if (r != SQLITE_OK)
+                printf("ERR!  close returns %d\n", r);
+            unlink("build_native/sample_test2.db");
+        }
+    }
+
+    {
+        library::SQL_QUERY_due_books  due(pdb);
+
+        printf(" *** testing SQL_QUERY_due_books:\n");
+
+        bool ok = due.get(1,4);
+        while (ok)
+        {
+            printf("user_rid %" PRId64 " %s %s "
+                   "book_rid %" PRId64 " %s "
+                   "checkouts_rid %" PRId64 " due %" PRId64 "\n",
+                   (int64_t) due.user_rowid,
+                   due.user_firstname.c_str(),
+                   due.user_lastname.c_str(),
+                   (int64_t) due.book_rowid,
+                   due.book_title.c_str(),
+                   (int64_t) due.checkouts_rowid,
+                   (int64_t) due.checkouts_duedate);
+            ok = due.get_next();
+        }
+    }
+
 }

@@ -21,6 +21,7 @@ void emit_source(const std::string &fname,
 {
     ofstream  out(fname.c_str(), ios_base::out | ios_base::trunc);
     const TableDef *td;
+    const CustomSelect *csel;
     pattern_value_map  patterns;
 
     if (!out.good())
@@ -742,7 +743,143 @@ void emit_source(const std::string &fname,
             register_all_logfuncs, patterns);
     }
 
-    patterns["schema_time"] = schema->schema_time;
+    for (csel = schema->custom_selects; csel; csel = csel->next)
+    {
+        const WordList *wl;
+        const TypeDefValue *tdv;
+        int argcount;
+
+        ostringstream queryargs;
+        ostringstream get_columns;
+        ostringstream querybinders;
+        ostringstream queryfields;
+        ostringstream querytables;
+
+        patterns["queryname"] = csel->name;
+
+        argcount = 1;
+        for (tdv = csel->types; tdv; tdv = tdv->next)
+        {
+            string fieldtype = TypeDef_to_Ctype(tdv, true);
+            queryargs << fieldtype
+                      << " v" << argcount;
+            if (tdv->next)
+                queryargs << ", ";
+
+            ostringstream arg_index;
+            arg_index << argcount;
+            SET_PATTERN(arg_index);
+
+            patterns["sqlite_bind_func"] = TypeDef_to_sqlite_bind(tdv->type);
+            patterns["customname"] = "query";
+
+            switch (tdv->type)
+            {
+            case TYPE_INT:
+            case TYPE_INT64:
+            case TYPE_DOUBLE:
+                output_TABLE_custom_get_binder_pod(querybinders, patterns);
+                break;
+            case TYPE_TEXT:
+            case TYPE_BLOB:
+                output_TABLE_custom_get_binder_string(querybinders, patterns);
+                break;
+            case TYPE_ENUM:
+                output_TABLE_custom_get_binder_enum(querybinders, patterns);
+                break;
+            case TYPE_BOOL:
+                output_TABLE_custom_get_binder_bool(querybinders, patterns);
+                break;
+            case TYPE_SUBTABLE:
+                fprintf(stderr, "ERROR: query SUBTABLE "
+                        "shouldn't get here\n");
+                exit(1);
+            }
+
+            argcount ++;
+        }
+
+        for (wl = csel->field_names; wl; wl = wl->next)
+        {
+            queryfields << wl->word;
+            if (wl->next)
+                queryfields << ", ";
+        }
+
+        argcount = 0;
+        for (size_t ind = 0; ind < csel->field_ptrs.size(); ind++)
+        {
+            TableDef * td = csel->field_table_ptrs[ind];
+            FieldDef * fd = csel->field_ptrs[ind];
+            const string fieldname = (fd == NULL) ? "rowid" : fd->name;
+            const string fieldtype =
+                (fd == NULL) ? "sqlite3_int64" :
+                TypeDef_to_Ctype(&fd->type, false, fieldname);
+
+            TypeDef t = (fd == NULL) ? TYPE_INT64 : fd->type.type;
+
+            ostringstream column_index;
+            column_index << argcount;
+            SET_PATTERN(column_index);
+
+            patterns["sqlite_type"] = TypeDef_to_sqlite_macro(t);
+            patterns["fieldname"] = td->name + "_" + fieldname;
+            patterns["sqlite_column_func"] = TypeDef_to_sqlite_column(t);
+
+            switch (t)
+            {
+            case TYPE_INT:
+            case TYPE_INT64:
+            case TYPE_DOUBLE:
+                output_TABLE_get_column_pod(get_columns, patterns);
+                break;
+            case TYPE_TEXT:
+            case TYPE_BLOB:
+                output_TABLE_get_column_string(get_columns, patterns);
+                break;
+            case TYPE_BOOL:
+                output_TABLE_get_column_bool(get_columns, patterns);
+                break;
+            case TYPE_ENUM:
+            {
+                ostringstream initial_value;
+                initial_value << "    " << td->name << "_" << fd->name
+                              << " = "
+                              << Dots_to_Colons(fd->attrs.init_string)
+                              << ";\n";
+                SET_PATTERN(initial_value);
+                patterns["fieldtype"]          =
+                    TypeDef_to_Ctype(&fd->type, true, fd->name);
+                output_TABLE_get_column_enum(get_columns, patterns);
+                break;
+            }
+            case TYPE_SUBTABLE:
+                // nothing, NOTREACHED
+                break;
+            }
+
+            argcount++;
+        }
+
+        for (wl = csel->table_names; wl; wl = wl->next)
+        {
+            querytables << wl->word;
+            if (wl->next)
+                querytables << ", ";
+        }
+
+        patterns["querywhere"] = csel->where_clause;
+
+        SET_PATTERN(queryfields);
+        SET_PATTERN(querytables);
+        SET_PATTERN(querybinders);
+        SET_PATTERN(queryargs);
+        SET_PATTERN(get_columns);
+        output_QUERY_CLASS_IMPL(out, patterns);
+        output_CLASS_SQL_QUERY_register_a_logfunc(
+            register_all_logfuncs, patterns);
+    }
+
     SET_PATTERN(create_all_tables);
     SET_PATTERN(drop_all_tables);
     SET_PATTERN(register_all_logfuncs);

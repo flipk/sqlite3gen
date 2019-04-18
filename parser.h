@@ -4,6 +4,7 @@
 #define __PARSER_H__ 1
 
 #include <inttypes.h>
+#include <vector>
 
 enum TypeDef
 {
@@ -183,10 +184,33 @@ struct TableDef
     }
 };
 
+struct CustomSelect
+{
+    struct CustomSelect * next;
+    std::string name;
+    WordList * field_names;
+    std::vector<TableDef*> field_table_ptrs;
+    // note, this is gross, but i don't have a better
+    // way to do it right now: a null field ptr means
+    // "rowid" since i don't actually track rowid as
+    // a field.
+    std::vector<FieldDef*> field_ptrs;
+    WordList * table_names;
+    std::vector<TableDef*> table_ptrs;
+    TypeDefValue * types;
+    std::string where_clause;
+    CustomSelect(void) {
+        next = NULL;
+    }
+    ~CustomSelect(void) {
+        if (next)
+            delete next;
+    }
+};
+
 struct SchemaDef
 {
     std::string fname;
-    std::string schema_time;
     std::string package;
     std::string headertop;
     std::string headerbottom;
@@ -196,21 +220,32 @@ struct SchemaDef
     std::string protobottom;
     struct TableDef * tables;
     struct TableDef ** tables_next;
+    struct CustomSelect * custom_selects;
+    struct CustomSelect ** custom_selects_next;
     SchemaDef(void) {
         tables = NULL;
         tables_next = &tables;
+        custom_selects = NULL;
+        custom_selects_next = &custom_selects;
     }
     ~SchemaDef(void) {
-        delete tables;
+        if (tables)
+            delete tables;
+        if (custom_selects)
+            delete custom_selects;
     }
     void add_table(struct TableDef *tb) {
         *tables_next = tb;
         tables_next = &tb->next;
     }
+    void add_custom_select(struct CustomSelect *csel) {
+        *custom_selects_next = csel;
+        custom_selects_next = &csel->next;
+    }
 };
 
 SchemaDef * parse_file(const std::string &fname);
 void print_tokenized_file(const std::string &fname);
-void print_tables(TableDef * tds);
+void print_schema(SchemaDef *schema);
 
 #endif /* __PARSER_H__ */

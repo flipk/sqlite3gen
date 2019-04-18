@@ -21,6 +21,7 @@ void emit_header(const std::string &fname,
 {
     ofstream  out(fname.c_str(), ios_base::out | ios_base::trunc);
     const TableDef *td;
+    const CustomSelect *csel;
     pattern_value_map  patterns;
 
     if (!out.good())
@@ -196,6 +197,43 @@ void emit_header(const std::string &fname,
         SET_PATTERN(xml_decoder_protos);
 
         output_TABLE_CLASS_DEFN(out, patterns);
+    }
+
+    for (csel = schema->custom_selects; csel; csel = csel->next)
+    {
+        ostringstream queryargs;
+        ostringstream queryfields;
+
+        patterns["queryname"] = csel->name;
+
+        const TypeDefValue *tdv;
+        int argcount = 1;
+        for (tdv = csel->types; tdv; tdv = tdv->next)
+        {
+            queryargs << TypeDef_to_Ctype(tdv, true)
+                      << " v" << argcount;
+            argcount ++;
+            if (tdv->next)
+                queryargs << ", ";
+        }
+
+        for (size_t ind = 0; ind < csel->field_ptrs.size(); ind++)
+        {
+            TableDef * td = csel->field_table_ptrs[ind];
+            FieldDef * fd = csel->field_ptrs[ind];
+            const string fieldname = (fd == NULL) ? "rowid" : fd->name;
+            const string fieldtype =
+                (fd == NULL) ? "sqlite3_int64" :
+                TypeDef_to_Ctype(&fd->type, false, fieldname);
+
+            queryfields << "    " << fieldtype << " "
+                        << td->name << "_" << fieldname << ";\n";
+        }
+
+        SET_PATTERN(queryargs);
+        SET_PATTERN(queryfields);
+
+        output_QUERY_CLASS_DEFN(out, patterns);
     }
 
     output_CLASS_ALL_TABELS_DEFN(out, patterns);
