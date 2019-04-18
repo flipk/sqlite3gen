@@ -4158,11 +4158,11 @@ bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
     }
 
     sqlite3_exec(pdb, "CREATE TABLE checkouts "
-        "(bookid2 int64 UNIQUE, userid2 int64, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))",
+        "(bookid2 int64, userid2 int64, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))",
         NULL, NULL, NULL);
 
     printf("CREATE TABLE: CREATE TABLE checkouts "
-           "(bookid2 int64 UNIQUE, userid2 int64, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))\n");
+           "(bookid2 int64, userid2 int64, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))\n");
 
     sqlite3_exec(pdb,"CREATE INDEX checkouts_bookid2 "
                  "ON checkouts (bookid2)",

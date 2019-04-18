@@ -64,9 +64,9 @@ TABLE book VERSION 1
 TABLE checkouts VERSION 1
 {
     # NOTE PROTOID 1 is reserved for schema_version
-    bookid2         INT64  INDEX QUERY UNIQUE FOREIGN book.bookid PROTOID 2
-    userid2         INT64  INDEX QUERY        FOREIGN user.userid PROTOID 3
-    duedate         INT64                                         PROTOID 4
+    bookid2         INT64  INDEX QUERY  FOREIGN book.bookid PROTOID 2
+    userid2         INT64  INDEX QUERY  FOREIGN user.userid PROTOID 3
+    duedate         INT64                                   PROTOID 4
 
     CUSTOM-GET due_now (INT64)  "duedate < ?"
 }
