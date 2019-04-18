@@ -68,6 +68,18 @@ TABLE <table-name> VERSION <number>
 }
 ```
 
+Custom-select statements may be implemented to unify data across
+multiple tables.  This is done after all TABLE directives are complete
+using a `CUSTOM-SELECT` directive, like so:
+
+```
+CUSTOM-SELECT  <custom-select-name>
+   (<list-of-table-and-column-names>)
+   (<list-of-table-names>)
+   (<list-of-types>)
+   "<where-clause>"
+```
+
 ### keywords
 
 Keywords must be in upper case. Recognized keywords are:
@@ -378,6 +390,52 @@ opportunity to perform modifications on the table data structures as
 required to make tables conform to new (or old!) versions.
 
 The `table_drop_all` method deletes all tables from the database.
+
+### CUSTOM-SELECT
+
+Once all `TABLE` definitions are complete, you may add `CUSTOM-SELECT`
+declarations. These produce separate classes that can perform far more
+complex queries than `CUSTOM-GET` queries within a table.
+
+An example follows:
+
+```
+CUSTOM-SELECT due_books
+   (user.rowid user.firstname user.lastname
+    book.rowid book.title checkouts.duedate)
+  (user checkouts book)
+  (INT INT)
+  "checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC"
+```
+
+This will emit a C++ class called `SQL_QUERY_due_books` with the following
+data members:
+
+```C++
+    sqlite3_int64 user_rowid;
+    std::string user_firstname;
+    std::string user_lastname;
+    sqlite3_int64 book_rowid;
+    std::string book_title;
+    int64_t checkouts_duedate;
+```
+
+(The format of these entries' names is <tablename>_<fieldname>. Note
+that `rowid` is a valid fieldname, which is a very useful value to have
+if you wish to proceed with a `SQL_TABLE_xx` class and call `get_by_rowid`
+to get a complete table row.)
+
+This `SQL_QUERY_due_books` also contains two methods:
+
+```C++
+    bool get(int32_t v1, int32_t v2);
+    bool get_next(void);
+```
+
+The `get` method has two arguments matching the `(INT INT)` part of the
+schema code above, which corresponds to the two question marks in the
+WHERE clause above. Like TABLE classes, the `get_next` method is also
+used for iterating through a query result with multiple rows.
 
 ## protobuf integration
 
