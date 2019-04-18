@@ -420,7 +420,7 @@ data members:
     int64_t checkouts_duedate;
 ```
 
-(The format of these entries' names is <tablename>_<fieldname>. Note
+(The format of these entries' names is `<tablename>_<fieldname>`. Note
 that `rowid` is a valid fieldname, which is a very useful value to have
 if you wish to proceed with a `SQL_TABLE_xx` class and call `get_by_rowid`
 to get a complete table row.)
