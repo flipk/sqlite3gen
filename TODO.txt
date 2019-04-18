@@ -1,5 +1,2 @@
 - add type="" validation in xml decoder
 - make protobuf and xml support optional in sqlite3gen
-- custom query type needed for things like 'select unique',
-  maybe a way to specify the full sql query with column
-  names and where-clause?
