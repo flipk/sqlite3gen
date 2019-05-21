@@ -728,8 +728,8 @@ validate_schema(SchemaDef *sd)
             size_t dotpos = wl->word.find_first_of('.');
             if (dotpos == string::npos)
             {
-                fprintf(stderr, "ERROR: CUSTOM-SELECT fields should be "
-                        "of the form 'table.field'\n");
+                fprintf(stderr, "ERROR: CUSTOM-SELECT '%s' fields should be "
+                        "of the form 'table.field'\n", csel->name.c_str());
                 exit(1);
             }
             string table = wl->word.substr(0,dotpos);
@@ -737,8 +737,9 @@ validate_schema(SchemaDef *sd)
             TableDef * tb = is_table(sd, table);
             if (tb == NULL)
             {
-                fprintf(stderr, "ERROR: CUSTOM-SELECT field table '%s' "
-                        "is not a table\n", table.c_str());
+                fprintf(stderr, "ERROR: CUSTOM-SELECT '%s' field table '%s' "
+                        "is not a table\n",
+                        csel->name.c_str(), table.c_str());
                 exit(1);
             }
             csel->field_table_ptrs.push_back(tb);
@@ -748,8 +749,9 @@ validate_schema(SchemaDef *sd)
                 f = is_field(tb, field);
                 if (f == NULL)
                 {
-                    fprintf(stderr, "ERROR: CUSTOM-SELECT field '%s' "
+                    fprintf(stderr, "ERROR: CUSTOM-SELECT '%s' field '%s' "
                             "is not a field in table '%s'\n",
+                            csel->name.c_str(),
                             wl->word.c_str(), table.c_str());
                     exit(1);
                 }
@@ -764,11 +766,31 @@ validate_schema(SchemaDef *sd)
             TableDef * tb = is_table(sd, wl->word);
             if (tb == NULL)
             {
-                fprintf(stderr, "ERROR: CUSTOM-SELECT table '%s' "
-                        "is not a table\n", wl->word.c_str());
+                fprintf(stderr, "ERROR: CUSTOM-SELECT '%s' table '%s' "
+                        "is not a table\n",
+                        csel->name.c_str(), wl->word.c_str());
                 exit(1);
             }
             csel->table_ptrs.push_back(tb);
+        }
+        // validate number of "?" in where-clause
+        // matches number of types
+        int question_count = 0;
+        for (size_t pos = 0; pos < csel->where_clause.size(); pos++)
+            if (csel->where_clause[pos] == '?')
+                question_count++;
+        int types_count = 0;
+        for (TypeDefValue *tdv = csel->types; tdv; tdv = tdv->next)
+            types_count++;
+        printf("question count = %d types count = %d\n",
+               question_count, types_count);
+        if (question_count != types_count)
+        {
+            fprintf(stderr, "ERROR: CUSTOM-SELECT '%s' count of "
+                    "arg types (%d) does not match count of unknowns "
+                    "in WHERE clause (%d)\n", csel->name.c_str(),
+                    types_count, question_count);
+            exit(1);
         }
     }
 }
