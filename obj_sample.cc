@@ -1972,29 +1972,70 @@ bool SQL_TABLE_user :: init(sqlite3 *pdb, table_version_callback cb)
 //static
 bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
 {
+    std::ostringstream  e;
+    char * errmsg = NULL;
+    int r;
+
     if (pdb == NULL)
     {
         PRINT_ERR("attempted CREATE with null db");
         return false;
     }
 
-    sqlite3_exec(pdb, "CREATE TABLE user "
+    errmsg = NULL;
+    r = sqlite3_exec(pdb, "CREATE TABLE user "
         "(userid int64 NOT NULL UNIQUE, firstname string NOT NULL, lastname string NOT NULL, mi string, SSN integer NOT NULL UNIQUE, balance double, proto blob, test2 integer, test3 integer)",
-        NULL, NULL, NULL);
+        NULL, NULL, &errmsg);
 
     printf("CREATE TABLE: CREATE TABLE user "
            "(userid int64 NOT NULL UNIQUE, firstname string NOT NULL, lastname string NOT NULL, mi string, SSN integer NOT NULL UNIQUE, balance double, proto blob, test2 integer, test3 integer)\n");
 
-    sqlite3_exec(pdb,"CREATE INDEX user_userid "
+    if (r != SQLITE_OK)
+    {
+        e << "CREATE TABLE returned r = " << r
+          << " error '" << errmsg << "'\n";
+        printf("SQL ERROR: %s\n", e.str().c_str());
+    	if (errmsg != NULL)
+            sqlite3_free(errmsg);
+        if (err_log_func)
+            err_log_func(err_log_arg, e.str());
+        return false;
+    }
+
+    errmsg = NULL;
+    r = sqlite3_exec(pdb,"CREATE INDEX user_userid "
                  "ON user (userid)",
-        NULL, NULL, NULL);
+        NULL, NULL, &errmsg);
     printf("CREATE INDEX: CREATE INDEX user_userid "
            "ON user (userid)\n");
-    sqlite3_exec(pdb,"CREATE INDEX user_SSN "
+    if (r != SQLITE_OK)
+    {
+        e << "CREATE INDEX returned r = " << r
+          << " error '" << errmsg << "'\n";
+        printf("SQL ERROR: %s\n", e.str().c_str());
+        if (errmsg != NULL)
+            sqlite3_free(errmsg);
+        if (err_log_func)
+            err_log_func(err_log_arg, e.str());
+        return false;
+    }
+    errmsg = NULL;
+    r = sqlite3_exec(pdb,"CREATE INDEX user_SSN "
                  "ON user (SSN)",
-        NULL, NULL, NULL);
+        NULL, NULL, &errmsg);
     printf("CREATE INDEX: CREATE INDEX user_SSN "
            "ON user (SSN)\n");
+    if (r != SQLITE_OK)
+    {
+        e << "CREATE INDEX returned r = " << r
+          << " error '" << errmsg << "'\n";
+        printf("SQL ERROR: %s\n", e.str().c_str());
+        if (errmsg != NULL)
+            sqlite3_free(errmsg);
+        if (err_log_func)
+            err_log_func(err_log_arg, e.str());
+        return false;
+    }
 
 
     return true;
@@ -3213,29 +3254,70 @@ bool SQL_TABLE_book :: init(sqlite3 *pdb, table_version_callback cb)
 //static
 bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
 {
+    std::ostringstream  e;
+    char * errmsg = NULL;
+    int r;
+
     if (pdb == NULL)
     {
         PRINT_ERR("attempted CREATE with null db");
         return false;
     }
 
-    sqlite3_exec(pdb, "CREATE TABLE book "
+    errmsg = NULL;
+    r = sqlite3_exec(pdb, "CREATE TABLE book "
         "(bookid int64 NOT NULL UNIQUE, title string NOT NULL, isbn string NOT NULL UNIQUE, price double, quantity integer)",
-        NULL, NULL, NULL);
+        NULL, NULL, &errmsg);
 
     printf("CREATE TABLE: CREATE TABLE book "
            "(bookid int64 NOT NULL UNIQUE, title string NOT NULL, isbn string NOT NULL UNIQUE, price double, quantity integer)\n");
 
-    sqlite3_exec(pdb,"CREATE INDEX book_bookid "
+    if (r != SQLITE_OK)
+    {
+        e << "CREATE TABLE returned r = " << r
+          << " error '" << errmsg << "'\n";
+        printf("SQL ERROR: %s\n", e.str().c_str());
+    	if (errmsg != NULL)
+            sqlite3_free(errmsg);
+        if (err_log_func)
+            err_log_func(err_log_arg, e.str());
+        return false;
+    }
+
+    errmsg = NULL;
+    r = sqlite3_exec(pdb,"CREATE INDEX book_bookid "
                  "ON book (bookid)",
-        NULL, NULL, NULL);
+        NULL, NULL, &errmsg);
     printf("CREATE INDEX: CREATE INDEX book_bookid "
            "ON book (bookid)\n");
-    sqlite3_exec(pdb,"CREATE INDEX book_isbn "
+    if (r != SQLITE_OK)
+    {
+        e << "CREATE INDEX returned r = " << r
+          << " error '" << errmsg << "'\n";
+        printf("SQL ERROR: %s\n", e.str().c_str());
+        if (errmsg != NULL)
+            sqlite3_free(errmsg);
+        if (err_log_func)
+            err_log_func(err_log_arg, e.str());
+        return false;
+    }
+    errmsg = NULL;
+    r = sqlite3_exec(pdb,"CREATE INDEX book_isbn "
                  "ON book (isbn)",
-        NULL, NULL, NULL);
+        NULL, NULL, &errmsg);
     printf("CREATE INDEX: CREATE INDEX book_isbn "
            "ON book (isbn)\n");
+    if (r != SQLITE_OK)
+    {
+        e << "CREATE INDEX returned r = " << r
+          << " error '" << errmsg << "'\n";
+        printf("SQL ERROR: %s\n", e.str().c_str());
+        if (errmsg != NULL)
+            sqlite3_free(errmsg);
+        if (err_log_func)
+            err_log_func(err_log_arg, e.str());
+        return false;
+    }
 
 
     return true;
@@ -4151,29 +4233,70 @@ bool SQL_TABLE_checkouts :: init(sqlite3 *pdb, table_version_callback cb)
 //static
 bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
 {
+    std::ostringstream  e;
+    char * errmsg = NULL;
+    int r;
+
     if (pdb == NULL)
     {
         PRINT_ERR("attempted CREATE with null db");
         return false;
     }
 
-    sqlite3_exec(pdb, "CREATE TABLE checkouts "
+    errmsg = NULL;
+    r = sqlite3_exec(pdb, "CREATE TABLE checkouts "
         "(bookid2 int64, userid2 int64, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))",
-        NULL, NULL, NULL);
+        NULL, NULL, &errmsg);
 
     printf("CREATE TABLE: CREATE TABLE checkouts "
            "(bookid2 int64, userid2 int64, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))\n");
 
-    sqlite3_exec(pdb,"CREATE INDEX checkouts_bookid2 "
+    if (r != SQLITE_OK)
+    {
+        e << "CREATE TABLE returned r = " << r
+          << " error '" << errmsg << "'\n";
+        printf("SQL ERROR: %s\n", e.str().c_str());
+    	if (errmsg != NULL)
+            sqlite3_free(errmsg);
+        if (err_log_func)
+            err_log_func(err_log_arg, e.str());
+        return false;
+    }
+
+    errmsg = NULL;
+    r = sqlite3_exec(pdb,"CREATE INDEX checkouts_bookid2 "
                  "ON checkouts (bookid2)",
-        NULL, NULL, NULL);
+        NULL, NULL, &errmsg);
     printf("CREATE INDEX: CREATE INDEX checkouts_bookid2 "
            "ON checkouts (bookid2)\n");
-    sqlite3_exec(pdb,"CREATE INDEX checkouts_userid2 "
+    if (r != SQLITE_OK)
+    {
+        e << "CREATE INDEX returned r = " << r
+          << " error '" << errmsg << "'\n";
+        printf("SQL ERROR: %s\n", e.str().c_str());
+        if (errmsg != NULL)
+            sqlite3_free(errmsg);
+        if (err_log_func)
+            err_log_func(err_log_arg, e.str());
+        return false;
+    }
+    errmsg = NULL;
+    r = sqlite3_exec(pdb,"CREATE INDEX checkouts_userid2 "
                  "ON checkouts (userid2)",
-        NULL, NULL, NULL);
+        NULL, NULL, &errmsg);
     printf("CREATE INDEX: CREATE INDEX checkouts_userid2 "
            "ON checkouts (userid2)\n");
+    if (r != SQLITE_OK)
+    {
+        e << "CREATE INDEX returned r = " << r
+          << " error '" << errmsg << "'\n";
+        printf("SQL ERROR: %s\n", e.str().c_str());
+        if (errmsg != NULL)
+            sqlite3_free(errmsg);
+        if (err_log_func)
+            err_log_func(err_log_arg, e.str());
+        return false;
+    }
 
 
     return true;

@@ -225,7 +225,9 @@ main()
 
     library::SQL_TABLE_ALL_TABLES::register_log_funcs(
         &log_sql_upd, &log_sql_get, NULL, &log_sql_err, NULL);
-    library::SQL_TABLE_ALL_TABLES::init_all(pdb, &table_callback);
+    if (!library::SQL_TABLE_ALL_TABLES::init_all(pdb, &table_callback))
+        goto bail;
+
     {
 
         user.userid = 4;
@@ -268,6 +270,8 @@ main()
     }
 
     test_subtables(pdb);
+
+bail:
 
     // if every query completes until SQLITE_DONE,
     // these aren't needed.

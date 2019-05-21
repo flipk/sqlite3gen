@@ -3,11 +3,23 @@ ________ TABLE_create_constraints
 ________ ENDNL
 
 ________ TABLE_create_index
-    sqlite3_exec(pdb,"CREATE INDEX @@tablename@@_@@fieldname@@ "
+    errmsg = NULL;
+    r = sqlite3_exec(pdb,"CREATE INDEX @@tablename@@_@@fieldname@@ "
                  "ON @@tablename@@ (@@fieldname@@)",
-        NULL, NULL, NULL);
+        NULL, NULL, &errmsg);
     printf("CREATE INDEX: CREATE INDEX @@tablename@@_@@fieldname@@ "
            "ON @@tablename@@ (@@fieldname@@)\n");
+    if (r != SQLITE_OK)
+    {
+        e << "CREATE INDEX returned r = " << r
+          << " error '" << errmsg << "'\n";
+        printf("SQL ERROR: %s\n", e.str().c_str());
+        if (errmsg != NULL)
+            sqlite3_free(errmsg);
+        if (err_log_func)
+            err_log_func(err_log_arg, e.str());
+        return false;
+    }
 ________ END
 
 ________ CLASS_ALL_TABELS_IMPL

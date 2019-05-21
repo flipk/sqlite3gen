@@ -426,18 +426,35 @@ bool SQL_TABLE_@@tablename@@ :: init(sqlite3 *pdb, table_version_callback cb)
 //static
 bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
 {
+    std::ostringstream  e;
+    char * errmsg = NULL;
+    int r;
+
     if (pdb == NULL)
     {
         PRINT_ERR("attempted CREATE with null db");
         return false;
     }
 
-    sqlite3_exec(pdb, "CREATE TABLE @@tablename@@ "
+    errmsg = NULL;
+    r = sqlite3_exec(pdb, "CREATE TABLE @@tablename@@ "
         "(@@table_create_fields@@)",
-        NULL, NULL, NULL);
+        NULL, NULL, &errmsg);
 
     printf("CREATE TABLE: CREATE TABLE @@tablename@@ "
            "(@@table_create_fields@@)\n");
+
+    if (r != SQLITE_OK)
+    {
+        e << "CREATE TABLE returned r = " << r
+          << " error '" << errmsg << "'\n";
+        printf("SQL ERROR: %s\n", e.str().c_str());
+    	if (errmsg != NULL)
+            sqlite3_free(errmsg);
+        if (err_log_func)
+            err_log_func(err_log_arg, e.str());
+        return false;
+    }
 
 @@index_creation@@
 
