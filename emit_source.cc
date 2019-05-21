@@ -885,7 +885,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(queryargs);
         SET_PATTERN(get_columns);
         output_QUERY_CLASS_IMPL(out, patterns);
-        output_CLASS_SQL_QUERY_register_a_logfunc(
+        output_CLASS_SQL_SELECT_register_a_logfunc(
             register_all_logfuncs, patterns);
     }
 

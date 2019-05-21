@@ -408,7 +408,7 @@ CUSTOM-SELECT due_books
   "checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC"
 ```
 
-This will emit a C++ class called `SQL_QUERY_due_books` with the following
+This will emit a C++ class called `SQL_SELECT_due_books` with the following
 data members:
 
 ```C++
@@ -425,7 +425,7 @@ that `rowid` is a valid fieldname, which is a very useful value to have
 if you wish to proceed with a `SQL_TABLE_xx` class and call `get_by_rowid`
 to get a complete table row.)
 
-This `SQL_QUERY_due_books` also contains two methods:
+This `SQL_SELECT_due_books` also contains two methods:
 
 ```C++
     bool get(int32_t v1, int32_t v2);

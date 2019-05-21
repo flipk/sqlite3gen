@@ -407,7 +407,7 @@ public:
     static bool import_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
 };
 
-class SQL_QUERY_due_books {
+class SQL_SELECT_due_books {
     sqlite3_stmt * pStmt_get_query;
     sqlite3 *pdb;
     bool get_columns(void);
@@ -419,8 +419,8 @@ class SQL_QUERY_due_books {
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 public:
-    SQL_QUERY_due_books(sqlite3 *_pdb = NULL);
-    ~SQL_QUERY_due_books(void);
+    SQL_SELECT_due_books(sqlite3 *_pdb = NULL);
+    ~SQL_SELECT_due_books(void);
     void set_db(sqlite3 *_pdb);
     bool get(int32_t v1, int32_t v2);
     bool get_next(void);

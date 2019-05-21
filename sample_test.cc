@@ -421,9 +421,9 @@ test_subtables(sqlite3 * pdb)
     }
 
     {
-        library::SQL_QUERY_due_books  due(pdb);
+        library::SQL_SELECT_due_books  due(pdb);
 
-        printf(" *** testing SQL_QUERY_due_books:\n");
+        printf(" *** testing SQL_SELECT_due_books:\n");
 
         bool ok = due.get(1,4);
         while (ok)

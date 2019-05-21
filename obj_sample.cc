@@ -4368,26 +4368,26 @@ bool SQL_TABLE_checkouts :: import_xml(sqlite3 *pdb,
 
 
 //static
-sql_log_function_t SQL_QUERY_due_books :: log_upd_func = &dflt_log_upd;
-sql_log_function_t SQL_QUERY_due_books :: log_get_func = &dflt_log_get;
-void *             SQL_QUERY_due_books :: log_arg  = NULL;
-sql_err_function_t SQL_QUERY_due_books :: err_log_func = &dflt_log_err;
-void *             SQL_QUERY_due_books :: err_log_arg  = NULL;
+sql_log_function_t SQL_SELECT_due_books :: log_upd_func = &dflt_log_upd;
+sql_log_function_t SQL_SELECT_due_books :: log_get_func = &dflt_log_get;
+void *             SQL_SELECT_due_books :: log_arg  = NULL;
+sql_err_function_t SQL_SELECT_due_books :: err_log_func = &dflt_log_err;
+void *             SQL_SELECT_due_books :: err_log_arg  = NULL;
 
-SQL_QUERY_due_books :: SQL_QUERY_due_books(sqlite3 *_pdb /*= NULL*/)
+SQL_SELECT_due_books :: SQL_SELECT_due_books(sqlite3 *_pdb /*= NULL*/)
 {
     pStmt_get_query = NULL;
     pdb = _pdb;
 }
 
-SQL_QUERY_due_books :: ~SQL_QUERY_due_books(void)
+SQL_SELECT_due_books :: ~SQL_SELECT_due_books(void)
 {
     if (pStmt_get_query != NULL)
         sqlite3_finalize(pStmt_get_query);
 }
 
 void
-SQL_QUERY_due_books :: set_db(sqlite3 *_pdb)
+SQL_SELECT_due_books :: set_db(sqlite3 *_pdb)
 {
     if (pStmt_get_query != NULL)
         sqlite3_finalize(pStmt_get_query);
@@ -4397,7 +4397,7 @@ SQL_QUERY_due_books :: set_db(sqlite3 *_pdb)
 
 //static
 void
-SQL_QUERY_due_books :: print_err(const char *function, int lineno,
+SQL_SELECT_due_books :: print_err(const char *function, int lineno,
                                      const char *format, ...)
 {
     if (err_log_func == NULL)
@@ -4424,7 +4424,7 @@ SQL_QUERY_due_books :: print_err(const char *function, int lineno,
 }
 
 bool
-SQL_QUERY_due_books :: get_columns(void)
+SQL_SELECT_due_books :: get_columns(void)
 {
     int got;
     sqlite3_stmt * pStmt = pStmt_get_query;
@@ -4566,7 +4566,7 @@ SQL_QUERY_due_books :: get_columns(void)
 }
 
 bool
-SQL_QUERY_due_books :: get(int32_t v1, int32_t v2)
+SQL_SELECT_due_books :: get(int32_t v1, int32_t v2)
 {
     int r;
     bool ret = false;
@@ -4618,7 +4618,7 @@ SQL_QUERY_due_books :: get(int32_t v1, int32_t v2)
 }
 
 bool
-SQL_QUERY_due_books :: get_next(void)
+SQL_SELECT_due_books :: get_next(void)
 {
     int r;
     bool ret = false;
@@ -4693,7 +4693,7 @@ void SQL_TABLE_ALL_TABLES :: register_log_funcs(
         _upd_func, _get_func, _arg, _err_func, _err_arg);
     SQL_TABLE_checkouts::register_log_funcs(
         _upd_func, _get_func, _arg, _err_func, _err_arg);
-    SQL_QUERY_due_books::register_log_funcs(
+    SQL_SELECT_due_books::register_log_funcs(
         _upd_func, _get_func, _arg, _err_func, _err_arg);
 
 }

@@ -200,7 +200,7 @@ ________ END
 
 
 ________ QUERY_CLASS_DEFN
-class SQL_QUERY_@@queryname@@ {
+class SQL_SELECT_@@queryname@@ {
     sqlite3_stmt * pStmt_get_query;
     sqlite3 *pdb;
     bool get_columns(void);
@@ -212,8 +212,8 @@ class SQL_QUERY_@@queryname@@ {
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 public:
-    SQL_QUERY_@@queryname@@(sqlite3 *_pdb = NULL);
-    ~SQL_QUERY_@@queryname@@(void);
+    SQL_SELECT_@@queryname@@(sqlite3 *_pdb = NULL);
+    ~SQL_SELECT_@@queryname@@(void);
     void set_db(sqlite3 *_pdb);
     bool get(@@queryargs@@);
     bool get_next(void);
