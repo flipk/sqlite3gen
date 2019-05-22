@@ -138,7 +138,7 @@ sqlite3_vfs_aes :: my_xFullPathname(sqlite3_vfs*, const char *zName,
         memset(zOut, 0, nOut);
         char cwd[512];
         cwd[511] = 0;
-        getcwd(zOut, 511);
+        getcwd(cwd, 511);
         snprintf(zOut, nOut-1, "%s/%s", cwd, zName);
     }
     return SQLITE_OK;
