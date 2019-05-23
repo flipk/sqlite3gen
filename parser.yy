@@ -163,7 +163,24 @@ CUSTOM_SELECT
             csel->table_names = $7;
             csel->types = $10;
             csel->where_clause = *$12;
+            // csel->full_statement not populated.
             delete $12;
+            schema_def->add_custom_select(csel);
+	}
+	| KW_CUSTOM_SELECT KW_WORD
+	  L_PAREN WORDLIST R_PAREN
+	  L_PAREN TYPELIST R_PAREN
+	  TOK_STRING
+	{
+            CustomSelect * csel = new CustomSelect;
+            csel->name = *$2;
+            delete $2;
+            csel->field_names = $4;
+            // csel->table_names not populated.
+            csel->types = $7;
+            // csel->where_clause not populated.
+            csel->full_statement = *$9;
+            delete $9;
             schema_def->add_custom_select(csel);
 	}
 	;
@@ -782,25 +799,40 @@ validate_schema(SchemaDef *sd)
             // of a rowid: it's by design.
             csel->field_ptrs.push_back(f);
         }
-        // validate table_names are valid tables
-        for (wl = csel->table_names; wl; wl = wl->next)
-        {
-            TableDef * tb = is_table(sd, wl->word);
-            if (tb == NULL)
-            {
-                fprintf(stderr, "ERROR: CUSTOM-SELECT '%s' table '%s' "
-                        "is not a table\n",
-                        csel->name.c_str(), wl->word.c_str());
-                exit(1);
-            }
-            csel->table_ptrs.push_back(tb);
-        }
         // validate number of "?" in where-clause
         // matches number of types
         int question_count = 0;
-        for (size_t pos = 0; pos < csel->where_clause.size(); pos++)
-            if (csel->where_clause[pos] == '?')
-                question_count++;
+        if (csel->table_names == NULL)
+        {
+            // CUSTOM-SELECT full-statement case.
+            if (csel->full_statement.size() == 0)
+            {
+                fprintf(stderr, "ERROR: CUSTOM-SELECT full-statement is empty\n");
+                exit(1);
+            }
+            for (size_t pos = 0; pos < csel->full_statement.size(); pos++)
+                if (csel->full_statement[pos] == '?')
+                    question_count++;
+        }
+        else
+        {
+            // validate table_names are valid tables
+            for (wl = csel->table_names; wl; wl = wl->next)
+            {
+                TableDef * tb = is_table(sd, wl->word);
+                if (tb == NULL)
+                {
+                    fprintf(stderr, "ERROR: CUSTOM-SELECT '%s' table '%s' "
+                            "is not a table\n",
+                            csel->name.c_str(), wl->word.c_str());
+                    exit(1);
+                }
+                csel->table_ptrs.push_back(tb);
+            }
+            for (size_t pos = 0; pos < csel->where_clause.size(); pos++)
+                if (csel->where_clause[pos] == '?')
+                    question_count++;
+        }
         int types_count = 0;
         for (TypeDefValue *tdv = csel->types; tdv; tdv = tdv->next)
             types_count++;

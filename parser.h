@@ -197,7 +197,15 @@ struct CustomSelect
     WordList * table_names;
     std::vector<TableDef*> table_ptrs;
     TypeDefValue * types;
+
+    // there are two CUSTOM-SELECT syntaxes, one with
+    // only a where-clause, and one with the full statement
+    // (after field list). only one of the two following
+    // fields of this struct will be populated. in the event
+    // of the full_statement case, table_names is not populated.
     std::string where_clause;
+    std::string full_statement;
+
     CustomSelect(void) {
         next = NULL;
     }

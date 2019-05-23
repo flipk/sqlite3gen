@@ -475,6 +475,50 @@ public:
     int64_t checkouts_duedate;
 
 };
+class SQL_SELECT_due_books2 {
+    sqlite3_stmt * pStmt_get_query;
+    sqlite3 *pdb;
+    bool get_columns(void);
+    static sql_log_function_t log_upd_func;
+    static sql_log_function_t log_get_func;
+    static void * log_arg;
+    static sql_err_function_t err_log_func;
+    static void * err_log_arg;
+    static void print_err(const char *func, int lineno,
+                          const char *format, ...);
+public:
+    SQL_SELECT_due_books2(sqlite3 *_pdb = NULL);
+    ~SQL_SELECT_due_books2(void);
+// init pdb here, or set to NULL to finalize stmt and release
+    void set_db(sqlite3 *_pdb);
+// FROM user, checkouts, book WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC
+    bool get(int32_t v1, int32_t v2);
+    bool get_next(void);
+
+    static void register_log_funcs(sql_log_function_t _upd_func,
+                                   sql_log_function_t _get_func,
+                                   void *_arg,
+                                   sql_err_function_t _err_func,
+                                   void *_err_arg)
+    {
+        log_upd_func = _upd_func;
+        log_get_func = _get_func;
+        log_arg  = _arg;
+        err_log_func = _err_func;
+        err_log_arg = _err_arg;
+    }
+
+    sqlite3_int64 user_rowid;
+    std::string user_firstname;
+    std::string user_lastname;
+    bool user_test2;
+    sample::library2::EnumField_t user_test3;
+    sqlite3_int64 book_rowid;
+    std::string book_title;
+    sqlite3_int64 checkouts_rowid;
+    int64_t checkouts_duedate;
+
+};
 
 class SQL_TABLE_ALL_TABLES {
 public:

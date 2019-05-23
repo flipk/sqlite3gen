@@ -769,7 +769,7 @@ void emit_source(const std::string &fname,
         ostringstream get_columns;
         ostringstream querybinders;
         ostringstream queryfields;
-        ostringstream querytables;
+        ostringstream querybody;
 
         patterns["queryname"] = csel->name;
 
@@ -877,17 +877,24 @@ void emit_source(const std::string &fname,
             argcount++;
         }
 
-        for (wl = csel->table_names; wl; wl = wl->next)
+        if (csel->table_names)
         {
-            querytables << wl->word;
-            if (wl->next)
-                querytables << ", ";
+            querybody << "FROM ";
+            for (wl = csel->table_names; wl; wl = wl->next)
+            {
+                querybody << wl->word;
+                if (wl->next)
+                    querybody << ", ";
+            }
+            querybody << " WHERE " << csel->where_clause;
+        }
+        else
+        {
+            querybody << csel->full_statement;
         }
 
-        patterns["querywhere"] = csel->where_clause;
-
         SET_PATTERN(queryfields);
-        SET_PATTERN(querytables);
+        SET_PATTERN(querybody);
         SET_PATTERN(querybinders);
         SET_PATTERN(queryargs);
         SET_PATTERN(get_columns);

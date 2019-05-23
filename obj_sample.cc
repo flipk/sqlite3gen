@@ -4606,8 +4606,7 @@ SQL_SELECT_due_books :: get(int32_t v1, int32_t v2)
         r = sqlite3_prepare_v2(
             pdb,
             "SELECT user.rowid, user.firstname, user.lastname, user.test2, user.test3, book.rowid, book.title, checkouts.rowid, checkouts.duedate "
-            "FROM user, checkouts, book "
-            "WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC",
+            "FROM user, checkouts, book WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC",
             -1, &pStmt_get_query, NULL);
         if (r != SQLITE_OK)
         {
@@ -4646,6 +4645,272 @@ SQL_SELECT_due_books :: get(int32_t v1, int32_t v2)
 
 bool
 SQL_SELECT_due_books :: get_next(void)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL || pStmt_get_query == NULL)
+        return false;
+
+    r = sqlite3_step(pStmt_get_query);
+    if (r == SQLITE_ROW)
+        ret = get_columns();
+
+    return ret;
+}
+
+
+//static
+sql_log_function_t SQL_SELECT_due_books2 :: log_upd_func = &dflt_log_upd;
+sql_log_function_t SQL_SELECT_due_books2 :: log_get_func = &dflt_log_get;
+void *             SQL_SELECT_due_books2 :: log_arg  = NULL;
+sql_err_function_t SQL_SELECT_due_books2 :: err_log_func = &dflt_log_err;
+void *             SQL_SELECT_due_books2 :: err_log_arg  = NULL;
+
+SQL_SELECT_due_books2 :: SQL_SELECT_due_books2(sqlite3 *_pdb /*= NULL*/)
+{
+    pStmt_get_query = NULL;
+    pdb = _pdb;
+}
+
+SQL_SELECT_due_books2 :: ~SQL_SELECT_due_books2(void)
+{
+    if (pStmt_get_query != NULL)
+        sqlite3_finalize(pStmt_get_query);
+}
+
+void
+SQL_SELECT_due_books2 :: set_db(sqlite3 *_pdb)
+{
+    if (pStmt_get_query != NULL)
+        sqlite3_finalize(pStmt_get_query);
+    pStmt_get_query = NULL;
+    pdb = _pdb;
+}
+
+//static
+void
+SQL_SELECT_due_books2 :: print_err(const char *function, int lineno,
+                                     const char *format, ...)
+{
+    if (err_log_func == NULL)
+        // don't bother formatting the args.
+        return;
+
+    std::ostringstream msg_out;
+    msg_out << function << ":" << lineno << ": ";
+    std::string msg = msg_out.str();
+
+    size_t offset = msg.size();
+    msg.resize(offset + 250);
+
+    va_list ap;
+    va_start(ap, format);
+    size_t l = vsnprintf((char*)msg.c_str() + offset,
+                         250, format, ap);
+    va_end(ap);
+    // note that *snprintf returns what it WOULD have written
+    // if there was space! so l > msg.size means it truncated.
+    if (l < 250)
+        msg.resize(l + offset);
+    err_log_func(err_log_arg, msg);
+}
+
+bool
+SQL_SELECT_due_books2 :: get_columns(void)
+{
+    int got;
+    sqlite3_stmt * pStmt = pStmt_get_query;
+
+    got = sqlite3_column_type(pStmt, 0);
+    if (got != SQLITE_INTEGER)
+    {
+        PRINT_ERR("get_columns (user_rowid) : "
+                "column 0 wrong type (%d %d)",
+                got, SQLITE_INTEGER);
+        return false;
+    }
+    user_rowid = sqlite3_column_int64(pStmt, 0);
+      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
+      // NOTE: if you INSERT a string to a table that contains
+      //       all decimal digits, SQLITE3 does something very strange:
+      //       it stores it as SQLITE_INT! this means this validation
+      //       fails. but if you call sqlite_column_text, it will convert
+      //       it back to a text string for you.
+    got = sqlite3_column_type(pStmt, 1);
+    if (got != SQLITE_TEXT)
+    {
+#if 0 // coerce everything to string.
+        PRINT_ERR("get_columns (user_firstname) : "
+                "column 1 wrong type (%d %d)",
+                got, SQLITE_TEXT);
+        return false;
+#endif
+    }
+    {
+        const void * ptr = sqlite3_column_text(
+            pStmt, 1);
+        int len = sqlite3_column_bytes(pStmt, 1);
+        user_firstname.resize(len);
+        memcpy((void*)user_firstname.c_str(), ptr, len);
+    }
+      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
+      // NOTE: if you INSERT a string to a table that contains
+      //       all decimal digits, SQLITE3 does something very strange:
+      //       it stores it as SQLITE_INT! this means this validation
+      //       fails. but if you call sqlite_column_text, it will convert
+      //       it back to a text string for you.
+    got = sqlite3_column_type(pStmt, 2);
+    if (got != SQLITE_TEXT)
+    {
+#if 0 // coerce everything to string.
+        PRINT_ERR("get_columns (user_lastname) : "
+                "column 2 wrong type (%d %d)",
+                got, SQLITE_TEXT);
+        return false;
+#endif
+    }
+    {
+        const void * ptr = sqlite3_column_text(
+            pStmt, 2);
+        int len = sqlite3_column_bytes(pStmt, 2);
+        user_lastname.resize(len);
+        memcpy((void*)user_lastname.c_str(), ptr, len);
+    }
+    got = sqlite3_column_type(pStmt, 3);
+    if (got != SQLITE_INTEGER)
+    {
+        PRINT_ERR("get_columns (user_test2) : "
+                "column 3 wrong type (%d %d)",
+                got, SQLITE_INTEGER);
+        return false;
+    }
+    if (sqlite3_column_int(pStmt, 3))
+        user_test2 = true;
+    else
+        user_test2 = false;
+    got = sqlite3_column_type(pStmt, 4);
+    if (got != SQLITE_INTEGER)
+    {
+        PRINT_ERR("get_columns (user_test3) : "
+                "column 4 wrong type (%d %d)",
+                got, SQLITE_INTEGER);
+        return false;
+    }
+    if (sample::library2::EnumField_t_IsValid(user_test3))
+        user_test3 = (sample::library2::EnumField_t) sqlite3_column_int(
+            pStmt, 4);
+    else
+        user_test3 = sample::library2::ENUM_TWO;
+
+    got = sqlite3_column_type(pStmt, 5);
+    if (got != SQLITE_INTEGER)
+    {
+        PRINT_ERR("get_columns (book_rowid) : "
+                "column 5 wrong type (%d %d)",
+                got, SQLITE_INTEGER);
+        return false;
+    }
+    book_rowid = sqlite3_column_int64(pStmt, 5);
+      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
+      // NOTE: if you INSERT a string to a table that contains
+      //       all decimal digits, SQLITE3 does something very strange:
+      //       it stores it as SQLITE_INT! this means this validation
+      //       fails. but if you call sqlite_column_text, it will convert
+      //       it back to a text string for you.
+    got = sqlite3_column_type(pStmt, 6);
+    if (got != SQLITE_TEXT)
+    {
+#if 0 // coerce everything to string.
+        PRINT_ERR("get_columns (book_title) : "
+                "column 6 wrong type (%d %d)",
+                got, SQLITE_TEXT);
+        return false;
+#endif
+    }
+    {
+        const void * ptr = sqlite3_column_text(
+            pStmt, 6);
+        int len = sqlite3_column_bytes(pStmt, 6);
+        book_title.resize(len);
+        memcpy((void*)book_title.c_str(), ptr, len);
+    }
+    got = sqlite3_column_type(pStmt, 7);
+    if (got != SQLITE_INTEGER)
+    {
+        PRINT_ERR("get_columns (checkouts_rowid) : "
+                "column 7 wrong type (%d %d)",
+                got, SQLITE_INTEGER);
+        return false;
+    }
+    checkouts_rowid = sqlite3_column_int64(pStmt, 7);
+    got = sqlite3_column_type(pStmt, 8);
+    if (got != SQLITE_INTEGER)
+    {
+        PRINT_ERR("get_columns (checkouts_duedate) : "
+                "column 8 wrong type (%d %d)",
+                got, SQLITE_INTEGER);
+        return false;
+    }
+    checkouts_duedate = sqlite3_column_int64(pStmt, 8);
+
+
+    return true;
+}
+
+bool
+SQL_SELECT_due_books2 :: get(int32_t v1, int32_t v2)
+{
+    int r;
+    bool ret = false;
+
+    if (pdb == NULL)
+        return false;
+
+    if (pStmt_get_query == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT user.rowid, user.firstname, user.lastname, user.test2, user.test3, book.rowid, book.title, checkouts.rowid, checkouts.duedate "
+            "FROM user, checkouts, book WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC",
+            -1, &pStmt_get_query, NULL);
+        if (r != SQLITE_OK)
+        {
+            PRINT_ERR("ERROR %d preparing SELECT", r);
+            return false;
+        }
+    }
+
+    sqlite3_reset(pStmt_get_query);
+
+    r = sqlite3_bind_int(pStmt_get_query,
+                             1, v1);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind: r = %d", r);
+        return false;
+    }
+    r = sqlite3_bind_int(pStmt_get_query,
+                             2, v2);
+    if (r != SQLITE_OK)
+    {
+        PRINT_ERR("bind: r = %d", r);
+        return false;
+    }
+
+
+    if (log_get_func)
+        log_get_func(log_arg, pStmt_get_query);
+
+    r = sqlite3_step(pStmt_get_query);
+    if (r == SQLITE_ROW)
+        ret = get_columns();
+
+    return ret;
+}
+
+bool
+SQL_SELECT_due_books2 :: get_next(void)
 {
     int r;
     bool ret = false;
@@ -4721,6 +4986,8 @@ void SQL_TABLE_ALL_TABLES :: register_log_funcs(
     SQL_TABLE_checkouts::register_log_funcs(
         _upd_func, _get_func, _arg, _err_func, _err_arg);
     SQL_SELECT_due_books::register_log_funcs(
+        _upd_func, _get_func, _arg, _err_func, _err_arg);
+    SQL_SELECT_due_books2::register_log_funcs(
         _upd_func, _get_func, _arg, _err_func, _err_arg);
 
 }

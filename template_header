@@ -224,7 +224,7 @@ public:
     ~SQL_SELECT_@@queryname@@(void);
 // init pdb here, or set to NULL to finalize stmt and release
     void set_db(sqlite3 *_pdb);
-// WHERE @@querywhere@@
+// @@querybody@@
     bool get(@@queryargs@@);
     bool get_next(void);
 

@@ -442,4 +442,26 @@ test_subtables(sqlite3 * pdb)
         }
     }
 
+    {
+        library::SQL_SELECT_due_books2  due(pdb);
+
+        printf(" *** testing SQL_SELECT_due_books2:\n");
+
+        bool ok = due.get(1,4);
+        while (ok)
+        {
+            printf("user_rid %" PRId64 " %s %s "
+                   "book_rid %" PRId64 " %s "
+                   "checkouts_rid %" PRId64 " due %" PRId64 "\n",
+                   (int64_t) due.user_rowid,
+                   due.user_firstname.c_str(),
+                   due.user_lastname.c_str(),
+                   (int64_t) due.book_rowid,
+                   due.book_title.c_str(),
+                   (int64_t) due.checkouts_rowid,
+                   (int64_t) due.checkouts_duedate);
+            ok = due.get_next();
+        }
+    }
+
 }

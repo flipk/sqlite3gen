@@ -82,8 +82,7 @@ SQL_SELECT_@@queryname@@ :: get(@@queryargs@@)
         r = sqlite3_prepare_v2(
             pdb,
             "SELECT @@queryfields@@ "
-            "FROM @@querytables@@ "
-            "WHERE @@querywhere@@",
+            "@@querybody@@",
             -1, &pStmt_get_query, NULL);
         if (r != SQLITE_OK)
         {
