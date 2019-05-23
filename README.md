@@ -165,22 +165,6 @@ bool get_by_<column-name>_like(const std::string &patt);
 Note the argument of `patt` for a `_like` method will always
 be `std::string`.
 
-Placing the `UPDATE` keyword after a column TYPE instructs the
-tool to add a method to the C++ class for upading a row back to
-the database, using the named field as the WHERE clause.
-
-```C+++
-void update_by_<column-name>(void);
-```
-
-The `NOTNULL` keyword causes the SQL definition to add a NOT NULL
-constraint to the SQL column, which is most useful if an outside tool
-or user manipulates the database file directory.
-
-The `UNIQUE` keyword adds the UNIQUE constraint to the SQL column,
-which will cause inserts to return an error if the value already exists
-in the table.
-
 The `FOREIGN` keyword adds a FOREIGN KEY constraint to the SQL column,
 and is required if you wish to use the `SUBTABLE` type. This is useful
 for establishing a one-to-many relationship between an entry in one table
