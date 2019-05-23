@@ -230,6 +230,8 @@ void emit_header(const std::string &fname,
                         << td->name << "_" << fieldname << ";\n";
         }
 
+        patterns["querywhere"] = csel->where_clause;
+
         SET_PATTERN(queryargs);
         SET_PATTERN(queryfields);
 

@@ -82,6 +82,13 @@ void SQL_TABLE_@@tablename@@ :: init(void)
     previous_get = NULL;
 }
 
+void SQL_TABLE_@@tablename@@ :: set_db(sqlite3 *_pdb)
+{
+    finalize();
+    pdb = _pdb;
+@@set_db_subtables@@
+}
+
 //static
 void
 SQL_TABLE_@@tablename@@ :: print_err(const char *function, int lineno,

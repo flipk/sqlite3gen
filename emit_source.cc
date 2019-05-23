@@ -90,6 +90,7 @@ void emit_source(const std::string &fname,
         ostringstream field_copies;
         ostringstream get_all_subtables;
         ostringstream insert_all_subtables;
+        ostringstream set_db_subtables;
 
         const FieldDef * fd;
         const CustomGetUpdList * cust;
@@ -182,6 +183,7 @@ void emit_source(const std::string &fname,
                     get_all_subtables, patterns);
                 output_TABLE_CLASS_insert_all_subtables_one(
                     insert_all_subtables, patterns);
+                output_TABLE_set_subtable(set_db_subtables, patterns);
                 break;
             }
             initial_values << initial_value.str();
@@ -733,6 +735,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(field_copies);
         SET_PATTERN(get_all_subtables);
         SET_PATTERN(insert_all_subtables);
+        SET_PATTERN(set_db_subtables);
 
         patterns["is_subtable"] = td->is_subtable ? "true" : "false";
 

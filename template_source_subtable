@@ -1,4 +1,13 @@
 
+________ TABLE_set_subtable
+// set_db for subtable @@fieldname@@ 2
+    for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
+    {
+        SQL_TABLE_@@fieldname@@ &row = @@fieldname@@[ind];
+        row.set_db(_pdb);
+    }
+________ END
+
 ________ TABLE_get_subtable_implementation
 int SQL_TABLE_@@tablename@@ :: get_subtable_@@fieldname@@(void)
 {

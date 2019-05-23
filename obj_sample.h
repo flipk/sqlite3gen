@@ -62,6 +62,9 @@ class SQL_TABLE_user {
     sqlite3_stmt * pStmt_del_SSN;
 
 
+    void init_statements(void);
+    void finalize(void);
+
 protected:
     sqlite3 *pdb;
     sqlite3_stmt * previous_get;
@@ -94,19 +97,16 @@ protected:
 
 public:
     SQL_TABLE_user(sqlite3 *_pdb = NULL);
+// copy constructor, sets all fields and pdb, but not stmts.
     SQL_TABLE_user(const SQL_TABLE_user &other);
     virtual ~SQL_TABLE_user(void);
 
     static const int TABLE_VERSION = 19;
 
+// set all fields to default values
     void init(void);
-    void init_statements(void);
-    void finalize(void);
-
-    void set_db(sqlite3 *_pdb) {
-        finalize();
-        pdb = _pdb;
-    }
+// init pdb here, or set to NULL to finalize all stmts and release
+    void set_db(sqlite3 *_pdb);
 
     sqlite3_int64 rowid;
 
@@ -145,10 +145,15 @@ public:
     bool get_firstlast(const std::string & v1, const std::string & v2);
 
     bool get_next(void);
-    bool insert(void); // updates rowid
+// inserts, then modifies rowid to reflect the new rowid created.
+    bool insert(void);
+// update entire row, by rowid.
     bool update(void);
-    bool delete_rowid(void); // delete by rowid
+// delete, by rowid (rowid is only field consumed by this call)
+    bool delete_rowid(void);
+// WHERE rowid = ?
     bool get_by_rowid(int64_t v1);
+// SELECT with no WHERE clause
     bool get_all(void);
     bool update_balance(void);
     bool update_firstlast(void);
@@ -178,8 +183,11 @@ public:
         err_log_func = _err_func;
         err_log_arg = _err_arg;
     }
+// create table and indexes if it doesn't exist, call callback if it does.
     static bool init(sqlite3 *pdb, table_version_callback cb);
+// create table without checking if it exists.
     static bool table_create(sqlite3 *pdb);
+// drop the table from the database.
     static void table_drop(sqlite3 *pdb);
     static void export_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
     static bool import_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
@@ -203,6 +211,9 @@ class SQL_TABLE_book {
     sqlite3_stmt * pStmt_update_price;
 
 
+
+    void init_statements(void);
+    void finalize(void);
 
 protected:
     sqlite3 *pdb;
@@ -231,19 +242,16 @@ protected:
 
 public:
     SQL_TABLE_book(sqlite3 *_pdb = NULL);
+// copy constructor, sets all fields and pdb, but not stmts.
     SQL_TABLE_book(const SQL_TABLE_book &other);
     virtual ~SQL_TABLE_book(void);
 
     static const int TABLE_VERSION = 1;
 
+// set all fields to default values
     void init(void);
-    void init_statements(void);
-    void finalize(void);
-
-    void set_db(sqlite3 *_pdb) {
-        finalize();
-        pdb = _pdb;
-    }
+// init pdb here, or set to NULL to finalize all stmts and release
+    void set_db(sqlite3 *_pdb);
 
     sqlite3_int64 rowid;
 
@@ -265,10 +273,15 @@ public:
     bool get_out_of_stock(void);
 
     bool get_next(void);
-    bool insert(void); // updates rowid
+// inserts, then modifies rowid to reflect the new rowid created.
+    bool insert(void);
+// update entire row, by rowid.
     bool update(void);
-    bool delete_rowid(void); // delete by rowid
+// delete, by rowid (rowid is only field consumed by this call)
+    bool delete_rowid(void);
+// WHERE rowid = ?
     bool get_by_rowid(int64_t v1);
+// SELECT with no WHERE clause
     bool get_all(void);
     bool update_quantity(void);
     bool update_price(void);
@@ -294,8 +307,11 @@ public:
         err_log_func = _err_func;
         err_log_arg = _err_arg;
     }
+// create table and indexes if it doesn't exist, call callback if it does.
     static bool init(sqlite3 *pdb, table_version_callback cb);
+// create table without checking if it exists.
     static bool table_create(sqlite3 *pdb);
+// drop the table from the database.
     static void table_drop(sqlite3 *pdb);
     static void export_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
     static bool import_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
@@ -316,6 +332,9 @@ class SQL_TABLE_checkouts {
 
 
 
+
+    void init_statements(void);
+    void finalize(void);
 
 protected:
     sqlite3 *pdb;
@@ -342,19 +361,16 @@ protected:
 
 public:
     SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
+// copy constructor, sets all fields and pdb, but not stmts.
     SQL_TABLE_checkouts(const SQL_TABLE_checkouts &other);
     virtual ~SQL_TABLE_checkouts(void);
 
     static const int TABLE_VERSION = 1;
 
+// set all fields to default values
     void init(void);
-    void init_statements(void);
-    void finalize(void);
-
-    void set_db(sqlite3 *_pdb) {
-        finalize();
-        pdb = _pdb;
-    }
+// init pdb here, or set to NULL to finalize all stmts and release
+    void set_db(sqlite3 *_pdb);
 
     sqlite3_int64 rowid;
 
@@ -373,10 +389,15 @@ public:
     bool get_due_now(int64_t v1);
 
     bool get_next(void);
-    bool insert(void); // updates rowid
+// inserts, then modifies rowid to reflect the new rowid created.
+    bool insert(void);
+// update entire row, by rowid.
     bool update(void);
-    bool delete_rowid(void); // delete by rowid
+// delete, by rowid (rowid is only field consumed by this call)
+    bool delete_rowid(void);
+// WHERE rowid = ?
     bool get_by_rowid(int64_t v1);
+// SELECT with no WHERE clause
     bool get_all(void);
 
 
@@ -400,8 +421,11 @@ public:
         err_log_func = _err_func;
         err_log_arg = _err_arg;
     }
+// create table and indexes if it doesn't exist, call callback if it does.
     static bool init(sqlite3 *pdb, table_version_callback cb);
+// create table without checking if it exists.
     static bool table_create(sqlite3 *pdb);
+// drop the table from the database.
     static void table_drop(sqlite3 *pdb);
     static void export_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
     static bool import_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
@@ -421,7 +445,9 @@ class SQL_SELECT_due_books {
 public:
     SQL_SELECT_due_books(sqlite3 *_pdb = NULL);
     ~SQL_SELECT_due_books(void);
+// init pdb here, or set to NULL to finalize stmt and release
     void set_db(sqlite3 *_pdb);
+// WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC
     bool get(int32_t v1, int32_t v2);
     bool get_next(void);
 

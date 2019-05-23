@@ -232,6 +232,19 @@ void SQL_TABLE_user :: init(void)
     previous_get = NULL;
 }
 
+void SQL_TABLE_user :: set_db(sqlite3 *_pdb)
+{
+    finalize();
+    pdb = _pdb;
+// set_db for subtable checkouts 2
+    for (size_t ind = 0; ind < checkouts.size(); ind++)
+    {
+        SQL_TABLE_checkouts &row = checkouts[ind];
+        row.set_db(_pdb);
+    }
+
+}
+
 //static
 void
 SQL_TABLE_user :: print_err(const char *function, int lineno,
@@ -2214,6 +2227,13 @@ void SQL_TABLE_book :: init(void)
     previous_get = NULL;
 }
 
+void SQL_TABLE_book :: set_db(sqlite3 *_pdb)
+{
+    finalize();
+    pdb = _pdb;
+
+}
+
 //static
 void
 SQL_TABLE_book :: print_err(const char *function, int lineno,
@@ -3481,6 +3501,13 @@ void SQL_TABLE_checkouts :: init(void)
     duedate = 0;
 
     previous_get = NULL;
+}
+
+void SQL_TABLE_checkouts :: set_db(sqlite3 *_pdb)
+{
+    finalize();
+    pdb = _pdb;
+
 }
 
 //static
