@@ -259,17 +259,19 @@ void emit_source(const std::string &fname,
             questionmarks << "?";
             table_create_fields << fd->name << " "
                                 << TypeDef_to_sqlite_create_type(t);
-            if (fd->attrs.notnull)
-                table_create_fields << " NOT NULL";
-            if (fd->attrs.unique)
-                table_create_fields << " UNIQUE";
+
+            if (fd->attrs.constraints.length() > 0)
+            {
+                table_create_fields << " "
+                                    << fd->attrs.constraints;
+            }
 
             if (fd->attrs.foreign)
             {
                 patterns["foreign_table"] = fd->attrs.foreign_table;
                 patterns["foreign_field"] = fd->attrs.foreign_field;
 
-                output_TABLE_create_constraints(
+                output_TABLE_foreign_create_constraints(
                     table_create_constraints, patterns);
             }
 
@@ -410,6 +412,8 @@ void emit_source(const std::string &fname,
 
             column++;
         }
+
+        table_create_constraints << td->constraints;
 
         // for ::update(), the last "?" is rowid, so the column_index
         // is one bigger than the last insert_binder.

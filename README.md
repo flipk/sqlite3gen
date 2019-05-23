@@ -50,10 +50,13 @@ Tables are demarked with curly braces. The format for a table is thus:
 ```
 TABLE <table-name> VERSION <number>
 {
-     <column-name>  TYPE  ATTRIBUTES
+     <column-name>  TYPE  ATTRIBUTES "<field-constraints>"
      <repeat the above for each column>
 
      SUBTABLE <table-name> <protoid-attribute>
+
+     CONSTRAINT "<constraint-name> <table-constraint>"
+     <repeat for each table constraint>
 
      CUSTOM-GET  <get-method-name>  (<list-of-types>)
                  "<where-clause-for-custom-get>"
@@ -70,7 +73,7 @@ TABLE <table-name> VERSION <number>
 
 Custom-select statements may be implemented to unify data across
 multiple tables.  This is done after all TABLE directives are complete
-using a `CUSTOM-SELECT` directive, like so:
+using a `CUSTOM-SELECT` directive, like one of the two following syntaxes:
 
 ```
 CUSTOM-SELECT  <custom-select-name>
@@ -78,7 +81,18 @@ CUSTOM-SELECT  <custom-select-name>
    (<list-of-table-names>)
    (<list-of-types>)
    "<where-clause>"
+
+CUSTOM-SELECT  <custom-select-name>
+   (<list-of-table-and-column-names>)
+   (<list-of-types>)
+   "<FROM clause or JOIN clause> WHERE <where-clause>"
 ```
+
+A `field-constraint` may include any SQL string that may appear within a column
+definition, such as "NOT NULL UNIQUE PRIMARY KEY".
+
+A `table-constraint` may include any SQL string that may appear after column
+definitions are complete, such as "<constraint-name> UNIQUE (field, field)".
 
 ### keywords
 
@@ -88,8 +102,7 @@ Keywords must be in upper case. Recognized keywords are:
 protobuf package name : PACKAGE
 tables : TABLE VERSION
 types : INT INT64 TEXT DOUBLE BLOB BOOL ENUM SUBTABLE
-column attributes : INDEX LIKEQUERY QUERY DEFAULT PROTOID UPDATE
-                    NOTNULL UNIQUE FOREIGN
+column attributes : INDEX LIKEQUERY QUERY DEFAULT PROTOID FOREIGN
 customs : CUSTOM-GET CUSTOM-UPD CUSTOM-UPDBY CUSTOM-DEL
 literal text : %PROTOTOP{ %}    %PROTOBOTTOM{ %}
                %HEADERTOP{ %}   %HEADERBOTTOM{ %}

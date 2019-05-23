@@ -1,4 +1,4 @@
-________ TABLE_create_constraints
+________ TABLE_foreign_create_constraints
 , FOREIGN KEY(@@fieldname@@) REFERENCES @@foreign_table@@(@@foreign_field@@)
 ________ ENDNL
 

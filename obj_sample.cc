@@ -1997,11 +1997,11 @@ bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
 
     errmsg = NULL;
     r = sqlite3_exec(pdb, "CREATE TABLE user "
-        "(userid int64 NOT NULL UNIQUE, firstname string NOT NULL, lastname string NOT NULL, mi string, SSN integer NOT NULL UNIQUE, balance double, proto blob, test2 integer, test3 integer)",
+        "(userid int64 NOT NULL UNIQUE PRIMARY KEY, firstname string, lastname string, mi string, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))",
         NULL, NULL, &errmsg);
 
     printf("CREATE TABLE: CREATE TABLE user "
-           "(userid int64 NOT NULL UNIQUE, firstname string NOT NULL, lastname string NOT NULL, mi string, SSN integer NOT NULL UNIQUE, balance double, proto blob, test2 integer, test3 integer)\n");
+           "(userid int64 NOT NULL UNIQUE PRIMARY KEY, firstname string, lastname string, mi string, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))\n");
 
     if (r != SQLITE_OK)
     {
@@ -3286,11 +3286,11 @@ bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
 
     errmsg = NULL;
     r = sqlite3_exec(pdb, "CREATE TABLE book "
-        "(bookid int64 NOT NULL UNIQUE, title string NOT NULL, isbn string NOT NULL UNIQUE, price double, quantity integer)",
+        "(bookid int64, title string, isbn string, price double, quantity integer)",
         NULL, NULL, &errmsg);
 
     printf("CREATE TABLE: CREATE TABLE book "
-           "(bookid int64 NOT NULL UNIQUE, title string NOT NULL, isbn string NOT NULL UNIQUE, price double, quantity integer)\n");
+           "(bookid int64, title string, isbn string, price double, quantity integer)\n");
 
     if (r != SQLITE_OK)
     {

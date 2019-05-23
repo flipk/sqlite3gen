@@ -111,9 +111,8 @@ struct FieldAttrs
     bool foreign;
     std::string foreign_table;
     std::string foreign_field;
-    bool notnull;
-    bool unique;
     bool subtable;
+    std::string constraints;
     struct TableDef *subtable_table;
     struct FieldDef *subtable_field;
     void init(void) {
@@ -125,11 +124,10 @@ struct FieldAttrs
         init_double = 0.0;
         protoid = -1;
         foreign = false;
-        notnull = false;
-        unique = false;
         subtable = false;
         subtable_table = NULL;
         subtable_field = NULL;
+        constraints.clear();
     }
     FieldAttrs(void) {
         init();
@@ -164,6 +162,7 @@ struct TableDef
     int version;
     bool is_subtable;
     FieldDef * fields;
+    std::string constraints;
     CustomGetUpdList * customs;
     TableDef(const std::string &_name)
         : name(_name)

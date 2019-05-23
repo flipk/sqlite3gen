@@ -21,18 +21,21 @@ import "sample2.proto";
 TABLE user VERSION 19
 {
     # NOTE PROTOID 1 is reserved for schema_version
-    userid    INT64         INDEX QUERY NOTNULL UNIQUE PROTOID 2 DEFAULT -1
-    firstname TEXT                      NOTNULL        PROTOID 3 DEFAULT ""
-    lastname  TEXT          LIKEQUERY   NOTNULL        PROTOID 4 DEFAULT ""
+    userid    INT64   INDEX QUERY  "NOT NULL UNIQUE PRIMARY KEY"   PROTOID 2 DEFAULT -1
+    firstname TEXT                                     PROTOID 3 DEFAULT ""
+    lastname  TEXT    LIKEQUERY                        PROTOID 4 DEFAULT ""
     mi        TEXT                                     PROTOID 5 DEFAULT ""
-    SSN       INT           INDEX QUERY NOTNULL UNIQUE PROTOID 6 DEFAULT 0
+    SSN       INT     INDEX QUERY                      PROTOID 6 DEFAULT 0
     balance   DOUBLE                                   PROTOID 7 DEFAULT 0
     proto     BLOB                                     PROTOID 8
-    test2     BOOL                QUERY                PROTOID 9 DEFAULT 0
+    test2     BOOL          QUERY                      PROTOID 9 DEFAULT 0
     test3     ENUM sample.library2.EnumField_t QUERY   PROTOID 10
     	      DEFAULT sample.library2.ENUM_TWO
 
     SUBTABLE checkouts                                 PROTOID 11
+
+    CONSTRAINT "user_constraint1 UNIQUE (firstname, lastname)"
+    CONSTRAINT "user_constraint2 UNIQUE (mi, SSN)"
 
     CUSTOM-GET great_balance (DOUBLE) "balance > ?"
     CUSTOM-GET founders      ()       "userid < 100"
@@ -49,9 +52,9 @@ TABLE user VERSION 19
 TABLE book VERSION 1
 {
     # NOTE PROTOID 1 is reserved for schema_version
-    bookid          INT64    INDEX   QUERY  NOTNULL UNIQUE PROTOID 2
-    title           TEXT     LIKEQUERY      NOTNULL        PROTOID 3
-    isbn            TEXT     INDEX   QUERY  NOTNULL UNIQUE PROTOID 4
+    bookid          INT64    INDEX   QUERY                 PROTOID 2
+    title           TEXT     LIKEQUERY                     PROTOID 3
+    isbn            TEXT     INDEX   QUERY                 PROTOID 4
     price           DOUBLE                                 PROTOID 5
     quantity        INT                                    PROTOID 6
 

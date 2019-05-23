@@ -31,11 +31,11 @@ message TABLE_user_m
      value changes. we're kinda breaking google's rules a little
      bit by redefining enum values. */
   /*required*/ optional int32 schema_version = 1;
-  /*required*/ optional int64 userid = 2;
-  /*required*/ optional string firstname = 3;
-  /*required*/ optional string lastname = 4;
+  optional int64 userid = 2;
+  optional string firstname = 3;
+  optional string lastname = 4;
   optional string mi = 5;
-  /*required*/ optional int32 SSN = 6;
+  optional int32 SSN = 6;
   optional double balance = 7;
   optional bytes proto = 8;
   optional bool test2 = 9;
@@ -57,9 +57,9 @@ message TABLE_book_m
      value changes. we're kinda breaking google's rules a little
      bit by redefining enum values. */
   /*required*/ optional int32 schema_version = 1;
-  /*required*/ optional int64 bookid = 2;
-  /*required*/ optional string title = 3;
-  /*required*/ optional string isbn = 4;
+  optional int64 bookid = 2;
+  optional string title = 3;
+  optional string isbn = 4;
   optional double price = 5;
   optional int32 quantity = 6;
 
@@ -84,7 +84,7 @@ message TABLE_checkouts_m
 
 }
 
-// NOTE this is PROTOBOTTOM from line 95 of "../sample.schema"
+// NOTE this is PROTOBOTTOM from line 105 of "../sample.schema"
 
 // proto bottom line 1
 // proto bottom line 2

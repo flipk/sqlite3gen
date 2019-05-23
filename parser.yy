@@ -41,7 +41,7 @@ static void validate_schema(SchemaDef *sd);
 %token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD KW_BOOL
 %token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_UPDBY KW_CUSTOM_DEL
 %token KW_DEFAULT KW_PROTOID KW_PACKAGE KW_VERSION KW_SUBTABLE
-%token KW_FOREIGN KW_NOTNULL KW_UNIQUE KW_CUSTOM_SELECT
+%token KW_FOREIGN KW_CUSTOM_SELECT KW_CONSTRAINT
 
 %token KW_PROTOTOP  KW_PROTOBOTTOM
 %token KW_HEADERTOP KW_HEADERBOTTOM
@@ -63,6 +63,7 @@ static void validate_schema(SchemaDef *sd);
 %type <line_no>    KW_PROTOTOP  KW_PROTOBOTTOM
 %type <line_no>    KW_HEADERTOP KW_HEADERBOTTOM
 %type <line_no>    KW_SOURCETOP KW_SOURCEBOTTOM
+%type <word>    CONSTRAINT CONSTRAINTS
 
 %start SCHEMA_FILE
 
@@ -169,14 +170,43 @@ CUSTOM_SELECT
 
 TABLE
 	: KW_TABLE KW_WORD KW_VERSION TOK_INTEGER
-          L_CURLY FIELDS CUSTOMS R_CURLY
+          L_CURLY FIELDS CONSTRAINTS CUSTOMS R_CURLY
 	{
 		$$ = new TableDef(*$2);
                 $$->version = $4;
                 $$->fields = $6;
-                $$->customs = $7;
+                if ($7)
+                    $$->constraints = ", " + *$7;
+                delete $7;
+                $$->customs = $8;
 		delete $2;
                 schema_def->add_table($$);
+	}
+	;
+
+CONSTRAINTS
+	: /*nothing*/
+	{
+            $$ = NULL;
+	}
+	| CONSTRAINT CONSTRAINTS
+	{
+            if ($2)
+            {
+                *$1 += " ";
+                *$1 += *$2;
+                delete $2;
+            }
+            $$ = $1;
+	}
+	;
+
+CONSTRAINT
+	: KW_CONSTRAINT TOK_STRING
+	{
+            $$ = new string("CONSTRAINT ");
+            *$$ += *$2;
+            delete $2;
 	}
 	;
 
@@ -384,16 +414,6 @@ ATTRIBUTES
 		}
 		delete $3;
 	}
-	| ATTRIBUTES KW_NOTNULL
-	{
-		$$ = $1;
-		$$->notnull = true;
-	}
-	| ATTRIBUTES KW_UNIQUE
-	{
-		$$ = $1;
-		$$->unique = true;
-	}
 	| ATTRIBUTES KW_DEFAULT TOK_STRING
 	{
 		$$ = $1;
@@ -431,6 +451,12 @@ ATTRIBUTES
                             "schema_version, please start numbering at 2\n");
                     exit(1);
                 }
+	}
+	| ATTRIBUTES TOK_STRING
+	{
+            $$ = $1;
+            $$->constraints = *$2;
+            delete $2;
 	}
 	;
 
@@ -516,10 +542,6 @@ print_field(FieldDef *fd)
         if (fd->attrs.foreign)
             printf(" foreign_key %s.%s", fd->attrs.foreign_table.c_str(),
                    fd->attrs.foreign_field.c_str());
-        if (fd->attrs.notnull)
-            printf(" notnull");
-        if (fd->attrs.unique)
-            printf(" unique");
     }
     else
     {

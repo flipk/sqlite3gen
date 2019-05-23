@@ -52,8 +52,6 @@ ENUM       { return KW_ENUM; }
 TEXT       { return KW_TEXT; }
 FOREIGN    { return KW_FOREIGN; }
 SUBTABLE   { return KW_SUBTABLE; }
-NOTNULL    { return KW_NOTNULL; }
-UNIQUE     { return KW_UNIQUE; }
 BLOB       { return KW_BLOB; }
 DOUBLE     { return KW_DOUBLE; }
 INDEX      { return KW_INDEX; }
@@ -63,6 +61,7 @@ PROTOID    { return KW_PROTOID; }
 PACKAGE    { return KW_PACKAGE; }
 LIKEQUERY  { return KW_LIKEQUERY; }
 VERSION    { return KW_VERSION; }
+CONSTRAINT { return KW_CONSTRAINT; }
 CUSTOM-GET { return KW_CUSTOM_GET; }
 CUSTOM-UPD { return KW_CUSTOM_UPD; }
 CUSTOM-UPDBY { return KW_CUSTOM_UPDBY; }
