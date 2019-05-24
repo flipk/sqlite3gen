@@ -40,6 +40,7 @@ class SQL_TABLE_checkouts; // forward
 
 class SQL_TABLE_user {
     sqlite3_stmt * pStmt_insert;
+    sqlite3_stmt * pStmt_insert_force;
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
     sqlite3_stmt * pStmt_get_by_rowid;
@@ -131,10 +132,12 @@ public:
     int get_subtable_checkouts(void);
 // true if ok, false if failure inserting (duplicate keys?)
     bool insert_subtable_checkouts(void);
+    bool insert_subtable_checkouts_force(void);
 
     // get all subtables
     void get_subtables(void);
     void insert_subtables(void);
+    void insert_subtables_force(void);
     bool get_by_lastname_like(const std::string &patt);
 
 // WHERE balance > ?
@@ -146,7 +149,10 @@ public:
 
     bool get_next(void);
 // inserts, then modifies rowid to reflect the new rowid created.
+// NOTE this skips a field if it is marked as AUTOINCR.
     bool insert(void);
+// insert or update using all fields, even AUTOINCR fields.
+    bool insert_force(void);
 // update entire row, by rowid.
     bool update(void);
 // delete, by rowid (rowid is only field consumed by this call)
@@ -196,6 +202,7 @@ public:
 
 class SQL_TABLE_book {
     sqlite3_stmt * pStmt_insert;
+    sqlite3_stmt * pStmt_insert_force;
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
     sqlite3_stmt * pStmt_get_by_rowid;
@@ -267,6 +274,7 @@ public:
     // get all subtables
     void get_subtables(void);
     void insert_subtables(void);
+    void insert_subtables_force(void);
     bool get_by_title_like(const std::string &patt);
 
 // WHERE quantity == 0
@@ -274,7 +282,10 @@ public:
 
     bool get_next(void);
 // inserts, then modifies rowid to reflect the new rowid created.
+// NOTE this skips a field if it is marked as AUTOINCR.
     bool insert(void);
+// insert or update using all fields, even AUTOINCR fields.
+    bool insert_force(void);
 // update entire row, by rowid.
     bool update(void);
 // delete, by rowid (rowid is only field consumed by this call)
@@ -320,6 +331,7 @@ public:
 
 class SQL_TABLE_checkouts {
     sqlite3_stmt * pStmt_insert;
+    sqlite3_stmt * pStmt_insert_force;
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
     sqlite3_stmt * pStmt_get_by_rowid;
@@ -384,13 +396,17 @@ public:
     // get all subtables
     void get_subtables(void);
     void insert_subtables(void);
+    void insert_subtables_force(void);
 
 // WHERE duedate < ?
     bool get_due_now(int64_t v1);
 
     bool get_next(void);
 // inserts, then modifies rowid to reflect the new rowid created.
+// NOTE this skips a field if it is marked as AUTOINCR.
     bool insert(void);
+// insert or update using all fields, even AUTOINCR fields.
+    bool insert_force(void);
 // update entire row, by rowid.
     bool update(void);
 // delete, by rowid (rowid is only field consumed by this call)

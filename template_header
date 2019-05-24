@@ -39,6 +39,7 @@ ________ TABLE_CLASS_DEFN
 
 class SQL_TABLE_@@tablename@@ {
     sqlite3_stmt * pStmt_insert;
+    sqlite3_stmt * pStmt_insert_force;
     sqlite3_stmt * pStmt_update;
     sqlite3_stmt * pStmt_delete_rowid;
     sqlite3_stmt * pStmt_get_by_rowid;
@@ -92,11 +93,15 @@ public:
     // get all subtables
     void get_subtables(void);
     void insert_subtables(void);
+    void insert_subtables_force(void);
 @@table_query_like_method_protos@@
 @@table_custom_get_method_protos@@
     bool get_next(void);
 // inserts, then modifies rowid to reflect the new rowid created.
+// NOTE this skips a field if it is marked as AUTOINCR.
     bool insert(void);
+// insert or update using all fields, even AUTOINCR fields.
+    bool insert_force(void);
 // update entire row, by rowid.
     bool update(void);
 // delete, by rowid (rowid is only field consumed by this call)
@@ -173,6 +178,7 @@ ________ TABLE_CLASS_table_get_subtable_proto
     int get_subtable_@@fieldname@@(void);
 // true if ok, false if failure inserting (duplicate keys?)
     bool insert_subtable_@@fieldname@@(void);
+    bool insert_subtable_@@fieldname@@_force(void);
 ________ END
 
 ________ TABLE_CLASS_table_query_method_protos_like

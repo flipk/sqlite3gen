@@ -84,7 +84,7 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@(@@fieldtype@@ v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,@@select_fieldnames@@ FROM @@tablename@@ WHERE @@fieldname@@ = ?",
+            "SELECT rowid,@@all_fieldnames@@ FROM @@tablename@@ WHERE @@fieldname@@ = ?",
             -1, &pStmt_by_@@fieldname@@, NULL);
         if (r != SQLITE_OK)
         {
@@ -164,7 +164,7 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@_like(
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,@@select_fieldnames@@ FROM @@tablename@@ "
+            "SELECT rowid,@@all_fieldnames@@ FROM @@tablename@@ "
             "WHERE @@fieldname@@ like ?",
             -1, &pStmt_by_@@fieldname@@_like, NULL);
         if (r != SQLITE_OK)

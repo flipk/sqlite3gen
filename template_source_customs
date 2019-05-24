@@ -14,7 +14,7 @@ bool SQL_TABLE_@@tablename@@ :: get_@@customname@@(@@type_and_vX@@)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,@@select_fieldnames@@ FROM @@tablename@@ "
+            "SELECT rowid,@@all_fieldnames@@ FROM @@tablename@@ "
             "WHERE @@querystring@@",
             -1, &pStmt_get_@@customname@@, NULL);
         if (r != SQLITE_OK)

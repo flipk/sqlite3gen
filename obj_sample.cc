@@ -136,6 +136,7 @@ void
 SQL_TABLE_user :: init_statements(void)
 {
     pStmt_insert = NULL;
+    pStmt_insert_force = NULL;
     pStmt_update = NULL;
     pStmt_delete_rowid = NULL;
     pStmt_get_by_rowid = NULL;
@@ -173,6 +174,8 @@ SQL_TABLE_user :: finalize(void)
 {
     if (pStmt_insert)
         sqlite3_finalize(pStmt_insert);
+    if (pStmt_insert_force)
+        sqlite3_finalize(pStmt_insert_force);
     if (pStmt_update)
         sqlite3_finalize(pStmt_update);
     if (pStmt_delete_rowid)
@@ -820,6 +823,126 @@ bool SQL_TABLE_user :: insert(void)
     return true;
 }
 
+bool SQL_TABLE_user :: insert_force(void)
+{
+    int r;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted INSERT (force) before set_db");
+        return false;
+    }
+
+    if (pStmt_insert_force == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb, "INSERT OR REPLACE INTO user "
+            "(userid, firstname, lastname, mi, SSN, balance, proto, test2, test3) "
+            "values (?,?,?,?,?,?,?,?,?)",
+            -1, &pStmt_insert_force, NULL);
+        if (r != SQLITE_OK)
+        {
+	    const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing INSERT (force)", r, msg);
+            return false;
+        }
+    }
+    sqlite3_reset(pStmt_insert_force);
+
+    r = sqlite3_bind_int(pStmt_insert_force, 1,
+                             userid);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind userid: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_text(pStmt_insert_force, 2,
+         firstname.c_str(), firstname.length(),
+         SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind firstname: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_text(pStmt_insert_force, 3,
+         lastname.c_str(), lastname.length(),
+         SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind lastname: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_text(pStmt_insert_force, 4,
+         mi.c_str(), mi.length(),
+         SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind mi: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_int(pStmt_insert_force, 5,
+                             SSN);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind SSN: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_double(pStmt_insert_force, 6,
+                             balance);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind balance: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_blob(pStmt_insert_force, 7,
+         proto.c_str(), proto.length(),
+         SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind proto: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_int(pStmt_insert_force, 8,
+                             test2 ? 1 : 0);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind test2: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_int(pStmt_insert_force, 9,
+                             (int) test3);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind test3: r = %d (%s)", r, msg);
+        return false;
+    }
+
+
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_insert_force);
+
+    r = sqlite3_step(pStmt_insert_force);
+    if (r != SQLITE_DONE)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: r = %d (%s)", r, msg);
+        return false;
+    }
+
+    rowid = sqlite3_last_insert_rowid(pdb);
+
+    return true;
+}
+
 bool SQL_TABLE_user :: update(void)
 {
     int r;
@@ -1101,6 +1224,16 @@ bool SQL_TABLE_user :: insert_subtable_checkouts(void)
     return true;
 }
 
+bool SQL_TABLE_user :: insert_subtable_checkouts_force(void)
+{
+    for (size_t ind = 0; ind < checkouts.size(); ind++)
+    {
+        SQL_TABLE_checkouts &row = checkouts[ind];
+        row.insert_force();
+    }
+    return true;
+}
+
 
 void SQL_TABLE_user :: get_subtables(void)
 {
@@ -1111,6 +1244,12 @@ void SQL_TABLE_user :: get_subtables(void)
 void SQL_TABLE_user :: insert_subtables(void)
 {
     insert_subtable_checkouts();
+
+}
+
+void SQL_TABLE_user :: insert_subtables_force(void)
+{
+    insert_subtable_checkouts_force();
 
 }
 
@@ -2159,8 +2298,10 @@ bool SQL_TABLE_user :: import_xml(sqlite3 *pdb,
          row_el = row_el->NextSiblingElement())
     {
         row.copy_from_xml(row_el);
-        row.insert();
-        row.insert_subtables();
+        // use insert_force because the xml may include AUTOINCR
+        // values which must be set the hard way.
+        row.insert_force();
+        row.insert_subtables_force();
     }
 
     return true;
@@ -2203,6 +2344,7 @@ void
 SQL_TABLE_book :: init_statements(void)
 {
     pStmt_insert = NULL;
+    pStmt_insert_force = NULL;
     pStmt_update = NULL;
     pStmt_delete_rowid = NULL;
     pStmt_get_by_rowid = NULL;
@@ -2234,6 +2376,8 @@ SQL_TABLE_book :: finalize(void)
 {
     if (pStmt_insert)
         sqlite3_finalize(pStmt_insert);
+    if (pStmt_insert_force)
+        sqlite3_finalize(pStmt_insert_force);
     if (pStmt_update)
         sqlite3_finalize(pStmt_update);
     if (pStmt_delete_rowid)
@@ -2653,6 +2797,92 @@ bool SQL_TABLE_book :: insert(void)
     return true;
 }
 
+bool SQL_TABLE_book :: insert_force(void)
+{
+    int r;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted INSERT (force) before set_db");
+        return false;
+    }
+
+    if (pStmt_insert_force == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb, "INSERT OR REPLACE INTO book "
+            "(bookid, title, isbn, price, quantity) "
+            "values (?,?,?,?,?)",
+            -1, &pStmt_insert_force, NULL);
+        if (r != SQLITE_OK)
+        {
+	    const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing INSERT (force)", r, msg);
+            return false;
+        }
+    }
+    sqlite3_reset(pStmt_insert_force);
+
+    r = sqlite3_bind_int(pStmt_insert_force, 1,
+                             bookid);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind bookid: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_text(pStmt_insert_force, 2,
+         title.c_str(), title.length(),
+         SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind title: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_text(pStmt_insert_force, 3,
+         isbn.c_str(), isbn.length(),
+         SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind isbn: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_double(pStmt_insert_force, 4,
+                             price);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind price: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_int(pStmt_insert_force, 5,
+                             quantity);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind quantity: r = %d (%s)", r, msg);
+        return false;
+    }
+
+
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_insert_force);
+
+    r = sqlite3_step(pStmt_insert_force);
+    if (r != SQLITE_DONE)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: r = %d (%s)", r, msg);
+        return false;
+    }
+
+    rowid = sqlite3_last_insert_rowid(pdb);
+
+    return true;
+}
+
 bool SQL_TABLE_book :: update(void)
 {
     int r;
@@ -2877,6 +3107,11 @@ void SQL_TABLE_book :: get_subtables(void)
 }
 
 void SQL_TABLE_book :: insert_subtables(void)
+{
+
+}
+
+void SQL_TABLE_book :: insert_subtables_force(void)
 {
 
 }
@@ -3469,8 +3704,10 @@ bool SQL_TABLE_book :: import_xml(sqlite3 *pdb,
          row_el = row_el->NextSiblingElement())
     {
         row.copy_from_xml(row_el);
-        row.insert();
-        row.insert_subtables();
+        // use insert_force because the xml may include AUTOINCR
+        // values which must be set the hard way.
+        row.insert_force();
+        row.insert_subtables_force();
     }
 
     return true;
@@ -3511,6 +3748,7 @@ void
 SQL_TABLE_checkouts :: init_statements(void)
 {
     pStmt_insert = NULL;
+    pStmt_insert_force = NULL;
     pStmt_update = NULL;
     pStmt_delete_rowid = NULL;
     pStmt_get_by_rowid = NULL;
@@ -3539,6 +3777,8 @@ SQL_TABLE_checkouts :: finalize(void)
 {
     if (pStmt_insert)
         sqlite3_finalize(pStmt_insert);
+    if (pStmt_insert_force)
+        sqlite3_finalize(pStmt_insert_force);
     if (pStmt_update)
         sqlite3_finalize(pStmt_update);
     if (pStmt_delete_rowid)
@@ -3837,6 +4077,74 @@ bool SQL_TABLE_checkouts :: insert(void)
     return true;
 }
 
+bool SQL_TABLE_checkouts :: insert_force(void)
+{
+    int r;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted INSERT (force) before set_db");
+        return false;
+    }
+
+    if (pStmt_insert_force == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb, "INSERT OR REPLACE INTO checkouts "
+            "(bookid2, userid2, duedate) "
+            "values (?,?,?)",
+            -1, &pStmt_insert_force, NULL);
+        if (r != SQLITE_OK)
+        {
+	    const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing INSERT (force)", r, msg);
+            return false;
+        }
+    }
+    sqlite3_reset(pStmt_insert_force);
+
+    r = sqlite3_bind_int(pStmt_insert_force, 1,
+                             bookid2);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind bookid2: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_int(pStmt_insert_force, 2,
+                             userid2);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind userid2: r = %d (%s)", r, msg);
+        return false;
+    }
+    r = sqlite3_bind_int64(pStmt_insert_force, 3,
+                             duedate);
+    if (r != SQLITE_OK)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: bind duedate: r = %d (%s)", r, msg);
+        return false;
+    }
+
+
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_insert_force);
+
+    r = sqlite3_step(pStmt_insert_force);
+    if (r != SQLITE_DONE)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: r = %d (%s)", r, msg);
+        return false;
+    }
+
+    rowid = sqlite3_last_insert_rowid(pdb);
+
+    return true;
+}
+
 bool SQL_TABLE_checkouts :: update(void)
 {
     int r;
@@ -4051,6 +4359,11 @@ void SQL_TABLE_checkouts :: get_subtables(void)
 }
 
 void SQL_TABLE_checkouts :: insert_subtables(void)
+{
+
+}
+
+void SQL_TABLE_checkouts :: insert_subtables_force(void)
 {
 
 }
@@ -4479,8 +4792,10 @@ bool SQL_TABLE_checkouts :: import_xml(sqlite3 *pdb,
          row_el = row_el->NextSiblingElement())
     {
         row.copy_from_xml(row_el);
-        row.insert();
-        row.insert_subtables();
+        // use insert_force because the xml may include AUTOINCR
+        // values which must be set the hard way.
+        row.insert_force();
+        row.insert_subtables_force();
     }
 
     return true;

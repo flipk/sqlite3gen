@@ -57,9 +57,10 @@ void emit_source(const std::string &fname,
         ostringstream tableversion;
         ostringstream prepare_queries;
         ostringstream prepare_like_queries;
-        ostringstream select_fieldnames;
+        ostringstream all_fieldnames;
         ostringstream update_fieldnames;
         ostringstream questionmarks;
+        ostringstream questionmarks_force;
         ostringstream initial_values;
         ostringstream prepare_custom_get_queries;
         ostringstream prepare_custom_upd;
@@ -73,6 +74,7 @@ void emit_source(const std::string &fname,
         ostringstream query_implementations;
         ostringstream query_like_implementations;
         ostringstream insert_binders;
+        ostringstream insert_force_binders;
         ostringstream update_binders;
         ostringstream custom_get_implementations;
         ostringstream custom_upd_implementations;
@@ -91,6 +93,7 @@ void emit_source(const std::string &fname,
         ostringstream field_copies;
         ostringstream get_all_subtables;
         ostringstream insert_all_subtables;
+        ostringstream insert_all_subtables_force;
         ostringstream set_db_subtables;
         ostringstream autoincr_rowid_fetch;
 
@@ -110,9 +113,9 @@ void emit_source(const std::string &fname,
                 continue;
 
             if (!first_select_field)
-                select_fieldnames << ", ";
+                all_fieldnames << ", ";
             first_select_field = false;
-            select_fieldnames << fd->name;
+            all_fieldnames << fd->name;
 
             if (fd->attrs.auto_increment == false)
             {
@@ -132,7 +135,7 @@ void emit_source(const std::string &fname,
         // anymore. every SELECT must specify all field names
         // to be future-proof against table changes.
         SET_PATTERN(update_fieldnames);
-        SET_PATTERN(select_fieldnames);
+        SET_PATTERN(all_fieldnames);
 
         int select_column = 1;
         int update_column = 1;
@@ -200,6 +203,8 @@ void emit_source(const std::string &fname,
                     get_all_subtables, patterns);
                 output_TABLE_CLASS_insert_all_subtables_one(
                     insert_all_subtables, patterns);
+                output_TABLE_CLASS_insert_all_subtables_force_one(
+                    insert_all_subtables_force, patterns);
                 output_TABLE_set_subtable(set_db_subtables, patterns);
                 break;
             }
@@ -282,10 +287,14 @@ void emit_source(const std::string &fname,
             }
 
             if (!first_select_field)
+            {
                 table_create_fields << ", ";
+                questionmarks_force << ",";
+            }
             first_select_field = false;
             table_create_fields << fd->name << " "
                                 << TypeDef_to_sqlite_create_type(t);
+            questionmarks_force << "?";
 
             if (fd->attrs.constraints.length() > 0)
             {
@@ -416,6 +425,15 @@ void emit_source(const std::string &fname,
                     patterns["stmt"] = "update";
                     output_TABLE_insert_binder_pod(update_binders, patterns);
                 }
+
+                // a little ugly: the insert_force needs to count
+                // fields including the AUTOINCR fields, which the
+                // select_column counter does, but the binder templates
+                // all reference the update_column counter.
+                patterns["update_column_index"] = select_column_index.str();
+
+                patterns["stmt"] = "insert_force";
+                output_TABLE_insert_binder_pod(insert_force_binders, patterns);
                 output_TABLE_get_column_pod(get_columns, patterns);
                 break;
             case TYPE_TEXT:
@@ -429,6 +447,16 @@ void emit_source(const std::string &fname,
                     output_TABLE_insert_binder_string(
                         update_binders, patterns);
                 }
+
+                // a little ugly: the insert_force needs to count
+                // fields including the AUTOINCR fields, which the
+                // select_column counter does, but the binder templates
+                // all reference the update_column counter.
+                patterns["update_column_index"] = select_column_index.str();
+
+                patterns["stmt"] = "insert_force";
+                output_TABLE_insert_binder_string(
+                    insert_force_binders, patterns);
                 output_TABLE_get_column_string(get_columns, patterns);
                 break;
             case TYPE_BOOL:
@@ -439,6 +467,16 @@ void emit_source(const std::string &fname,
                     patterns["stmt"] = "update";
                     output_TABLE_insert_binder_bool(update_binders, patterns);
                 }
+
+                // a little ugly: the insert_force needs to count
+                // fields including the AUTOINCR fields, which the
+                // select_column counter does, but the binder templates
+                // all reference the update_column counter.
+                patterns["update_column_index"] = select_column_index.str();
+
+                patterns["stmt"] = "insert_force";
+                output_TABLE_insert_binder_bool(
+                    insert_force_binders, patterns);
                 output_TABLE_get_column_bool(get_columns, patterns);
                 break;
             case TYPE_ENUM:
@@ -449,6 +487,16 @@ void emit_source(const std::string &fname,
                     patterns["stmt"] = "update";
                     output_TABLE_insert_binder_enum(update_binders, patterns);
                 }
+
+                // a little ugly: the insert_force needs to count
+                // fields including the AUTOINCR fields, which the
+                // select_column counter does, but the binder templates
+                // all reference the update_column counter.
+                patterns["update_column_index"] = select_column_index.str();
+
+                patterns["stmt"] = "insert_force";
+                output_TABLE_insert_binder_enum(
+                    insert_force_binders, patterns);
                 output_TABLE_get_column_enum(get_columns, patterns);
                 break;
             case TYPE_SUBTABLE:
@@ -757,6 +805,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(prepare_queries);
         SET_PATTERN(prepare_like_queries);
         SET_PATTERN(questionmarks);
+        SET_PATTERN(questionmarks_force);
         SET_PATTERN(initial_values);
         SET_PATTERN(prepare_queries);
         SET_PATTERN(prepare_like_queries);
@@ -772,6 +821,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(query_implementations);
         SET_PATTERN(query_like_implementations);
         SET_PATTERN(insert_binders);
+        SET_PATTERN(insert_force_binders);
         SET_PATTERN(update_binders);
         SET_PATTERN(custom_get_implementations);
         SET_PATTERN(custom_upd_implementations);
@@ -784,6 +834,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(field_copies);
         SET_PATTERN(get_all_subtables);
         SET_PATTERN(insert_all_subtables);
+        SET_PATTERN(insert_all_subtables_force);
         SET_PATTERN(set_db_subtables);
         SET_PATTERN(autoincr_rowid_fetch);
 

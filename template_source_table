@@ -32,6 +32,7 @@ void
 SQL_TABLE_@@tablename@@ :: init_statements(void)
 {
     pStmt_insert = NULL;
+    pStmt_insert_force = NULL;
     pStmt_update = NULL;
     pStmt_delete_rowid = NULL;
     pStmt_get_by_rowid = NULL;
@@ -57,6 +58,8 @@ SQL_TABLE_@@tablename@@ :: finalize(void)
 {
     if (pStmt_insert)
         sqlite3_finalize(pStmt_insert);
+    if (pStmt_insert_force)
+        sqlite3_finalize(pStmt_insert_force);
     if (pStmt_update)
         sqlite3_finalize(pStmt_update);
     if (pStmt_delete_rowid)
@@ -195,6 +198,50 @@ bool SQL_TABLE_@@tablename@@ :: insert(void)
     return true;
 }
 
+bool SQL_TABLE_@@tablename@@ :: insert_force(void)
+{
+    int r;
+
+    if (pdb == NULL)
+    {
+        PRINT_ERR("attempted INSERT (force) before set_db");
+        return false;
+    }
+
+    if (pStmt_insert_force == NULL)
+    {
+        r = sqlite3_prepare_v2(
+            pdb, "INSERT OR REPLACE INTO @@tablename@@ "
+            "(@@all_fieldnames@@) "
+            "values (@@questionmarks_force@@)",
+            -1, &pStmt_insert_force, NULL);
+        if (r != SQLITE_OK)
+        {
+	    const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing INSERT (force)", r, msg);
+            return false;
+        }
+    }
+    sqlite3_reset(pStmt_insert_force);
+
+@@insert_force_binders@@
+
+    if (log_upd_func)
+        log_upd_func(log_arg, pStmt_insert_force);
+
+    r = sqlite3_step(pStmt_insert_force);
+    if (r != SQLITE_DONE)
+    {
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert_force: r = %d (%s)", r, msg);
+        return false;
+    }
+
+    rowid = sqlite3_last_insert_rowid(pdb);
+
+    return true;
+}
+
 bool SQL_TABLE_@@tablename@@ :: update(void)
 {
     int r;
@@ -298,7 +345,7 @@ bool SQL_TABLE_@@tablename@@ :: get_by_rowid(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,@@select_fieldnames@@ FROM @@tablename@@ WHERE rowid = ?",
+            "SELECT rowid,@@all_fieldnames@@ FROM @@tablename@@ WHERE rowid = ?",
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
         {
@@ -350,7 +397,7 @@ bool SQL_TABLE_@@tablename@@ :: get_all(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,@@select_fieldnames@@ FROM @@tablename@@",
+            "SELECT rowid,@@all_fieldnames@@ FROM @@tablename@@",
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
         {
@@ -387,6 +434,11 @@ void SQL_TABLE_@@tablename@@ :: get_subtables(void)
 void SQL_TABLE_@@tablename@@ :: insert_subtables(void)
 {
 @@insert_all_subtables@@
+}
+
+void SQL_TABLE_@@tablename@@ :: insert_subtables_force(void)
+{
+@@insert_all_subtables_force@@
 }
 
 @@custom_get_implementations@@
@@ -536,8 +588,10 @@ bool SQL_TABLE_@@tablename@@ :: import_xml(sqlite3 *pdb,
          row_el = row_el->NextSiblingElement())
     {
         row.copy_from_xml(row_el);
-        row.insert();
-        row.insert_subtables();
+        // use insert_force because the xml may include AUTOINCR
+        // values which must be set the hard way.
+        row.insert_force();
+        row.insert_subtables_force();
     }
 
     return true;

@@ -39,6 +39,16 @@ bool SQL_TABLE_@@tablename@@ :: insert_subtable_@@fieldname@@(void)
     }
     return true;
 }
+
+bool SQL_TABLE_@@tablename@@ :: insert_subtable_@@fieldname@@_force(void)
+{
+    for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
+    {
+        SQL_TABLE_@@fieldname@@ &row = @@fieldname@@[ind];
+        row.insert_force();
+    }
+    return true;
+}
 ________ END
 
 ________ TABLE_CLASS_get_all_subtables_one
@@ -49,3 +59,6 @@ ________ TABLE_CLASS_insert_all_subtables_one
     insert_subtable_@@fieldname@@();
 ________ END
 
+________ TABLE_CLASS_insert_all_subtables_force_one
+    insert_subtable_@@fieldname@@_force();
+________ END
