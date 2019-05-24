@@ -60,6 +60,7 @@ DEFAULT    { return KW_DEFAULT; }
 PROTOID    { return KW_PROTOID; }
 PACKAGE    { return KW_PACKAGE; }
 LIKEQUERY  { return KW_LIKEQUERY; }
+AUTOINCR   { return KW_AUTOINCR; }
 VERSION    { return KW_VERSION; }
 CONSTRAINT { return KW_CONSTRAINT; }
 CUSTOM-GET { return KW_CUSTOM_GET; }

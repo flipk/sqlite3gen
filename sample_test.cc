@@ -67,7 +67,7 @@ public:
         // we can print a blob as a string only because
         // this test program always sets 'blob' objects to
         // strings.
-        printf("row %" PRId64 " userid %" PRId64
+        printf("row %" PRId64 " userid %d"
                " %s %s %s SSN %d %f proto (%d) '%s'\n",
                (int64_t) rowid, userid,
                firstname.c_str(), mi.c_str(), lastname.c_str(),
@@ -75,8 +75,8 @@ public:
         printf("%d checkouts:\n", (int) checkouts.size());
         for (size_t ind = 0; ind < checkouts.size(); ind++)
         {
-            printf("   row %" PRId64 " userid2 %" PRId64
-                   " bookid %" PRId64 " duedate %" PRId64 "\n",
+            printf("   row %" PRId64 " userid2 %d"
+                   " bookid %d duedate %" PRId64 "\n",
                    (int64_t) checkouts[ind].rowid,   checkouts[ind].userid2,
                    checkouts[ind].bookid2, checkouts[ind].duedate);
         }
@@ -158,7 +158,7 @@ get_custom2(sqlite3 *pdb,
 }
 
 void
-test_protobuf(sqlite3 *pdb, int64_t userid)
+test_protobuf(sqlite3 *pdb, int32_t userid)
 {
     u.init();
     if (u.get_by_userid(userid) == false)
@@ -230,7 +230,6 @@ main()
 
     {
 
-        user.userid = 4;
         user.firstname = "flippy";
         user.lastname = "kadoodle";
         user.mi = "f";
@@ -239,7 +238,9 @@ main()
         user.proto = "PROTOBUFS BABY";
 
         user.insert();
-        printf("inserted row %" PRId64 "\n", (int64_t) user.rowid);
+        printf("EXPECTED : inserted rowid 1 userid 1\n");
+        printf("inserted rowid %" PRId64 " userid %d\n",
+               (int64_t) user.rowid, user.userid);
 
         get_all(pdb);
 
@@ -250,9 +251,10 @@ main()
         else
             user.update_balance();
 
+        printf("EXPECTED : updated row 1\n");
         printf("updated row %" PRId64 "\n", (int64_t) user.rowid);
 
-        test_protobuf(pdb, 4);
+        test_protobuf(pdb, 1);
 
         get_row(pdb, user.rowid);
 
@@ -295,83 +297,91 @@ bail:
 void
 test_subtables(sqlite3 * pdb)
 {
+    int32_t u1, u2, u3, b1, b2, b3;
+
     {
         library::SQL_TABLE_user      u(pdb);
         library::SQL_TABLE_book      b(pdb);
         library::SQL_TABLE_checkouts c(pdb);
 
-        u.userid = 1;
         u.firstname = "fir1";
         u.lastname = "las1";
         u.SSN = 11;
         u.balance = 4.25;
         u.proto = "this is proto blob";
         u.insert();
+        u1 = u.userid;
 
-        u.userid = 2;
         u.firstname = "fir2";
         u.lastname = "las2";
         u.SSN = 22;
         u.balance = 8.50;
         u.proto = "this is proto blob 2";
         u.insert();
+        u2 = u.userid;
 
-        u.userid = 3;
         u.firstname = "fir3";
         u.lastname = "las3";
         u.SSN = 33;
         u.balance = 12.75;
         u.proto = "this is proto blob 3";
         u.insert();
+        u3 = u.userid;
 
-        b.bookid = 1;
+        printf("inserted userids %d, %d, and %d\n", u1, u2, u3);
+
         b.title = "book 1 title";
         b.isbn = "111222";
         b.price = 4.55;
         b.quantity = 6;
         b.insert();
+        b1 = b.bookid;
 
-        b.bookid = 2;
         b.title = "book 2 title";
         b.isbn = "444555";
         b.price = 8.15;
         b.quantity = 1;
         b.insert();
+        b2 = b.bookid;
 
-        b.bookid = 3;
         b.title = "book 3 title";
         b.isbn = "12345";
         b.price = 12.35;
         b.quantity = 2;
         b.insert();
+        b3 = b.bookid;
 
-        c.bookid2 = 2;
-        c.userid2 = 1;
+        printf("inserted bookids %d, %d, and %d\n", b1, b2, b3);
+
+        c.bookid2 = b2;
+        c.userid2 = u1;
         c.duedate = 5;
         c.insert();
 
-        c.bookid2 = 3;
-        c.userid2 = 1;
+        c.bookid2 = b3;
+        c.userid2 = u1;
         c.duedate = 6;
         c.insert();
 
-        c.bookid2 = 1;
-        c.userid2 = 2;
+        c.bookid2 = b1;
+        c.userid2 = u2;
         c.duedate = 12;
         c.insert();
 
-        c.bookid2 = 3;
-        c.userid2 = 3;
+        c.bookid2 = b3;
+        c.userid2 = u3;
         c.duedate = 2;
         c.insert();
+
+        printf("inserted 4 checkouts\n");
     }
 
     {
         SQL_TABLE_user_custom        u(pdb);
 
-        if (u.get_by_userid(1))
+        if (u.get_by_userid(u1))
         {
-            printf("got user id 1!\n");
+            printf("got userid %d!\n", u1);
             u.get_subtable_checkouts();
             u.print();
             library::TABLE_user_m  msg;

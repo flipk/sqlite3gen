@@ -110,7 +110,7 @@ public:
 
     sqlite3_int64 rowid;
 
-    int64_t userid;
+    int32_t userid;
     std::string firstname;
     std::string lastname;
     std::string mi;
@@ -122,7 +122,7 @@ public:
     // NOTE this is only populated by get_subtable_checkouts()
     std::vector<SQL_TABLE_checkouts> checkouts;
 
-    bool get_by_userid(int64_t v);
+    bool get_by_userid(int32_t v);
     bool get_by_SSN(int32_t v);
     bool get_by_test2(bool v);
     bool get_by_test3(sample::library2::EnumField_t v);
@@ -158,7 +158,7 @@ public:
     bool update_balance(void);
     bool update_firstlast(void);
 // WHERE userid = ? and lastname = ?
-    bool update_by_userid_stuff(int64_t v1, const std::string & v2);
+    bool update_by_userid_stuff(int32_t v1, const std::string & v2);
 
 // WHERE ssn = ?
     bool delete_SSN(int32_t v1);
@@ -255,13 +255,13 @@ public:
 
     sqlite3_int64 rowid;
 
-    int64_t bookid;
+    int32_t bookid;
     std::string title;
     std::string isbn;
     double price;
     int32_t quantity;
 
-    bool get_by_bookid(int64_t v);
+    bool get_by_bookid(int32_t v);
     bool get_by_isbn(const std::string & v);
 
     // get all subtables
@@ -374,12 +374,12 @@ public:
 
     sqlite3_int64 rowid;
 
-    int64_t bookid2;
-    int64_t userid2;
+    int32_t bookid2;
+    int32_t userid2;
     int64_t duedate;
 
-    bool get_by_bookid2(int64_t v);
-    bool get_by_userid2(int64_t v);
+    bool get_by_bookid2(int32_t v);
+    bool get_by_userid2(int32_t v);
 
     // get all subtables
     void get_subtables(void);

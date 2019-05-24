@@ -57,7 +57,8 @@ void emit_source(const std::string &fname,
         ostringstream tableversion;
         ostringstream prepare_queries;
         ostringstream prepare_like_queries;
-        ostringstream fieldnames;
+        ostringstream select_fieldnames;
+        ostringstream update_fieldnames;
         ostringstream questionmarks;
         ostringstream initial_values;
         ostringstream prepare_custom_get_queries;
@@ -91,6 +92,7 @@ void emit_source(const std::string &fname,
         ostringstream get_all_subtables;
         ostringstream insert_all_subtables;
         ostringstream set_db_subtables;
+        ostringstream autoincr_rowid_fetch;
 
         const FieldDef * fd;
         const CustomGetUpdList * cust;
@@ -100,16 +102,26 @@ void emit_source(const std::string &fname,
         tableversion << td->version;
 
         int column = 1;
-        bool first_field = true;
+        bool first_select_field = true;
+        bool first_update_field = true;
         for (fd = td->fields; fd; fd = fd->next)
         {
             if (fd->type.type == TYPE_SUBTABLE)
                 continue;
 
-            if (!first_field)
-                fieldnames << ", ";
-            first_field = false;
-            fieldnames << fd->name;
+            if (!first_select_field)
+                select_fieldnames << ", ";
+            first_select_field = false;
+            select_fieldnames << fd->name;
+
+            if (fd->attrs.auto_increment == false)
+            {
+                if (!first_update_field)
+                    update_fieldnames << ", ";
+                first_update_field = false;
+                update_fieldnames << fd->name;
+            }
+
             if (fd->attrs.protoid != -1)
                 do_protobuf = true;
             column++;
@@ -119,11 +131,16 @@ void emit_source(const std::string &fname,
         // field getters, because we don't use "SELECT *"
         // anymore. every SELECT must specify all field names
         // to be future-proof against table changes.
-        SET_PATTERN(fieldnames);
+        SET_PATTERN(update_fieldnames);
+        SET_PATTERN(select_fieldnames);
 
-        column = 1;
-        ostringstream column_index;
-        first_field = true;
+        int select_column = 1;
+        int update_column = 1;
+        ostringstream select_column_index;
+        ostringstream update_column_index;
+
+        first_select_field = true;
+        first_update_field = true;
         for (fd = td->fields; fd; fd = fd->next)
         {
             TypeDef t = fd->type.type;
@@ -246,17 +263,27 @@ void emit_source(const std::string &fname,
             patterns["sqlite_bind_func"]   = TypeDef_to_sqlite_bind(t);
             patterns["sqlite_type"]        = TypeDef_to_sqlite_macro(t);
 
-            column_index.str("");
-            column_index << column;
-            SET_PATTERN(column_index);
+            select_column_index.str("");
+            select_column_index << select_column;
+            SET_PATTERN(select_column_index);
+            select_column++;
 
-            if (!first_field)
+            if (fd->attrs.auto_increment == false)
             {
-                questionmarks << ",";
-                table_create_fields << ", ";
+                if (!first_update_field)
+                    questionmarks << ",";
+                first_update_field = false;
+                questionmarks << "?";
+
+                update_column_index.str("");
+                update_column_index << update_column;
+                SET_PATTERN(update_column_index);
+                update_column++;
             }
-            first_field = false;
-            questionmarks << "?";
+
+            if (!first_select_field)
+                table_create_fields << ", ";
+            first_select_field = false;
             table_create_fields << fd->name << " "
                                 << TypeDef_to_sqlite_create_type(t);
 
@@ -264,6 +291,12 @@ void emit_source(const std::string &fname,
             {
                 table_create_fields << " "
                                     << fd->attrs.constraints;
+            }
+
+            if (fd->attrs.auto_increment)
+            {
+                table_create_fields << " AUTOINCREMENT";
+                autoincr_rowid_fetch << fd->name << " = rowid;\n";
             }
 
             if (fd->attrs.foreign)
@@ -376,32 +409,46 @@ void emit_source(const std::string &fname,
             case TYPE_INT:
             case TYPE_INT64:
             case TYPE_DOUBLE:
-                patterns["stmt"] = "insert";
-                output_TABLE_insert_binder_pod(insert_binders, patterns);
-                patterns["stmt"] = "update";
-                output_TABLE_insert_binder_pod(update_binders, patterns);
+                if (fd->attrs.auto_increment == false)
+                {
+                    patterns["stmt"] = "insert";
+                    output_TABLE_insert_binder_pod(insert_binders, patterns);
+                    patterns["stmt"] = "update";
+                    output_TABLE_insert_binder_pod(update_binders, patterns);
+                }
                 output_TABLE_get_column_pod(get_columns, patterns);
                 break;
             case TYPE_TEXT:
             case TYPE_BLOB:
-                patterns["stmt"] = "insert";
-                output_TABLE_insert_binder_string(insert_binders, patterns);
-                patterns["stmt"] = "update";
-                output_TABLE_insert_binder_string(update_binders, patterns);
+                if (fd->attrs.auto_increment == false)
+                {
+                    patterns["stmt"] = "insert";
+                    output_TABLE_insert_binder_string(
+                        insert_binders, patterns);
+                    patterns["stmt"] = "update";
+                    output_TABLE_insert_binder_string(
+                        update_binders, patterns);
+                }
                 output_TABLE_get_column_string(get_columns, patterns);
                 break;
             case TYPE_BOOL:
-                patterns["stmt"] = "insert";
-                output_TABLE_insert_binder_bool(insert_binders, patterns);
-                patterns["stmt"] = "update";
-                output_TABLE_insert_binder_bool(update_binders, patterns);
+                if (fd->attrs.auto_increment == false)
+                {
+                    patterns["stmt"] = "insert";
+                    output_TABLE_insert_binder_bool(insert_binders, patterns);
+                    patterns["stmt"] = "update";
+                    output_TABLE_insert_binder_bool(update_binders, patterns);
+                }
                 output_TABLE_get_column_bool(get_columns, patterns);
                 break;
             case TYPE_ENUM:
-                patterns["stmt"] = "insert";
-                output_TABLE_insert_binder_enum(insert_binders, patterns);
-                patterns["stmt"] = "update";
-                output_TABLE_insert_binder_enum(update_binders, patterns);
+                if (fd->attrs.auto_increment == false)
+                {
+                    patterns["stmt"] = "insert";
+                    output_TABLE_insert_binder_enum(insert_binders, patterns);
+                    patterns["stmt"] = "update";
+                    output_TABLE_insert_binder_enum(update_binders, patterns);
+                }
                 output_TABLE_get_column_enum(get_columns, patterns);
                 break;
             case TYPE_SUBTABLE:
@@ -409,17 +456,15 @@ void emit_source(const std::string &fname,
                 // using the classes for those tables.
                 break;
             }
-
-            column++;
         }
 
         table_create_constraints << td->constraints;
 
         // for ::update(), the last "?" is rowid, so the column_index
         // is one bigger than the last insert_binder.
-        column_index.str("");
-        column_index << column;
-        SET_PATTERN(column_index);
+        update_column_index.str("");
+        update_column_index << update_column;
+        SET_PATTERN(update_column_index);
 
         for (cust = td->customs; cust; cust = cust->next)
         {
@@ -740,6 +785,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(get_all_subtables);
         SET_PATTERN(insert_all_subtables);
         SET_PATTERN(set_db_subtables);
+        SET_PATTERN(autoincr_rowid_fetch);
 
         patterns["is_subtable"] = td->is_subtable ? "true" : "false";
 
@@ -834,9 +880,9 @@ void emit_source(const std::string &fname,
 
             TypeDef t = (fd == NULL) ? TYPE_INT64 : fd->type.type;
 
-            ostringstream column_index;
-            column_index << argcount;
-            SET_PATTERN(column_index);
+            ostringstream select_column_index;
+            select_column_index << argcount;
+            SET_PATTERN(select_column_index);
 
             patterns["sqlite_type"] = TypeDef_to_sqlite_macro(t);
             patterns["fieldname"] = td->name + "_" + fieldname;

@@ -31,7 +31,7 @@ message TABLE_user_m
      value changes. we're kinda breaking google's rules a little
      bit by redefining enum values. */
   /*required*/ optional int32 schema_version = 1;
-  optional int64 userid = 2;
+  optional int32 userid = 2;
   optional string firstname = 3;
   optional string lastname = 4;
   optional string mi = 5;
@@ -57,7 +57,7 @@ message TABLE_book_m
      value changes. we're kinda breaking google's rules a little
      bit by redefining enum values. */
   /*required*/ optional int32 schema_version = 1;
-  optional int64 bookid = 2;
+  optional int32 bookid = 2;
   optional string title = 3;
   optional string isbn = 4;
   optional double price = 5;
@@ -78,8 +78,8 @@ message TABLE_checkouts_m
      value changes. we're kinda breaking google's rules a little
      bit by redefining enum values. */
   /*required*/ optional int32 schema_version = 1;
-  optional int64 bookid2 = 2;
-  optional int64 userid2 = 3;
+  optional int32 bookid2 = 2;
+  optional int32 userid2 = 3;
   optional int64 duedate = 4;
 
 }

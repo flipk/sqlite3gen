@@ -1,42 +1,42 @@
 
 ________ TABLE_get_column_pod
-    got = sqlite3_column_type(pStmt, @@column_index@@);
+    got = sqlite3_column_type(pStmt, @@select_column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
         PRINT_ERR("get_columns (@@fieldname@@) : "
-                "column @@column_index@@ wrong type (%d %d)",
+                "column @@select_column_index@@ wrong type (%d %d)",
                 got, SQLITE_@@sqlite_type@@);
         return false;
     }
-    @@fieldname@@ = @@sqlite_column_func@@(pStmt, @@column_index@@);
+    @@fieldname@@ = @@sqlite_column_func@@(pStmt, @@select_column_index@@);
 ________ END
 
 ________ TABLE_get_column_enum
-    got = sqlite3_column_type(pStmt, @@column_index@@);
+    got = sqlite3_column_type(pStmt, @@select_column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
         PRINT_ERR("get_columns (@@fieldname@@) : "
-                "column @@column_index@@ wrong type (%d %d)",
+                "column @@select_column_index@@ wrong type (%d %d)",
                 got, SQLITE_@@sqlite_type@@);
         return false;
     }
     if (@@fieldtype@@_IsValid(@@fieldname@@))
         @@fieldname@@ = (@@fieldtype@@) @@sqlite_column_func@@(
-            pStmt, @@column_index@@);
+            pStmt, @@select_column_index@@);
     else
     @@initial_value@@
 ________ END
 
 ________ TABLE_get_column_bool
-    got = sqlite3_column_type(pStmt, @@column_index@@);
+    got = sqlite3_column_type(pStmt, @@select_column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
         PRINT_ERR("get_columns (@@fieldname@@) : "
-                "column @@column_index@@ wrong type (%d %d)",
+                "column @@select_column_index@@ wrong type (%d %d)",
                 got, SQLITE_@@sqlite_type@@);
         return false;
     }
-    if (@@sqlite_column_func@@(pStmt, @@column_index@@))
+    if (@@sqlite_column_func@@(pStmt, @@select_column_index@@))
         @@fieldname@@ = true;
     else
         @@fieldname@@ = false;
@@ -49,20 +49,20 @@ ________ TABLE_get_column_string
       //       it stores it as SQLITE_INT! this means this validation
       //       fails. but if you call sqlite_column_text, it will convert
       //       it back to a text string for you.
-    got = sqlite3_column_type(pStmt, @@column_index@@);
+    got = sqlite3_column_type(pStmt, @@select_column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
 #if 0 // coerce everything to string.
         PRINT_ERR("get_columns (@@fieldname@@) : "
-                "column @@column_index@@ wrong type (%d %d)",
+                "column @@select_column_index@@ wrong type (%d %d)",
                 got, SQLITE_@@sqlite_type@@);
         return false;
 #endif
     }
     {
         const void * ptr = @@sqlite_column_func@@(
-            pStmt, @@column_index@@);
-        int len = sqlite3_column_bytes(pStmt, @@column_index@@);
+            pStmt, @@select_column_index@@);
+        int len = sqlite3_column_bytes(pStmt, @@select_column_index@@);
         @@fieldname@@.resize(len);
         memcpy((void*)@@fieldname@@.c_str(), ptr, len);
     }
@@ -84,11 +84,12 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@(@@fieldtype@@ v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ WHERE @@fieldname@@ = ?",
+            "SELECT rowid,@@select_fieldnames@@ FROM @@tablename@@ WHERE @@fieldname@@ = ?",
             -1, &pStmt_by_@@fieldname@@, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT", r, msg);
             return false;
         }
     }
@@ -117,7 +118,8 @@ ________ TABLE_query_bind_pod
     r = @@sqlite_bind_func@@(pStmt_by_@@fieldname@@, 1, v);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -127,7 +129,8 @@ ________ TABLE_query_bind_bool
                              v ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -138,7 +141,8 @@ ________ TABLE_query_bind_string
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -160,12 +164,14 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@_like(
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ "
+            "SELECT rowid,@@select_fieldnames@@ FROM @@tablename@@ "
             "WHERE @@fieldname@@ like ?",
             -1, &pStmt_by_@@fieldname@@_like, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT LIKE for @@fieldname@@", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT LIKE for @@fieldname@@",
+                      r, msg);
             return false;
         }
     }
@@ -177,7 +183,8 @@ bool SQL_TABLE_@@tablename@@ :: get_by_@@fieldname@@_like(
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 

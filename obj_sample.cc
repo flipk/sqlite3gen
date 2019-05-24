@@ -290,7 +290,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
                 got, SQLITE_INTEGER);
         return false;
     }
-    userid = sqlite3_column_int64(pStmt, 1);
+    userid = sqlite3_column_int(pStmt, 1);
       // SQLITE3 appears to ignore the column type in a CREATE TABLE!
       // NOTE: if you INSERT a string to a table that contains
       //       all decimal digits, SQLITE3 does something very strange:
@@ -432,7 +432,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
     return true;
 }
 
-bool SQL_TABLE_user :: get_by_userid(int64_t v)
+bool SQL_TABLE_user :: get_by_userid(int32_t v)
 {
     int r;
     bool ret = false;
@@ -451,17 +451,19 @@ bool SQL_TABLE_user :: get_by_userid(int64_t v)
             -1, &pStmt_by_userid, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT", r, msg);
             return false;
         }
     }
 
     sqlite3_reset(pStmt_by_userid);
 
-    r = sqlite3_bind_int64(pStmt_by_userid, 1, v);
+    r = sqlite3_bind_int(pStmt_by_userid, 1, v);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -499,7 +501,8 @@ bool SQL_TABLE_user :: get_by_SSN(int32_t v)
             -1, &pStmt_by_SSN, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT", r, msg);
             return false;
         }
     }
@@ -509,7 +512,8 @@ bool SQL_TABLE_user :: get_by_SSN(int32_t v)
     r = sqlite3_bind_int(pStmt_by_SSN, 1, v);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -547,7 +551,8 @@ bool SQL_TABLE_user :: get_by_test2(bool v)
             -1, &pStmt_by_test2, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT", r, msg);
             return false;
         }
     }
@@ -558,7 +563,8 @@ bool SQL_TABLE_user :: get_by_test2(bool v)
                              v ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -596,7 +602,8 @@ bool SQL_TABLE_user :: get_by_test3(sample::library2::EnumField_t v)
             -1, &pStmt_by_test3, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT", r, msg);
             return false;
         }
     }
@@ -606,7 +613,8 @@ bool SQL_TABLE_user :: get_by_test3(sample::library2::EnumField_t v)
     r = sqlite3_bind_int(pStmt_by_test3, 1, v);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -647,7 +655,9 @@ bool SQL_TABLE_user :: get_by_lastname_like(
             -1, &pStmt_by_lastname_like, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT LIKE for lastname", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT LIKE for lastname",
+                      r, msg);
             return false;
         }
     }
@@ -659,7 +669,8 @@ bool SQL_TABLE_user :: get_by_lastname_like(
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -710,82 +721,84 @@ bool SQL_TABLE_user :: insert(void)
     {
         r = sqlite3_prepare_v2(
             pdb, "INSERT INTO user "
-            "(userid, firstname, lastname, mi, SSN, balance, proto, test2, test3) "
-            "values (?,?,?,?,?,?,?,?,?)",
+            "(firstname, lastname, mi, SSN, balance, proto, test2, test3) "
+            "values (?,?,?,?,?,?,?,?)",
             -1, &pStmt_insert, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing INSERT", r);
+	    const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing INSERT", r, msg);
             return false;
         }
     }
     sqlite3_reset(pStmt_insert);
 
-    r = sqlite3_bind_int64(pStmt_insert, 1,
-                             userid);
-    if (r != SQLITE_OK)
-    {
-        PRINT_ERR("insert: bind userid: r = %d", r);
-        return false;
-    }
-    r = sqlite3_bind_text(pStmt_insert, 2,
+    r = sqlite3_bind_text(pStmt_insert, 1,
          firstname.c_str(), firstname.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind firstname: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind firstname: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_text(pStmt_insert, 3,
+    r = sqlite3_bind_text(pStmt_insert, 2,
          lastname.c_str(), lastname.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind lastname: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind lastname: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_text(pStmt_insert, 4,
+    r = sqlite3_bind_text(pStmt_insert, 3,
          mi.c_str(), mi.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind mi: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind mi: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_int(pStmt_insert, 5,
+    r = sqlite3_bind_int(pStmt_insert, 4,
                              SSN);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind SSN: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind SSN: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_double(pStmt_insert, 6,
+    r = sqlite3_bind_double(pStmt_insert, 5,
                              balance);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind balance: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind balance: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_blob(pStmt_insert, 7,
+    r = sqlite3_bind_blob(pStmt_insert, 6,
          proto.c_str(), proto.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind proto: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind proto: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_int(pStmt_insert, 8,
+    r = sqlite3_bind_int(pStmt_insert, 7,
                              test2 ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind test2: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind test2: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_int(pStmt_insert, 9,
+    r = sqlite3_bind_int(pStmt_insert, 8,
                              (int) test3);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind test3: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind test3: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -796,11 +809,13 @@ bool SQL_TABLE_user :: insert(void)
     r = sqlite3_step(pStmt_insert);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("insert: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: r = %d (%s)", r, msg);
         return false;
     }
 
     rowid = sqlite3_last_insert_rowid(pdb);
+    userid = rowid;
 
     return true;
 }
@@ -819,89 +834,91 @@ bool SQL_TABLE_user :: update(void)
     {
         r = sqlite3_prepare_v2(
             pdb, "UPDATE user SET "
-            "(userid, firstname, lastname, mi, SSN, balance, proto, test2, test3) "
-            "= (?,?,?,?,?,?,?,?,?) WHERE rowid = ?",
+            "(firstname, lastname, mi, SSN, balance, proto, test2, test3) "
+            "= (?,?,?,?,?,?,?,?) WHERE rowid = ?",
             -1, &pStmt_update, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing UPDATE", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing UPDATE", r, msg);
             return false;
         }
     }
 
     sqlite3_reset(pStmt_update);
 
-    r = sqlite3_bind_int64(pStmt_update, 1,
-                             userid);
-    if (r != SQLITE_OK)
-    {
-        PRINT_ERR("update: bind userid: r = %d", r);
-        return false;
-    }
-    r = sqlite3_bind_text(pStmt_update, 2,
+    r = sqlite3_bind_text(pStmt_update, 1,
          firstname.c_str(), firstname.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind firstname: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind firstname: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_text(pStmt_update, 3,
+    r = sqlite3_bind_text(pStmt_update, 2,
          lastname.c_str(), lastname.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind lastname: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind lastname: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_text(pStmt_update, 4,
+    r = sqlite3_bind_text(pStmt_update, 3,
          mi.c_str(), mi.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind mi: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind mi: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_int(pStmt_update, 5,
+    r = sqlite3_bind_int(pStmt_update, 4,
                              SSN);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind SSN: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind SSN: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_double(pStmt_update, 6,
+    r = sqlite3_bind_double(pStmt_update, 5,
                              balance);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind balance: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind balance: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_blob(pStmt_update, 7,
+    r = sqlite3_bind_blob(pStmt_update, 6,
          proto.c_str(), proto.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind proto: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind proto: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_int(pStmt_update, 8,
+    r = sqlite3_bind_int(pStmt_update, 7,
                              test2 ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind test2: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind test2: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_int(pStmt_update, 9,
+    r = sqlite3_bind_int(pStmt_update, 8,
                              (int) test3);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind test3: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind test3: r = %d (%s)", r, msg);
         return false;
     }
 
 
     r = sqlite3_bind_int64(pStmt_update,
-                           10, rowid);
+                           9, rowid);
 
     if (log_upd_func)
         log_upd_func(log_arg, pStmt_update);
@@ -909,7 +926,8 @@ bool SQL_TABLE_user :: update(void)
     r = sqlite3_step(pStmt_update);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("update: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -933,7 +951,8 @@ bool SQL_TABLE_user :: delete_rowid(void)
             -1, &pStmt_delete_rowid, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing DELETE", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing DELETE", r, msg);
             return false;
         }
     }
@@ -949,7 +968,8 @@ bool SQL_TABLE_user :: delete_rowid(void)
     r = sqlite3_step(pStmt_delete_rowid);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("delete: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("delete: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -975,7 +995,9 @@ bool SQL_TABLE_user :: get_by_rowid(int64_t v1)
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT for get_by_rowid", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT for get_by_rowid",
+                      r, msg);
             return false;
         }
     }
@@ -986,7 +1008,8 @@ bool SQL_TABLE_user :: get_by_rowid(int64_t v1)
                              1, v1);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -1024,7 +1047,8 @@ bool SQL_TABLE_user :: get_all(void)
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT for get_all", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT for get_all", r, msg);
             return false;
         }
     }
@@ -1110,8 +1134,9 @@ bool SQL_TABLE_user :: get_great_balance(double v1)
             -1, &pStmt_get_great_balance, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT for "
-                   "CUSTOM-GET great_balance", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT for "
+                   "CUSTOM-GET great_balance", r, msg);
             return false;
         }
     }
@@ -1122,7 +1147,8 @@ bool SQL_TABLE_user :: get_great_balance(double v1)
                              1, v1);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -1161,8 +1187,9 @@ bool SQL_TABLE_user :: get_founders(void)
             -1, &pStmt_get_founders, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT for "
-                   "CUSTOM-GET founders", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT for "
+                   "CUSTOM-GET founders", r, msg);
             return false;
         }
     }
@@ -1205,8 +1232,9 @@ bool SQL_TABLE_user :: get_firstlast(const std::string & v1, const std::string &
             -1, &pStmt_get_firstlast, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT for "
-                   "CUSTOM-GET firstlast", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT for "
+                   "CUSTOM-GET firstlast", r, msg);
             return false;
         }
     }
@@ -1218,7 +1246,8 @@ bool SQL_TABLE_user :: get_firstlast(const std::string & v1, const std::string &
                           SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
     r = sqlite3_bind_text(pStmt_get_firstlast, 2, 
@@ -1226,7 +1255,8 @@ bool SQL_TABLE_user :: get_firstlast(const std::string & v1, const std::string &
                           SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -1266,8 +1296,9 @@ bool SQL_TABLE_user :: update_balance(void)
             -1, &pStmt_update_balance, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing CUSTOM-UPD "
-                   "balance", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing CUSTOM-UPD "
+                   "balance", r, msg);
             return false;
         }
     }
@@ -1278,7 +1309,8 @@ bool SQL_TABLE_user :: update_balance(void)
                              1, balance);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind balance: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind balance: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -1292,7 +1324,8 @@ bool SQL_TABLE_user :: update_balance(void)
     r = sqlite3_step(pStmt_update_balance);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("update balance: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update balance: r = %d (%s)", r, msg);
         return false;
     }
     previous_get = NULL;
@@ -1319,8 +1352,9 @@ bool SQL_TABLE_user :: update_firstlast(void)
             -1, &pStmt_update_firstlast, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing CUSTOM-UPD "
-                   "firstlast", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing CUSTOM-UPD "
+                   "firstlast", r, msg);
             return false;
         }
     }
@@ -1333,7 +1367,8 @@ bool SQL_TABLE_user :: update_firstlast(void)
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind firstname: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind firstname: r = %d (%s)", r, msg);
         return false;
     }
     r = sqlite3_bind_text(
@@ -1342,7 +1377,8 @@ bool SQL_TABLE_user :: update_firstlast(void)
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind lastname: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind lastname: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -1356,14 +1392,15 @@ bool SQL_TABLE_user :: update_firstlast(void)
     r = sqlite3_step(pStmt_update_firstlast);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("update firstlast: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update firstlast: r = %d (%s)", r, msg);
         return false;
     }
     previous_get = NULL;
 
     return ret;
 }
-bool SQL_TABLE_user :: update_by_userid_stuff(int64_t v1, const std::string & v2)
+bool SQL_TABLE_user :: update_by_userid_stuff(int32_t v1, const std::string & v2)
 {
     int r;
     bool ret = false;
@@ -1383,8 +1420,9 @@ bool SQL_TABLE_user :: update_by_userid_stuff(int64_t v1, const std::string & v2
             -1, &pStmt_update_by_userid_stuff, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing CUSTOM-UPDBY "
-                      "userid_stuff", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing CUSTOM-UPDBY "
+                      "userid_stuff", r, msg);
             return false;
         }
     }
@@ -1397,35 +1435,40 @@ bool SQL_TABLE_user :: update_by_userid_stuff(int64_t v1, const std::string & v2
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind proto: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind proto: r = %d (%s)", r, msg);
         return false;
     }
     r = sqlite3_bind_int(pStmt_update_by_userid_stuff,
                              2, test2 ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind test2: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind test2: r = %d (%s)", r, msg);
         return false;
     }
     r = sqlite3_bind_int(pStmt_update_by_userid_stuff,
                              3, (int) test3);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind test3: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind test3: r = %d (%s)", r, msg);
         return false;
     }
     r = sqlite3_bind_double(pStmt_update_by_userid_stuff,
                              4, balance);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind balance: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind balance: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_int64(pStmt_update_by_userid_stuff,
+    r = sqlite3_bind_int(pStmt_update_by_userid_stuff,
                              5, v1);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind field 1: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind field 1: r = %d (%s)", r, msg);
         return false;
     }
     r = sqlite3_bind_text(pStmt_update_by_userid_stuff, 6,
@@ -1433,7 +1476,8 @@ bool SQL_TABLE_user :: update_by_userid_stuff(int64_t v1, const std::string & v2
                           SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind field 2: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind field 2: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -1444,7 +1488,8 @@ bool SQL_TABLE_user :: update_by_userid_stuff(int64_t v1, const std::string & v2
     r = sqlite3_step(pStmt_update_by_userid_stuff);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("update userid_stuff: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update userid_stuff: r = %d (%s)", r, msg);
         return false;
     }
     previous_get = NULL;
@@ -1471,7 +1516,8 @@ bool SQL_TABLE_user :: delete_SSN(int32_t v1)
             -1, &pStmt_del_SSN, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing CUSTOM-DEL", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing CUSTOM-DEL", r, msg);
             return false;
         }
     }
@@ -1482,7 +1528,8 @@ bool SQL_TABLE_user :: delete_SSN(int32_t v1)
                              1, v1);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind arg 1: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind arg 1: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -1947,7 +1994,8 @@ bool SQL_TABLE_user :: init(sqlite3 *pdb, table_version_callback cb)
         -1, &s, NULL);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("select from tables: %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("select from tables: %d (%s)", r, msg);
         return false;
     }
     sqlite3_reset(s);
@@ -1975,7 +2023,8 @@ bool SQL_TABLE_user :: init(sqlite3 *pdb, table_version_callback cb)
     }
     else
     {
-        PRINT_ERR("select from tables / step r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("select from tables / step r = %d (%s)", r, msg);
         ret = false;
     }
     sqlite3_finalize(s);
@@ -1997,11 +2046,11 @@ bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
 
     errmsg = NULL;
     r = sqlite3_exec(pdb, "CREATE TABLE user "
-        "(userid int64 NOT NULL UNIQUE PRIMARY KEY, firstname string, lastname string, mi string, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))",
+        "(userid integer PRIMARY KEY AUTOINCREMENT, firstname string, lastname string, mi string, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))",
         NULL, NULL, &errmsg);
 
     printf("CREATE TABLE: CREATE TABLE user "
-           "(userid int64 NOT NULL UNIQUE PRIMARY KEY, firstname string, lastname string, mi string, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))\n");
+           "(userid integer PRIMARY KEY AUTOINCREMENT, firstname string, lastname string, mi string, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))\n");
 
     if (r != SQLITE_OK)
     {
@@ -2279,7 +2328,7 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
                 got, SQLITE_INTEGER);
         return false;
     }
-    bookid = sqlite3_column_int64(pStmt, 1);
+    bookid = sqlite3_column_int(pStmt, 1);
       // SQLITE3 appears to ignore the column type in a CREATE TABLE!
       // NOTE: if you INSERT a string to a table that contains
       //       all decimal digits, SQLITE3 does something very strange:
@@ -2349,7 +2398,7 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
     return true;
 }
 
-bool SQL_TABLE_book :: get_by_bookid(int64_t v)
+bool SQL_TABLE_book :: get_by_bookid(int32_t v)
 {
     int r;
     bool ret = false;
@@ -2368,17 +2417,19 @@ bool SQL_TABLE_book :: get_by_bookid(int64_t v)
             -1, &pStmt_by_bookid, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT", r, msg);
             return false;
         }
     }
 
     sqlite3_reset(pStmt_by_bookid);
 
-    r = sqlite3_bind_int64(pStmt_by_bookid, 1, v);
+    r = sqlite3_bind_int(pStmt_by_bookid, 1, v);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -2416,7 +2467,8 @@ bool SQL_TABLE_book :: get_by_isbn(const std::string & v)
             -1, &pStmt_by_isbn, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT", r, msg);
             return false;
         }
     }
@@ -2428,7 +2480,8 @@ bool SQL_TABLE_book :: get_by_isbn(const std::string & v)
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -2469,7 +2522,9 @@ bool SQL_TABLE_book :: get_by_title_like(
             -1, &pStmt_by_title_like, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT LIKE for title", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT LIKE for title",
+                      r, msg);
             return false;
         }
     }
@@ -2481,7 +2536,8 @@ bool SQL_TABLE_book :: get_by_title_like(
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -2532,52 +2588,50 @@ bool SQL_TABLE_book :: insert(void)
     {
         r = sqlite3_prepare_v2(
             pdb, "INSERT INTO book "
-            "(bookid, title, isbn, price, quantity) "
-            "values (?,?,?,?,?)",
+            "(title, isbn, price, quantity) "
+            "values (?,?,?,?)",
             -1, &pStmt_insert, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing INSERT", r);
+	    const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing INSERT", r, msg);
             return false;
         }
     }
     sqlite3_reset(pStmt_insert);
 
-    r = sqlite3_bind_int64(pStmt_insert, 1,
-                             bookid);
-    if (r != SQLITE_OK)
-    {
-        PRINT_ERR("insert: bind bookid: r = %d", r);
-        return false;
-    }
-    r = sqlite3_bind_text(pStmt_insert, 2,
+    r = sqlite3_bind_text(pStmt_insert, 1,
          title.c_str(), title.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind title: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind title: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_text(pStmt_insert, 3,
+    r = sqlite3_bind_text(pStmt_insert, 2,
          isbn.c_str(), isbn.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind isbn: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind isbn: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_double(pStmt_insert, 4,
+    r = sqlite3_bind_double(pStmt_insert, 3,
                              price);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind price: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind price: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_int(pStmt_insert, 5,
+    r = sqlite3_bind_int(pStmt_insert, 4,
                              quantity);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind quantity: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind quantity: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -2588,11 +2642,13 @@ bool SQL_TABLE_book :: insert(void)
     r = sqlite3_step(pStmt_insert);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("insert: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: r = %d (%s)", r, msg);
         return false;
     }
 
     rowid = sqlite3_last_insert_rowid(pdb);
+    bookid = rowid;
 
     return true;
 }
@@ -2611,59 +2667,57 @@ bool SQL_TABLE_book :: update(void)
     {
         r = sqlite3_prepare_v2(
             pdb, "UPDATE book SET "
-            "(bookid, title, isbn, price, quantity) "
-            "= (?,?,?,?,?) WHERE rowid = ?",
+            "(title, isbn, price, quantity) "
+            "= (?,?,?,?) WHERE rowid = ?",
             -1, &pStmt_update, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing UPDATE", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing UPDATE", r, msg);
             return false;
         }
     }
 
     sqlite3_reset(pStmt_update);
 
-    r = sqlite3_bind_int64(pStmt_update, 1,
-                             bookid);
-    if (r != SQLITE_OK)
-    {
-        PRINT_ERR("update: bind bookid: r = %d", r);
-        return false;
-    }
-    r = sqlite3_bind_text(pStmt_update, 2,
+    r = sqlite3_bind_text(pStmt_update, 1,
          title.c_str(), title.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind title: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind title: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_text(pStmt_update, 3,
+    r = sqlite3_bind_text(pStmt_update, 2,
          isbn.c_str(), isbn.length(),
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind isbn: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind isbn: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_double(pStmt_update, 4,
+    r = sqlite3_bind_double(pStmt_update, 3,
                              price);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind price: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind price: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_int(pStmt_update, 5,
+    r = sqlite3_bind_int(pStmt_update, 4,
                              quantity);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind quantity: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind quantity: r = %d (%s)", r, msg);
         return false;
     }
 
 
     r = sqlite3_bind_int64(pStmt_update,
-                           6, rowid);
+                           5, rowid);
 
     if (log_upd_func)
         log_upd_func(log_arg, pStmt_update);
@@ -2671,7 +2725,8 @@ bool SQL_TABLE_book :: update(void)
     r = sqlite3_step(pStmt_update);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("update: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -2695,7 +2750,8 @@ bool SQL_TABLE_book :: delete_rowid(void)
             -1, &pStmt_delete_rowid, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing DELETE", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing DELETE", r, msg);
             return false;
         }
     }
@@ -2711,7 +2767,8 @@ bool SQL_TABLE_book :: delete_rowid(void)
     r = sqlite3_step(pStmt_delete_rowid);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("delete: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("delete: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -2737,7 +2794,9 @@ bool SQL_TABLE_book :: get_by_rowid(int64_t v1)
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT for get_by_rowid", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT for get_by_rowid",
+                      r, msg);
             return false;
         }
     }
@@ -2748,7 +2807,8 @@ bool SQL_TABLE_book :: get_by_rowid(int64_t v1)
                              1, v1);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -2786,7 +2846,8 @@ bool SQL_TABLE_book :: get_all(void)
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT for get_all", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT for get_all", r, msg);
             return false;
         }
     }
@@ -2840,8 +2901,9 @@ bool SQL_TABLE_book :: get_out_of_stock(void)
             -1, &pStmt_get_out_of_stock, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT for "
-                   "CUSTOM-GET out_of_stock", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT for "
+                   "CUSTOM-GET out_of_stock", r, msg);
             return false;
         }
     }
@@ -2885,8 +2947,9 @@ bool SQL_TABLE_book :: update_quantity(void)
             -1, &pStmt_update_quantity, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing CUSTOM-UPD "
-                   "quantity", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing CUSTOM-UPD "
+                   "quantity", r, msg);
             return false;
         }
     }
@@ -2897,7 +2960,8 @@ bool SQL_TABLE_book :: update_quantity(void)
                              1, quantity);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind quantity: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind quantity: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -2911,7 +2975,8 @@ bool SQL_TABLE_book :: update_quantity(void)
     r = sqlite3_step(pStmt_update_quantity);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("update quantity: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update quantity: r = %d (%s)", r, msg);
         return false;
     }
     previous_get = NULL;
@@ -2938,8 +3003,9 @@ bool SQL_TABLE_book :: update_price(void)
             -1, &pStmt_update_price, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing CUSTOM-UPD "
-                   "price", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing CUSTOM-UPD "
+                   "price", r, msg);
             return false;
         }
     }
@@ -2950,7 +3016,8 @@ bool SQL_TABLE_book :: update_price(void)
                              1, price);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind price: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind price: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -2964,7 +3031,8 @@ bool SQL_TABLE_book :: update_price(void)
     r = sqlite3_step(pStmt_update_price);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("update price: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update price: r = %d (%s)", r, msg);
         return false;
     }
     previous_get = NULL;
@@ -3236,7 +3304,8 @@ bool SQL_TABLE_book :: init(sqlite3 *pdb, table_version_callback cb)
         -1, &s, NULL);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("select from tables: %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("select from tables: %d (%s)", r, msg);
         return false;
     }
     sqlite3_reset(s);
@@ -3264,7 +3333,8 @@ bool SQL_TABLE_book :: init(sqlite3 *pdb, table_version_callback cb)
     }
     else
     {
-        PRINT_ERR("select from tables / step r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("select from tables / step r = %d (%s)", r, msg);
         ret = false;
     }
     sqlite3_finalize(s);
@@ -3286,11 +3356,11 @@ bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
 
     errmsg = NULL;
     r = sqlite3_exec(pdb, "CREATE TABLE book "
-        "(bookid int64, title string, isbn string, price double, quantity integer)",
+        "(bookid integer PRIMARY KEY AUTOINCREMENT, title string, isbn string, price double, quantity integer)",
         NULL, NULL, &errmsg);
 
     printf("CREATE TABLE: CREATE TABLE book "
-           "(bookid int64, title string, isbn string, price double, quantity integer)\n");
+           "(bookid integer PRIMARY KEY AUTOINCREMENT, title string, isbn string, price double, quantity integer)\n");
 
     if (r != SQLITE_OK)
     {
@@ -3555,7 +3625,7 @@ bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
                 got, SQLITE_INTEGER);
         return false;
     }
-    bookid2 = sqlite3_column_int64(pStmt, 1);
+    bookid2 = sqlite3_column_int(pStmt, 1);
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_INTEGER)
     {
@@ -3564,7 +3634,7 @@ bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
                 got, SQLITE_INTEGER);
         return false;
     }
-    userid2 = sqlite3_column_int64(pStmt, 2);
+    userid2 = sqlite3_column_int(pStmt, 2);
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_INTEGER)
     {
@@ -3579,7 +3649,7 @@ bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
     return true;
 }
 
-bool SQL_TABLE_checkouts :: get_by_bookid2(int64_t v)
+bool SQL_TABLE_checkouts :: get_by_bookid2(int32_t v)
 {
     int r;
     bool ret = false;
@@ -3598,17 +3668,19 @@ bool SQL_TABLE_checkouts :: get_by_bookid2(int64_t v)
             -1, &pStmt_by_bookid2, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT", r, msg);
             return false;
         }
     }
 
     sqlite3_reset(pStmt_by_bookid2);
 
-    r = sqlite3_bind_int64(pStmt_by_bookid2, 1, v);
+    r = sqlite3_bind_int(pStmt_by_bookid2, 1, v);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -3627,7 +3699,7 @@ bool SQL_TABLE_checkouts :: get_by_bookid2(int64_t v)
 
     return ret;
 }
-bool SQL_TABLE_checkouts :: get_by_userid2(int64_t v)
+bool SQL_TABLE_checkouts :: get_by_userid2(int32_t v)
 {
     int r;
     bool ret = false;
@@ -3646,17 +3718,19 @@ bool SQL_TABLE_checkouts :: get_by_userid2(int64_t v)
             -1, &pStmt_by_userid2, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT", r, msg);
             return false;
         }
     }
 
     sqlite3_reset(pStmt_by_userid2);
 
-    r = sqlite3_bind_int64(pStmt_by_userid2, 1, v);
+    r = sqlite3_bind_int(pStmt_by_userid2, 1, v);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -3714,31 +3788,35 @@ bool SQL_TABLE_checkouts :: insert(void)
             -1, &pStmt_insert, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing INSERT", r);
+	    const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing INSERT", r, msg);
             return false;
         }
     }
     sqlite3_reset(pStmt_insert);
 
-    r = sqlite3_bind_int64(pStmt_insert, 1,
+    r = sqlite3_bind_int(pStmt_insert, 1,
                              bookid2);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind bookid2: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind bookid2: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_int64(pStmt_insert, 2,
+    r = sqlite3_bind_int(pStmt_insert, 2,
                              userid2);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind userid2: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind userid2: r = %d (%s)", r, msg);
         return false;
     }
     r = sqlite3_bind_int64(pStmt_insert, 3,
                              duedate);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("insert: bind duedate: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: bind duedate: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -3749,12 +3827,13 @@ bool SQL_TABLE_checkouts :: insert(void)
     r = sqlite3_step(pStmt_insert);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("insert: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("insert: r = %d (%s)", r, msg);
         return false;
     }
 
     rowid = sqlite3_last_insert_rowid(pdb);
-
+    
     return true;
 }
 
@@ -3777,32 +3856,36 @@ bool SQL_TABLE_checkouts :: update(void)
             -1, &pStmt_update, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing UPDATE", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing UPDATE", r, msg);
             return false;
         }
     }
 
     sqlite3_reset(pStmt_update);
 
-    r = sqlite3_bind_int64(pStmt_update, 1,
+    r = sqlite3_bind_int(pStmt_update, 1,
                              bookid2);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind bookid2: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind bookid2: r = %d (%s)", r, msg);
         return false;
     }
-    r = sqlite3_bind_int64(pStmt_update, 2,
+    r = sqlite3_bind_int(pStmt_update, 2,
                              userid2);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind userid2: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind userid2: r = %d (%s)", r, msg);
         return false;
     }
     r = sqlite3_bind_int64(pStmt_update, 3,
                              duedate);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("update: bind duedate: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: bind duedate: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -3816,7 +3899,8 @@ bool SQL_TABLE_checkouts :: update(void)
     r = sqlite3_step(pStmt_update);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("update: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -3840,7 +3924,8 @@ bool SQL_TABLE_checkouts :: delete_rowid(void)
             -1, &pStmt_delete_rowid, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing DELETE", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing DELETE", r, msg);
             return false;
         }
     }
@@ -3856,7 +3941,8 @@ bool SQL_TABLE_checkouts :: delete_rowid(void)
     r = sqlite3_step(pStmt_delete_rowid);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("delete: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("delete: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -3882,7 +3968,9 @@ bool SQL_TABLE_checkouts :: get_by_rowid(int64_t v1)
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT for get_by_rowid", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT for get_by_rowid",
+                      r, msg);
             return false;
         }
     }
@@ -3893,7 +3981,8 @@ bool SQL_TABLE_checkouts :: get_by_rowid(int64_t v1)
                              1, v1);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -3931,7 +4020,8 @@ bool SQL_TABLE_checkouts :: get_all(void)
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT for get_all", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT for get_all", r, msg);
             return false;
         }
     }
@@ -3985,8 +4075,9 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
             -1, &pStmt_get_due_now, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT for "
-                   "CUSTOM-GET due_now", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT for "
+                   "CUSTOM-GET due_now", r, msg);
             return false;
         }
     }
@@ -3997,7 +4088,8 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
                              1, v1);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -4222,7 +4314,8 @@ bool SQL_TABLE_checkouts :: init(sqlite3 *pdb, table_version_callback cb)
         -1, &s, NULL);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("select from tables: %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("select from tables: %d (%s)", r, msg);
         return false;
     }
     sqlite3_reset(s);
@@ -4250,7 +4343,8 @@ bool SQL_TABLE_checkouts :: init(sqlite3 *pdb, table_version_callback cb)
     }
     else
     {
-        PRINT_ERR("select from tables / step r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("select from tables / step r = %d (%s)", r, msg);
         ret = false;
     }
     sqlite3_finalize(s);
@@ -4272,11 +4366,11 @@ bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
 
     errmsg = NULL;
     r = sqlite3_exec(pdb, "CREATE TABLE checkouts "
-        "(bookid2 int64, userid2 int64, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))",
+        "(bookid2 integer, userid2 integer, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))",
         NULL, NULL, &errmsg);
 
     printf("CREATE TABLE: CREATE TABLE checkouts "
-           "(bookid2 int64, userid2 int64, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))\n");
+           "(bookid2 integer, userid2 integer, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))\n");
 
     if (r != SQLITE_OK)
     {
@@ -4610,7 +4704,8 @@ SQL_SELECT_due_books :: get(int32_t v1, int32_t v2)
             -1, &pStmt_get_query, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT", r, msg);
             return false;
         }
     }
@@ -4621,14 +4716,16 @@ SQL_SELECT_due_books :: get(int32_t v1, int32_t v2)
                              1, v1);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
     r = sqlite3_bind_int(pStmt_get_query,
                              2, v2);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 
@@ -4876,7 +4973,8 @@ SQL_SELECT_due_books2 :: get(int32_t v1, int32_t v2)
             -1, &pStmt_get_query, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT", r, msg);
             return false;
         }
     }
@@ -4887,14 +4985,16 @@ SQL_SELECT_due_books2 :: get(int32_t v1, int32_t v2)
                              1, v1);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
     r = sqlite3_bind_int(pStmt_get_query,
                              2, v2);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 

@@ -14,13 +14,14 @@ bool SQL_TABLE_@@tablename@@ :: get_@@customname@@(@@type_and_vX@@)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,@@fieldnames@@ FROM @@tablename@@ "
+            "SELECT rowid,@@select_fieldnames@@ FROM @@tablename@@ "
             "WHERE @@querystring@@",
             -1, &pStmt_get_@@customname@@, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT for "
-                   "CUSTOM-GET @@customname@@", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT for "
+                   "CUSTOM-GET @@customname@@", r, msg);
             return false;
         }
     }
@@ -50,7 +51,8 @@ ________ TABLE_custom_get_binder_pod
                              @@arg_index@@, v@@arg_index@@);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -60,7 +62,8 @@ ________ TABLE_custom_get_binder_bool
                              @@arg_index@@, v@@arg_index@@ ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -70,7 +73,8 @@ ________ TABLE_custom_get_binder_enum
                              @@arg_index@@, (int) v@@arg_index@@);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -81,7 +85,8 @@ ________ TABLE_custom_get_binder_string
                           SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -107,8 +112,9 @@ bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
             -1, &pStmt_update_@@customname@@, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing CUSTOM-UPD "
-                   "@@customname@@", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing CUSTOM-UPD "
+                   "@@customname@@", r, msg);
             return false;
         }
     }
@@ -126,7 +132,8 @@ bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
     r = sqlite3_step(pStmt_update_@@customname@@);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("update @@customname@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update @@customname@@: r = %d (%s)", r, msg);
         return false;
     }
     previous_get = NULL;
@@ -156,8 +163,9 @@ bool SQL_TABLE_@@tablename@@ :: update_by_@@customname@@(@@type_and_vX@@)
             -1, &pStmt_update_by_@@customname@@, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing CUSTOM-UPDBY "
-                      "@@customname@@", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing CUSTOM-UPDBY "
+                      "@@customname@@", r, msg);
             return false;
         }
     }
@@ -172,7 +180,8 @@ bool SQL_TABLE_@@tablename@@ :: update_by_@@customname@@(@@type_and_vX@@)
     r = sqlite3_step(pStmt_update_by_@@customname@@);
     if (r != SQLITE_DONE)
     {
-        PRINT_ERR("update @@customname@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("update @@customname@@: r = %d (%s)", r, msg);
         return false;
     }
     previous_get = NULL;
@@ -186,7 +195,8 @@ ________ TABLE_custom_upd_binder_pod
                              @@fieldindex@@, @@fieldname@@);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind @@fieldname@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind @@fieldname@@: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -196,7 +206,8 @@ ________ TABLE_custom_upd_binder_bool
                              @@fieldindex@@, @@fieldname@@ ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind @@fieldname@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind @@fieldname@@: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -206,7 +217,8 @@ ________ TABLE_custom_upd_binder_enum
                              @@fieldindex@@, (int) @@fieldname@@);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind @@fieldname@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind @@fieldname@@: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -218,7 +230,8 @@ ________ TABLE_custom_upd_binder_string
          SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind @@fieldname@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind @@fieldname@@: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -228,7 +241,8 @@ ________ TABLE_custom_updby_binder_pod
                              @@arg_index@@, v@@fieldindex@@);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind field @@fieldindex@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind field @@fieldindex@@: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -238,7 +252,8 @@ ________ TABLE_custom_updby_binder_bool
                              @@arg_index@@, v@@fieldindex@@ ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind field @@fieldindex@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind field @@fieldindex@@: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -248,7 +263,8 @@ ________ TABLE_custom_updby_binder_enum
                              @@arg_index@@, (int) v@@fieldindex@@);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind field @@fieldindex@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind field @@fieldindex@@: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -259,7 +275,8 @@ ________ TABLE_custom_updby_binder_string
                           SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind field @@fieldindex@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind field @@fieldindex@@: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -284,7 +301,8 @@ bool SQL_TABLE_@@tablename@@ :: delete_@@customname@@(@@type_and_vX@@)
             -1, &pStmt_del_@@customname@@, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing CUSTOM-DEL", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing CUSTOM-DEL", r, msg);
             return false;
         }
     }
@@ -314,7 +332,8 @@ ________ TABLE_custom_del_binder_pod
                              @@arg_index@@, v@@arg_index@@);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind arg @@arg_index@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind arg @@arg_index@@: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -324,7 +343,8 @@ ________ TABLE_custom_del_binder_bool
                              @@arg_index@@, v@@arg_index@@ ? 1 : 0);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind arg @@arg_index@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind arg @@arg_index@@: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -334,7 +354,8 @@ ________ TABLE_custom_del_binder_enum
                              @@arg_index@@, (int) v@@arg_index@@);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind arg @@arg_index@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind arg @@arg_index@@: r = %d (%s)", r, msg);
         return false;
     }
 ________ END
@@ -345,7 +366,8 @@ ________ TABLE_custom_del_binder_string
                           SQLITE_STATIC);
     if (r != SQLITE_OK)
     {
-        PRINT_ERR("bind arg @@arg_index@@: r = %d", r);
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("bind arg @@arg_index@@: r = %d (%s)", r, msg);
         return false;
     }
 ________ END

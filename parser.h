@@ -104,6 +104,7 @@ struct FieldAttrs
     bool index;
     bool query;
     bool likequery;
+    bool auto_increment;
     std::string init_string;
     int64_t init_int;
     double init_double;
@@ -119,6 +120,7 @@ struct FieldAttrs
         index = false;
         query = false;
         likequery = false;
+        auto_increment = false;
         init_string.clear();
         init_int = 0;
         init_double = 0.0;

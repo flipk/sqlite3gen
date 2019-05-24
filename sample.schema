@@ -21,7 +21,7 @@ import "sample2.proto";
 TABLE user VERSION 19
 {
     # NOTE PROTOID 1 is reserved for schema_version
-    userid    INT64   INDEX QUERY  "NOT NULL UNIQUE PRIMARY KEY"   PROTOID 2 DEFAULT -1
+    userid    INT   INDEX QUERY AUTOINCR "PRIMARY KEY" PROTOID 2 DEFAULT -1
     firstname TEXT                                     PROTOID 3 DEFAULT ""
     lastname  TEXT    LIKEQUERY                        PROTOID 4 DEFAULT ""
     mi        TEXT                                     PROTOID 5 DEFAULT ""
@@ -44,7 +44,7 @@ TABLE user VERSION 19
     CUSTOM-UPD balance   (balance)
     CUSTOM-UPD firstlast (firstname lastname)
     CUSTOM-UPDBY   userid_stuff   (proto test2 test3 balance)
-                   (INT64 TEXT) "userid = ? and lastname = ?"
+                   (INT TEXT) "userid = ? and lastname = ?"
 
     CUSTOM-DEL SSN (INT)  "ssn = ?"
 }
@@ -52,11 +52,11 @@ TABLE user VERSION 19
 TABLE book VERSION 1
 {
     # NOTE PROTOID 1 is reserved for schema_version
-    bookid          INT64    INDEX   QUERY                 PROTOID 2
-    title           TEXT     LIKEQUERY                     PROTOID 3
-    isbn            TEXT     INDEX   QUERY                 PROTOID 4
-    price           DOUBLE                                 PROTOID 5
-    quantity        INT                                    PROTOID 6
+    bookid    INT    INDEX   QUERY AUTOINCR "PRIMARY KEY" PROTOID 2
+    title     TEXT   LIKEQUERY                            PROTOID 3
+    isbn      TEXT   INDEX   QUERY                        PROTOID 4
+    price     DOUBLE                                      PROTOID 5
+    quantity  INT                                         PROTOID 6
 
     CUSTOM-GET out_of_stock ()  "quantity == 0"
 
@@ -67,9 +67,9 @@ TABLE book VERSION 1
 TABLE checkouts VERSION 1
 {
     # NOTE PROTOID 1 is reserved for schema_version
-    bookid2         INT64  INDEX QUERY  FOREIGN book.bookid PROTOID 2
-    userid2         INT64  INDEX QUERY  FOREIGN user.userid PROTOID 3
-    duedate         INT64                                   PROTOID 4
+    bookid2         INT  INDEX QUERY  FOREIGN book.bookid PROTOID 2
+    userid2         INT  INDEX QUERY  FOREIGN user.userid PROTOID 3
+    duedate         INT64                                 PROTOID 4
 
     CUSTOM-GET due_now (INT64)  "duedate < ?"
 }

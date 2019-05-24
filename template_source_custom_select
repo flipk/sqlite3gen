@@ -86,7 +86,8 @@ SQL_SELECT_@@queryname@@ :: get(@@queryargs@@)
             -1, &pStmt_get_query, NULL);
         if (r != SQLITE_OK)
         {
-            PRINT_ERR("ERROR %d preparing SELECT", r);
+            const char *msg = sqlite3_errmsg(pdb);
+            PRINT_ERR("ERROR %d (%s) preparing SELECT", r, msg);
             return false;
         }
     }

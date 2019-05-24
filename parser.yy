@@ -41,7 +41,7 @@ static void validate_schema(SchemaDef *sd);
 %token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD KW_BOOL
 %token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_UPDBY KW_CUSTOM_DEL
 %token KW_DEFAULT KW_PROTOID KW_PACKAGE KW_VERSION KW_SUBTABLE
-%token KW_FOREIGN KW_CUSTOM_SELECT KW_CONSTRAINT
+%token KW_FOREIGN KW_CUSTOM_SELECT KW_CONSTRAINT KW_AUTOINCR
 
 %token KW_PROTOTOP  KW_PROTOBOTTOM
 %token KW_HEADERTOP KW_HEADERBOTTOM
@@ -418,6 +418,11 @@ ATTRIBUTES
 		$$ = $1;
 		$$->likequery = true;
 	}
+	| ATTRIBUTES KW_AUTOINCR
+	{
+		$$ = $1;
+		$$->auto_increment = true;
+	}
 	| ATTRIBUTES KW_FOREIGN KW_WORD
 	{
 		// note $3 is "table.field"
@@ -633,6 +638,7 @@ static void
 validate_table(TableDef *tb)
 {
     CustomGetUpdList * cust;
+    bool has_autoincr = false;
 
     // validate the 'words' in any CUSTOM-UPD are
     // actually column names from the table.
@@ -668,6 +674,22 @@ validate_table(TableDef *tb)
                 fprintf(stderr, "ERROR: DEFAULT required for ENUM type\n");
                 exit(1);
             }
+        }
+        if (fd->attrs.auto_increment)
+        {
+            if (fd->type.type != TYPE_INT)
+            {
+                fprintf(stderr, "ERROR: AUTOINCR is only allowed "
+                        "on INT type\n");
+                exit(1);
+            }
+            if (has_autoincr)
+            {
+                fprintf(stderr, "ERROR: AUTOINCR is only allowed "
+                        "once in a table\n");
+                exit(1);
+            }
+            has_autoincr = true;
         }
     }
 }
