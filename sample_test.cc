@@ -423,10 +423,26 @@ test_subtables(sqlite3 * pdb)
             library::SQL_TABLE_ALL_TABLES::init_all(pdb2, &table_callback);
             library::SQL_TABLE_ALL_TABLES::import_xml_all(pdb2,doc);
 
+            SQL_TABLE_user_custom        u(pdb2);
+
+            printf(" *** displaying full contents of second test database\n");
+
+            bool ok = u.get_all();
+            while (ok)
+            {
+                u.get_subtables();
+                u.print();
+                ok = u.get_next();
+            }
+
+            u.set_db(NULL);
+
             int r = sqlite3_close(pdb2);
             if (r != SQLITE_OK)
                 printf("ERR!  close returns %d\n", r);
             unlink("build_native/sample_test2.db");
+
+            printf(" *** second test database done and gone\n");
         }
     }
 
