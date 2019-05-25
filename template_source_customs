@@ -1,3 +1,5 @@
+/* -*- Mode:c++; eval:(c-set-style "BSD"); c-basic-offset:4; indent-tabs-mode:nil; tab-width:8 -*- */
+
 ________ TABLE_custom_get_implementation
 bool SQL_TABLE_@@tablename@@ :: get_@@customname@@(@@type_and_vX@@)
 {

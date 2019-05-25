@@ -5498,6 +5498,94 @@ bool SQL_TABLE_ALL_TABLES :: import_xml_all(sqlite3 *pdb,
     return true;
 }
 
+SQL_TRANSACTION :: SQL_TRANSACTION(sqlite3 *_pdb /*= NULL*/,
+                                   bool _commit_on_delete /*= false*/)
+    : pdb(_pdb), commit_on_delete(_commit_on_delete), started(false)
+{
+}
+
+SQL_TRANSACTION :: ~SQL_TRANSACTION(void)
+{
+    finish(commit_on_delete);
+}
+
+void
+SQL_TRANSACTION :: set_db(sqlite3 *_pdb)
+{
+    finish(commit_on_delete);
+    pdb = _pdb;
+}
+
+bool
+SQL_TRANSACTION :: begin(void)
+{
+    if (pdb == NULL)
+        return false;
+
+    bool ret = false;
+    char *msg = NULL;
+    int r = sqlite3_exec(pdb, "BEGIN TRANSACTION", NULL, NULL, &msg);
+
+    if (r != SQLITE_OK)
+        fprintf(stderr,
+                "ERROR SQL_TRANSACTION BEGIN: %d (%s)\n",
+                r, msg);
+    else
+        ret = started = true;
+
+    if (msg)
+        sqlite3_free(msg);
+
+    return ret;
+}
+
+bool
+SQL_TRANSACTION :: finish(bool commit)
+{
+    bool ret = false;
+    if (pdb == NULL)
+        return ret;
+    char *msg = NULL;
+    int r = 0;
+    if (started)
+    {
+        if (commit)
+        {
+            r = sqlite3_exec(pdb, "COMMIT TRANSACTION", NULL, NULL, &msg);
+            if (r != SQLITE_OK)
+                fprintf(stderr,
+                        "ERROR SQL_TRANSACTION COMMIT: %d (%s)\n",
+                        r, msg);
+            else
+                ret = true;
+        }
+        else
+        {
+            r = sqlite3_exec(pdb, "ROLLBACK TRANSACTION", NULL, NULL, &msg);
+            if (r != SQLITE_OK)
+                fprintf(stderr,
+                        "ERROR SQL_TRANSACTION ROLLBACK: %d (%s)\n",
+                        r, msg);
+            else
+                ret = true;
+        }
+        started = false;
+    }
+    return ret;
+}
+
+bool
+SQL_TRANSACTION :: commit(void)
+{
+    return finish(/*commit*/true);
+}
+
+bool
+SQL_TRANSACTION :: rollback(void)
+{
+    return finish(/*commit*/false);
+}
+
 }; // namespace library
 
 

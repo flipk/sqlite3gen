@@ -266,6 +266,22 @@ public:
     static bool import_xml_all(sqlite3 *pdb, tinyxml2::XMLDocument &doc);
 };
 
+class SQL_TRANSACTION {
+    sqlite3 *pdb;
+    bool commit_on_delete;
+    bool started;
+    bool finish(bool commit);
+public:
+    SQL_TRANSACTION(sqlite3 *_pdb = NULL,
+                    bool _commit_on_delete = false);
+    ~SQL_TRANSACTION(void);
+    void set_db(sqlite3 *_pdb);
+    // false return --> error (such as db ptr is null)
+    bool begin(void);
+    bool commit(void);
+    bool rollback(void);
+};
+
 }; // namespace @@package@@
 
 @@headerbottom_block@@

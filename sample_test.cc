@@ -238,7 +238,6 @@ main()
         user.proto = "PROTOBUFS BABY";
 
         user.insert();
-        printf("EXPECTED : inserted rowid 1 userid 1\n");
         printf("inserted rowid %" PRId64 " userid %d\n",
                (int64_t) user.rowid, user.userid);
 
@@ -251,7 +250,6 @@ main()
         else
             user.update_balance();
 
-        printf("EXPECTED : updated row 1\n");
         printf("updated row %" PRId64 "\n", (int64_t) user.rowid);
 
         test_protobuf(pdb, 1);
@@ -298,6 +296,16 @@ void
 test_subtables(sqlite3 * pdb)
 {
     int32_t u1, u2, u3, b1, b2, b3;
+
+    library::SQL_TRANSACTION t(pdb);
+
+    if (t.begin())
+        printf(" ** TRANSACTION BEGUN\n");
+    else
+    {
+        printf(" ** TRANSACTION FAILED\n");
+        exit(1);
+    }
 
     {
         library::SQL_TABLE_user      u(pdb);
@@ -374,6 +382,14 @@ test_subtables(sqlite3 * pdb)
         c.insert();
 
         printf("inserted 4 checkouts\n");
+    }
+
+    if (t.commit())
+        printf(" ** TRANSACTION COMPLETE\n");
+    else
+    {
+        printf(" ** TRANSACTION FAILED\n");
+        exit(1);
     }
 
     {
