@@ -103,7 +103,7 @@ TypeDef_to_sqlite_create_type(TypeDef t)
     case TYPE_INT:     return "integer";
     case TYPE_INT64:   return "int64";
     case TYPE_DOUBLE:  return "double";
-    case TYPE_TEXT:    return "string";
+    case TYPE_TEXT:    return "text";
     case TYPE_BLOB:    return "blob";
     case TYPE_BOOL:    return "integer";
     case TYPE_ENUM:    return "integer";

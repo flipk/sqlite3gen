@@ -2185,11 +2185,11 @@ bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
 
     errmsg = NULL;
     r = sqlite3_exec(pdb, "CREATE TABLE user "
-        "(userid integer PRIMARY KEY AUTOINCREMENT, firstname string, lastname string, mi string, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))",
+        "(userid integer PRIMARY KEY AUTOINCREMENT, firstname text, lastname text, mi text, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))",
         NULL, NULL, &errmsg);
 
     printf("CREATE TABLE: CREATE TABLE user "
-           "(userid integer PRIMARY KEY AUTOINCREMENT, firstname string, lastname string, mi string, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))\n");
+           "(userid integer PRIMARY KEY AUTOINCREMENT, firstname text, lastname text, mi text, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))\n");
 
     if (r != SQLITE_OK)
     {
@@ -3591,11 +3591,11 @@ bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
 
     errmsg = NULL;
     r = sqlite3_exec(pdb, "CREATE TABLE book "
-        "(bookid integer PRIMARY KEY AUTOINCREMENT, title string, isbn string, price double, quantity integer)",
+        "(bookid integer PRIMARY KEY AUTOINCREMENT, title text, isbn text, price double, quantity integer)",
         NULL, NULL, &errmsg);
 
     printf("CREATE TABLE: CREATE TABLE book "
-           "(bookid integer PRIMARY KEY AUTOINCREMENT, title string, isbn string, price double, quantity integer)\n");
+           "(bookid integer PRIMARY KEY AUTOINCREMENT, title text, isbn text, price double, quantity integer)\n");
 
     if (r != SQLITE_OK)
     {
