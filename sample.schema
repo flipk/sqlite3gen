@@ -29,6 +29,8 @@ TABLE user VERSION 19
     balance   DOUBLE                                   PROTOID 7 DEFAULT 0
     proto     BLOB                                     PROTOID 8
     test2     BOOL          QUERY                      PROTOID 9 DEFAULT 0
+# NOTE: in order to test INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT,
+#       you need to comment out all test3 stuff in this file.
     test3     ENUM sample.library2.EnumField_t QUERY   PROTOID 10
     	      DEFAULT sample.library2.ENUM_TWO
 

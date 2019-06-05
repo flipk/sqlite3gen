@@ -20,9 +20,9 @@ ________ HEADER_TOP
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 #include "tinyxml2.h"
 #endif
-//#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 @@protobuf_header@@
-//#endif
+#endif
 
 @@headertop_block@@
 
@@ -118,7 +118,9 @@ public:
     bool get_all(void);
 @@table_custom_upd_method_protos@@
 @@table_custom_del_method_protos@@
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 @@table_proto_copy_protos@@
+#endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     void copy_to_xml(tinyxml2::XMLElement *el);
     bool copy_from_xml(const tinyxml2::XMLElement *el);

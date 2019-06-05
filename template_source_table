@@ -447,7 +447,9 @@ void SQL_TABLE_@@tablename@@ :: insert_subtables_force(void)
 @@custom_get_implementations@@
 @@custom_upd_implementations@@
 @@custom_del_implementations@@
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 @@table_proto_copy_funcs@@
+#endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 @@table_xml_copy_funcs@@
 #endif

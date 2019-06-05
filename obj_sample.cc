@@ -1690,6 +1690,7 @@ bool SQL_TABLE_user :: delete_SSN(int32_t v1)
     return ret;
 }
 
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 void
 SQL_TABLE_user :: copy_to_proto(
               library::TABLE_user_m &msg)
@@ -1789,6 +1790,7 @@ SQL_TABLE_user :: copy_from_proto(
 
 }
 
+#endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 void
 SQL_TABLE_user :: copy_to_xml(tinyxml2::XMLElement *el)
@@ -3283,6 +3285,7 @@ bool SQL_TABLE_book :: update_price(void)
 }
 
 
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 void
 SQL_TABLE_book :: copy_to_proto(
               library::TABLE_book_m &msg)
@@ -3345,6 +3348,7 @@ SQL_TABLE_book :: copy_from_proto(
 
 }
 
+#endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 void
 SQL_TABLE_book :: copy_to_xml(tinyxml2::XMLElement *el)
@@ -4436,6 +4440,7 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
 
 
 
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 void
 SQL_TABLE_checkouts :: copy_to_proto(
               library::TABLE_checkouts_m &msg)
@@ -4486,6 +4491,7 @@ SQL_TABLE_checkouts :: copy_from_proto(
 
 }
 
+#endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 void
 SQL_TABLE_checkouts :: copy_to_xml(tinyxml2::XMLElement *el)

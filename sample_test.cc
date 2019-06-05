@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 class SQL_TABLE_user_custom : public library::SQL_TABLE_user {
     sqlite3_stmt * pStmt_by_great_balance;
@@ -157,6 +158,7 @@ get_custom2(sqlite3 *pdb,
     } while (u.get_next());
 }
 
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 void
 test_protobuf(sqlite3 *pdb, int32_t userid)
 {
@@ -180,6 +182,7 @@ test_protobuf(sqlite3 *pdb, int32_t userid)
         t.print();
     } while (u.get_next());
 }
+#endif
 
 void log_sql_upd(void *arg, sqlite3_stmt *stmt)
 {
@@ -252,7 +255,9 @@ main()
 
         printf("updated row %" PRId64 "\n", (int64_t) user.rowid);
 
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
         test_protobuf(pdb, 1);
+#endif
 
         get_row(pdb, user.rowid);
 
@@ -317,6 +322,9 @@ test_subtables(sqlite3 * pdb)
         u.SSN = 11;
         u.balance = 4.25;
         u.proto = "this is proto blob";
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
+        u.test3 = sample::library2::ENUM_TWO;
+#endif
         u.insert();
         u1 = u.userid;
 
@@ -325,6 +333,9 @@ test_subtables(sqlite3 * pdb)
         u.SSN = 22;
         u.balance = 8.50;
         u.proto = "this is proto blob 2";
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
+        u.test3 = sample::library2::ENUM_ONE;
+#endif
         u.insert();
         u2 = u.userid;
 
@@ -333,6 +344,9 @@ test_subtables(sqlite3 * pdb)
         u.SSN = 33;
         u.balance = 12.75;
         u.proto = "this is proto blob 3";
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
+        u.test3 = sample::library2::ENUM_TWO;
+#endif
         u.insert();
         u3 = u.userid;
 
@@ -392,6 +406,7 @@ test_subtables(sqlite3 * pdb)
         exit(1);
     }
 
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
     {
         SQL_TABLE_user_custom        u(pdb);
 
@@ -411,6 +426,7 @@ test_subtables(sqlite3 * pdb)
             }
         }
     }
+#endif
 
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     {

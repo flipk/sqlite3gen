@@ -17,10 +17,10 @@
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 #include "tinyxml2.h"
 #endif
-//#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 #include "sample.pb.h"
 
-//#endif
+#endif
 
 
 /* header top line 1 */
@@ -175,11 +175,13 @@ public:
 // WHERE ssn = ?
     bool delete_SSN(int32_t v1);
 
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 // NOTE these only copy SUBTABLEs if you have called the
 //      get_subtable_* methods to populate them.
     void copy_to_proto(library::TABLE_user_m &msg);
     void copy_from_proto(const library::TABLE_user_m &msg);
 
+#endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     void copy_to_xml(tinyxml2::XMLElement *el);
     bool copy_from_xml(const tinyxml2::XMLElement *el);
@@ -309,11 +311,13 @@ public:
     bool update_price(void);
 
 
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 // NOTE these only copy SUBTABLEs if you have called the
 //      get_subtable_* methods to populate them.
     void copy_to_proto(library::TABLE_book_m &msg);
     void copy_from_proto(const library::TABLE_book_m &msg);
 
+#endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     void copy_to_xml(tinyxml2::XMLElement *el);
     bool copy_from_xml(const tinyxml2::XMLElement *el);
@@ -433,11 +437,13 @@ public:
     bool get_all(void);
 
 
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 // NOTE these only copy SUBTABLEs if you have called the
 //      get_subtable_* methods to populate them.
     void copy_to_proto(library::TABLE_checkouts_m &msg);
     void copy_from_proto(const library::TABLE_checkouts_m &msg);
 
+#endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     void copy_to_xml(tinyxml2::XMLElement *el);
     bool copy_from_xml(const tinyxml2::XMLElement *el);
