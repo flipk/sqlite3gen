@@ -54,22 +54,37 @@ sql3gen_DEFS = -DPARSER_YY_HDR=\"$(sql3gen_parser.yy_HDR)\" \
 sql3gen_LIBS = $(TEMPLATE_OBJS)
 sql3gen_PREMAKE = $(template_to_c_TARGET) $(TEMPLATE_OBJS)
 
+FEATURES=
+ifneq ($(INCLUDE_XML),)
+FEATURES += -DINCLUDE_SQLITE3GEN_TINYXML2_SUPPORT=1
+endif
+
 sample_TARGET = $(OBJDIR)/sample
 sample_CXXSRCS = sample_test.cc
 sample_PROTOSRCS = sample2.proto
-sample_DEFS = -DSAMPLE_H_HDR=\"sample.h\" -DSAMPLE_PB_HDR=\"sample.pb.h\"
-sample_LIBS = $(OBJDIR)/tinyxml2.o $(OBJDIR)/sample.pb.o \
+sample_DEFS = -DSAMPLE_H_HDR=\"sample.h\" -DSAMPLE_PB_HDR=\"sample.pb.h\" $(FEATURES)
+sample_LIBS =
+ifneq ($(INCLUDE_XML),)
+sample_LIBS += $(OBJDIR)/tinyxml2.o
+endif
+sample_LIBS += $(OBJDIR)/sample.pb.o \
 	sqlite3/sqlite3.o $(OBJDIR)/sample.o \
 	-lpthread $(PROTOLIB) -ldl
 sample_INCS = -Isqlite3 $(PROTOINC) -I. -Itinyxml2
-sample_PREMAKE = $(OBJDIR)/tinyxml2.o $(OBJDIR)/sample.o
+sample_PREMAKE =
+ifneq ($(INCLUDE_XML),)
+sample_PREMAKE += $(OBJDIR)/tinyxml2.o
+endif
+sample_PREMAKE += $(OBJDIR)/sample.o
 
 include Makefile.inc
 
+ifneq ($(INCLUDE_XML),)
 $(OBJDIR)/tinyxml2.o: tinyxml2/tinyxml2.cpp
 	@echo compiling tinyxml2.cpp
 	@g++ -c -O3 -Wall -DTINYXML2_DEBUG tinyxml2/tinyxml2.cpp \
 		-o $(OBJDIR)/tinyxml2.o
+endif
 
 $(sql3gen_TARGET): $(foreach t,$(TEMPLATES),$(OBJDIR)/template_$(t).o)
 
@@ -106,7 +121,7 @@ $(OBJDIR)/sample.pb.cc: $(sql3gen_TARGET) $(OBJDIR)/sample.cc
 
 $(OBJDIR)/sample.o: $(OBJDIR)/sample.cc $(OBJDIR)/sample.pb.cc
 	@echo compiling $(OBJDIR)/sample.cc
-	$(Q)g++ $(sample_INCS) $(CXXFLAGS) -O3 -c $(OBJDIR)/sample.cc -o $(OBJDIR)/sample.o
+	$(Q)g++ $(sample_INCS) $(CXXFLAGS) $(FEATURES) -O3 -c $(OBJDIR)/sample.cc -o $(OBJDIR)/sample.o
 
 $(OBJDIR)/sample.cc: $(sql3gen_TARGET) sample.schema
 	@echo generating $(OBJDIR)/sample.cc

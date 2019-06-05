@@ -17,8 +17,12 @@ ________ HEADER_TOP
 #include <map>
 #include <sstream>
 #include "sqlite3.h"
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 #include "tinyxml2.h"
+#endif
+//#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 @@protobuf_header@@
+//#endif
 
 @@headertop_block@@
 
@@ -65,6 +69,7 @@ protected:
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     typedef bool (SQL_TABLE_@@tablename@@::*xml_decoder_func_t)
         (const tinyxml2::XMLElement *el);
     typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
@@ -72,6 +77,7 @@ protected:
     bool xml_decoders_initialized;
 
 @@xml_decoder_protos@@
+#endif
 
 public:
     SQL_TABLE_@@tablename@@(sqlite3 *_pdb = NULL);
@@ -113,9 +119,10 @@ public:
 @@table_custom_upd_method_protos@@
 @@table_custom_del_method_protos@@
 @@table_proto_copy_protos@@
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     void copy_to_xml(tinyxml2::XMLElement *el);
     bool copy_from_xml(const tinyxml2::XMLElement *el);
-
+#endif
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
                                    void *_arg,
@@ -134,8 +141,10 @@ public:
     static bool table_create(sqlite3 *pdb);
 // drop the table from the database.
     static void table_drop(sqlite3 *pdb);
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     static void export_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
     static bool import_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
+#endif
 };
 
 ________ END
@@ -262,8 +271,10 @@ public:
                                    void *_arg,
                                    sql_err_function_t _err_func,
                                    void *_err_arg);
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     static void export_xml_all(sqlite3 *pdb, tinyxml2::XMLDocument &doc);
     static bool import_xml_all(sqlite3 *pdb, tinyxml2::XMLDocument &doc);
+#endif
 };
 
 class SQL_TRANSACTION {

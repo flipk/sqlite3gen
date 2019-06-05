@@ -14,9 +14,13 @@
 #include <map>
 #include <sstream>
 #include "sqlite3.h"
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 #include "tinyxml2.h"
+#endif
+//#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 #include "sample.pb.h"
 
+//#endif
 
 
 /* header top line 1 */
@@ -78,6 +82,7 @@ protected:
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     typedef bool (SQL_TABLE_user::*xml_decoder_func_t)
         (const tinyxml2::XMLElement *el);
     typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
@@ -95,6 +100,7 @@ protected:
     bool xml_decoder_test3(const tinyxml2::XMLElement *el);
     bool xml_decoder_checkouts(const tinyxml2::XMLElement *el);
 
+#endif
 
 public:
     SQL_TABLE_user(sqlite3 *_pdb = NULL);
@@ -174,9 +180,10 @@ public:
     void copy_to_proto(library::TABLE_user_m &msg);
     void copy_from_proto(const library::TABLE_user_m &msg);
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     void copy_to_xml(tinyxml2::XMLElement *el);
     bool copy_from_xml(const tinyxml2::XMLElement *el);
-
+#endif
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
                                    void *_arg,
@@ -195,8 +202,10 @@ public:
     static bool table_create(sqlite3 *pdb);
 // drop the table from the database.
     static void table_drop(sqlite3 *pdb);
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     static void export_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
     static bool import_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
+#endif
 };
 
 
@@ -234,6 +243,7 @@ protected:
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     typedef bool (SQL_TABLE_book::*xml_decoder_func_t)
         (const tinyxml2::XMLElement *el);
     typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
@@ -246,6 +256,7 @@ protected:
     bool xml_decoder_price(const tinyxml2::XMLElement *el);
     bool xml_decoder_quantity(const tinyxml2::XMLElement *el);
 
+#endif
 
 public:
     SQL_TABLE_book(sqlite3 *_pdb = NULL);
@@ -303,9 +314,10 @@ public:
     void copy_to_proto(library::TABLE_book_m &msg);
     void copy_from_proto(const library::TABLE_book_m &msg);
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     void copy_to_xml(tinyxml2::XMLElement *el);
     bool copy_from_xml(const tinyxml2::XMLElement *el);
-
+#endif
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
                                    void *_arg,
@@ -324,8 +336,10 @@ public:
     static bool table_create(sqlite3 *pdb);
 // drop the table from the database.
     static void table_drop(sqlite3 *pdb);
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     static void export_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
     static bool import_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
+#endif
 };
 
 
@@ -360,6 +374,7 @@ protected:
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     typedef bool (SQL_TABLE_checkouts::*xml_decoder_func_t)
         (const tinyxml2::XMLElement *el);
     typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
@@ -370,6 +385,7 @@ protected:
     bool xml_decoder_userid2(const tinyxml2::XMLElement *el);
     bool xml_decoder_duedate(const tinyxml2::XMLElement *el);
 
+#endif
 
 public:
     SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
@@ -422,9 +438,10 @@ public:
     void copy_to_proto(library::TABLE_checkouts_m &msg);
     void copy_from_proto(const library::TABLE_checkouts_m &msg);
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     void copy_to_xml(tinyxml2::XMLElement *el);
     bool copy_from_xml(const tinyxml2::XMLElement *el);
-
+#endif
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
                                    void *_arg,
@@ -443,8 +460,10 @@ public:
     static bool table_create(sqlite3 *pdb);
 // drop the table from the database.
     static void table_drop(sqlite3 *pdb);
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     static void export_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
     static bool import_xml(sqlite3 *pdb, tinyxml2::XMLElement *el);
+#endif
 };
 
 class SQL_SELECT_due_books {
@@ -545,8 +564,10 @@ public:
                                    void *_arg,
                                    sql_err_function_t _err_func,
                                    void *_err_arg);
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     static void export_xml_all(sqlite3 *pdb, tinyxml2::XMLDocument &doc);
     static bool import_xml_all(sqlite3 *pdb, tinyxml2::XMLDocument &doc);
+#endif
 };
 
 class SQL_TRANSACTION {

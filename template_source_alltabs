@@ -74,6 +74,7 @@ void SQL_TABLE_ALL_TABLES :: register_log_funcs(
 @@register_all_logfuncs@@
 }
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 //static
 void SQL_TABLE_ALL_TABLES :: export_xml_all(sqlite3 *pdb,
                                             tinyxml2::XMLDocument &doc)
@@ -112,6 +113,7 @@ bool SQL_TABLE_ALL_TABLES :: import_xml_all(sqlite3 *pdb,
     }
     return true;
 }
+#endif
 
 SQL_TRANSACTION :: SQL_TRANSACTION(sqlite3 *_pdb /*= NULL*/,
                                    bool _commit_on_delete /*= false*/)

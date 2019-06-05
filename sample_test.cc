@@ -412,6 +412,7 @@ test_subtables(sqlite3 * pdb)
         }
     }
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     {
         tinyxml2::XMLPrinter printer;
 
@@ -461,6 +462,7 @@ test_subtables(sqlite3 * pdb)
             printf(" *** second test database done and gone\n");
         }
     }
+#endif
 
     {
         library::SQL_SELECT_due_books  due(pdb);

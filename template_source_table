@@ -13,7 +13,9 @@ SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
     : pdb(_pdb)
 {
     init_statements();
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     xml_decoders_initialized = false;
+#endif
 }
 
 // copy constructor, duplicates all the data fields (including rowid)
@@ -446,7 +448,9 @@ void SQL_TABLE_@@tablename@@ :: insert_subtables_force(void)
 @@custom_upd_implementations@@
 @@custom_del_implementations@@
 @@table_proto_copy_funcs@@
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 @@table_xml_copy_funcs@@
+#endif
 
 //static
 bool SQL_TABLE_@@tablename@@ :: init(sqlite3 *pdb, table_version_callback cb)
@@ -560,6 +564,7 @@ void SQL_TABLE_@@tablename@@ :: table_drop(sqlite3 *pdb)
                  NULL, NULL, NULL);
 }
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 //static
 void SQL_TABLE_@@tablename@@ :: export_xml(sqlite3 *pdb,
                                            tinyxml2::XMLElement *el)
@@ -597,7 +602,7 @@ bool SQL_TABLE_@@tablename@@ :: import_xml(sqlite3 *pdb,
 
     return true;
 }
-
+#endif
 ________ END
 
 ________ TABLE_prepare_query

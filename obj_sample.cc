@@ -106,7 +106,9 @@ SQL_TABLE_user :: SQL_TABLE_user(sqlite3 *_pdb)
     : pdb(_pdb)
 {
     init_statements();
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     xml_decoders_initialized = false;
+#endif
 }
 
 // copy constructor, duplicates all the data fields (including rowid)
@@ -1787,6 +1789,7 @@ SQL_TABLE_user :: copy_from_proto(
 
 }
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 void
 SQL_TABLE_user :: copy_to_xml(tinyxml2::XMLElement *el)
 {
@@ -2122,6 +2125,7 @@ SQL_TABLE_user :: copy_from_xml(const tinyxml2::XMLElement *el)
     return true;
 }
 
+#endif
 
 //static
 bool SQL_TABLE_user :: init(sqlite3 *pdb, table_version_callback cb)
@@ -2269,6 +2273,7 @@ void SQL_TABLE_user :: table_drop(sqlite3 *pdb)
                  NULL, NULL, NULL);
 }
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 //static
 void SQL_TABLE_user :: export_xml(sqlite3 *pdb,
                                            tinyxml2::XMLElement *el)
@@ -2306,7 +2311,7 @@ bool SQL_TABLE_user :: import_xml(sqlite3 *pdb,
 
     return true;
 }
-
+#endif
 
 //static
 sql_log_function_t SQL_TABLE_book :: log_upd_func = &dflt_log_upd;
@@ -2319,7 +2324,9 @@ SQL_TABLE_book :: SQL_TABLE_book(sqlite3 *_pdb)
     : pdb(_pdb)
 {
     init_statements();
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     xml_decoders_initialized = false;
+#endif
 }
 
 // copy constructor, duplicates all the data fields (including rowid)
@@ -3338,6 +3345,7 @@ SQL_TABLE_book :: copy_from_proto(
 
 }
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 void
 SQL_TABLE_book :: copy_to_xml(tinyxml2::XMLElement *el)
 {
@@ -3528,6 +3536,7 @@ SQL_TABLE_book :: copy_from_xml(const tinyxml2::XMLElement *el)
     return true;
 }
 
+#endif
 
 //static
 bool SQL_TABLE_book :: init(sqlite3 *pdb, table_version_callback cb)
@@ -3675,6 +3684,7 @@ void SQL_TABLE_book :: table_drop(sqlite3 *pdb)
                  NULL, NULL, NULL);
 }
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 //static
 void SQL_TABLE_book :: export_xml(sqlite3 *pdb,
                                            tinyxml2::XMLElement *el)
@@ -3712,7 +3722,7 @@ bool SQL_TABLE_book :: import_xml(sqlite3 *pdb,
 
     return true;
 }
-
+#endif
 
 //static
 sql_log_function_t SQL_TABLE_checkouts :: log_upd_func = &dflt_log_upd;
@@ -3725,7 +3735,9 @@ SQL_TABLE_checkouts :: SQL_TABLE_checkouts(sqlite3 *_pdb)
     : pdb(_pdb)
 {
     init_statements();
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     xml_decoders_initialized = false;
+#endif
 }
 
 // copy constructor, duplicates all the data fields (including rowid)
@@ -4474,6 +4486,7 @@ SQL_TABLE_checkouts :: copy_from_proto(
 
 }
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 void
 SQL_TABLE_checkouts :: copy_to_xml(tinyxml2::XMLElement *el)
 {
@@ -4616,6 +4629,7 @@ SQL_TABLE_checkouts :: copy_from_xml(const tinyxml2::XMLElement *el)
     return true;
 }
 
+#endif
 
 //static
 bool SQL_TABLE_checkouts :: init(sqlite3 *pdb, table_version_callback cb)
@@ -4763,6 +4777,7 @@ void SQL_TABLE_checkouts :: table_drop(sqlite3 *pdb)
                  NULL, NULL, NULL);
 }
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 //static
 void SQL_TABLE_checkouts :: export_xml(sqlite3 *pdb,
                                            tinyxml2::XMLElement *el)
@@ -4800,7 +4815,7 @@ bool SQL_TABLE_checkouts :: import_xml(sqlite3 *pdb,
 
     return true;
 }
-
+#endif
 
 
 //static
@@ -5407,6 +5422,7 @@ void SQL_TABLE_ALL_TABLES :: register_log_funcs(
 
 }
 
+#ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 //static
 void SQL_TABLE_ALL_TABLES :: export_xml_all(sqlite3 *pdb,
                                             tinyxml2::XMLDocument &doc)
@@ -5497,6 +5513,7 @@ bool SQL_TABLE_ALL_TABLES :: import_xml_all(sqlite3 *pdb,
     }
     return true;
 }
+#endif
 
 SQL_TRANSACTION :: SQL_TRANSACTION(sqlite3 *_pdb /*= NULL*/,
                                    bool _commit_on_delete /*= false*/)
