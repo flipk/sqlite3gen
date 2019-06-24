@@ -10,6 +10,7 @@
 
 #include <inttypes.h>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <map>
 #include <sstream>
@@ -35,6 +36,7 @@
 namespace library {
 
 typedef void (*sql_log_function_t)(void *arg, sqlite3_stmt *);
+typedef void (*sql_row_function_t)(void *arg, const std::string &msg);
 typedef void (*sql_err_function_t)(void *arg, const std::string &msg);
 typedef void (*table_version_callback)(
     sqlite3 *pdb,
@@ -81,9 +83,10 @@ protected:
     bool get_columns(sqlite3_stmt *pStmt);
     static sql_log_function_t log_upd_func;
     static sql_log_function_t log_get_func;
-    static void * log_arg;
+    static sql_row_function_t log_row_func;
     static sql_err_function_t err_log_func;
-    static void * err_log_arg;
+    static void * log_arg;
+    std::ostringstream log_row_msg;
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 
@@ -111,6 +114,7 @@ public:
     SQL_TABLE_user(sqlite3 *_pdb = NULL);
 // copy constructor, sets all fields and pdb, but not stmts.
     SQL_TABLE_user(const SQL_TABLE_user &other);
+    void operator=(const SQL_TABLE_user &other);
     virtual ~SQL_TABLE_user(void);
 
     static const int TABLE_VERSION = 19;
@@ -193,15 +197,15 @@ public:
 #endif
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
-                                   void *_arg,
+                                   sql_row_function_t _row_func,
                                    sql_err_function_t _err_func,
-                                   void *_err_arg)
+                                   void *_arg)
     {
         log_upd_func = _upd_func;
         log_get_func = _get_func;
-        log_arg  = _arg;
+        log_row_func = _row_func;
         err_log_func = _err_func;
-        err_log_arg = _err_arg;
+        log_arg  = _arg;
     }
 // create table and indexes if it doesn't exist, call callback if it does.
     static bool init(sqlite3 *pdb, table_version_callback cb);
@@ -244,9 +248,10 @@ protected:
     bool get_columns(sqlite3_stmt *pStmt);
     static sql_log_function_t log_upd_func;
     static sql_log_function_t log_get_func;
-    static void * log_arg;
+    static sql_row_function_t log_row_func;
     static sql_err_function_t err_log_func;
-    static void * err_log_arg;
+    static void * log_arg;
+    std::ostringstream log_row_msg;
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 
@@ -269,6 +274,7 @@ public:
     SQL_TABLE_book(sqlite3 *_pdb = NULL);
 // copy constructor, sets all fields and pdb, but not stmts.
     SQL_TABLE_book(const SQL_TABLE_book &other);
+    void operator=(const SQL_TABLE_book &other);
     virtual ~SQL_TABLE_book(void);
 
     static const int TABLE_VERSION = 1;
@@ -329,15 +335,15 @@ public:
 #endif
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
-                                   void *_arg,
+                                   sql_row_function_t _row_func,
                                    sql_err_function_t _err_func,
-                                   void *_err_arg)
+                                   void *_arg)
     {
         log_upd_func = _upd_func;
         log_get_func = _get_func;
-        log_arg  = _arg;
+        log_row_func = _row_func;
         err_log_func = _err_func;
-        err_log_arg = _err_arg;
+        log_arg  = _arg;
     }
 // create table and indexes if it doesn't exist, call callback if it does.
     static bool init(sqlite3 *pdb, table_version_callback cb);
@@ -377,9 +383,10 @@ protected:
     bool get_columns(sqlite3_stmt *pStmt);
     static sql_log_function_t log_upd_func;
     static sql_log_function_t log_get_func;
-    static void * log_arg;
+    static sql_row_function_t log_row_func;
     static sql_err_function_t err_log_func;
-    static void * err_log_arg;
+    static void * log_arg;
+    std::ostringstream log_row_msg;
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 
@@ -400,6 +407,7 @@ public:
     SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
 // copy constructor, sets all fields and pdb, but not stmts.
     SQL_TABLE_checkouts(const SQL_TABLE_checkouts &other);
+    void operator=(const SQL_TABLE_checkouts &other);
     virtual ~SQL_TABLE_checkouts(void);
 
     static const int TABLE_VERSION = 1;
@@ -455,15 +463,15 @@ public:
 #endif
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
-                                   void *_arg,
+                                   sql_row_function_t _row_func,
                                    sql_err_function_t _err_func,
-                                   void *_err_arg)
+                                   void *_arg)
     {
         log_upd_func = _upd_func;
         log_get_func = _get_func;
-        log_arg  = _arg;
+        log_row_func = _row_func;
         err_log_func = _err_func;
-        err_log_arg = _err_arg;
+        log_arg  = _arg;
     }
 // create table and indexes if it doesn't exist, call callback if it does.
     static bool init(sqlite3 *pdb, table_version_callback cb);
@@ -483,9 +491,10 @@ class SQL_SELECT_due_books {
     bool get_columns(void);
     static sql_log_function_t log_upd_func;
     static sql_log_function_t log_get_func;
-    static void * log_arg;
+    static sql_row_function_t log_row_func;
     static sql_err_function_t err_log_func;
-    static void * err_log_arg;
+    static void * log_arg;
+    std::ostringstream log_row_msg;
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 public:
@@ -499,15 +508,15 @@ public:
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
-                                   void *_arg,
+                                   sql_row_function_t _row_func,
                                    sql_err_function_t _err_func,
-                                   void *_err_arg)
+                                   void *_arg)
     {
         log_upd_func = _upd_func;
         log_get_func = _get_func;
-        log_arg  = _arg;
+        log_row_func = _row_func;
         err_log_func = _err_func;
-        err_log_arg = _err_arg;
+        log_arg  = _arg;
     }
 
     sqlite3_int64 user_rowid;
@@ -527,9 +536,10 @@ class SQL_SELECT_due_books2 {
     bool get_columns(void);
     static sql_log_function_t log_upd_func;
     static sql_log_function_t log_get_func;
-    static void * log_arg;
+    static sql_row_function_t log_row_func;
     static sql_err_function_t err_log_func;
-    static void * err_log_arg;
+    static void * log_arg;
+    std::ostringstream log_row_msg;
     static void print_err(const char *func, int lineno,
                           const char *format, ...);
 public:
@@ -543,15 +553,15 @@ public:
 
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
-                                   void *_arg,
+                                   sql_row_function_t _row_func,
                                    sql_err_function_t _err_func,
-                                   void *_err_arg)
+                                   void *_arg)
     {
         log_upd_func = _upd_func;
         log_get_func = _get_func;
-        log_arg  = _arg;
+        log_row_func = _row_func;
         err_log_func = _err_func;
-        err_log_arg = _err_arg;
+        log_arg  = _arg;
     }
 
     sqlite3_int64 user_rowid;
@@ -572,9 +582,9 @@ public:
     static void table_drop_all(sqlite3 *pdb);
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_log_function_t _get_func,
-                                   void *_arg,
+                                   sql_row_function_t _row_func,
                                    sql_err_function_t _err_func,
-                                   void *_err_arg);
+                                   void *_arg);
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     static void export_xml_all(sqlite3 *pdb, tinyxml2::XMLDocument &doc);
     static bool import_xml_all(sqlite3 *pdb, tinyxml2::XMLDocument &doc);

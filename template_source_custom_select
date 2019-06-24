@@ -6,9 +6,9 @@ ________ QUERY_CLASS_IMPL
 //static
 sql_log_function_t SQL_SELECT_@@queryname@@ :: log_upd_func = &dflt_log_upd;
 sql_log_function_t SQL_SELECT_@@queryname@@ :: log_get_func = &dflt_log_get;
-void *             SQL_SELECT_@@queryname@@ :: log_arg  = NULL;
+sql_row_function_t SQL_SELECT_@@queryname@@ :: log_row_func = &dflt_log_row;
 sql_err_function_t SQL_SELECT_@@queryname@@ :: err_log_func = &dflt_log_err;
-void *             SQL_SELECT_@@queryname@@ :: err_log_arg  = NULL;
+void *             SQL_SELECT_@@queryname@@ :: log_arg  = NULL;
 
 SQL_SELECT_@@queryname@@ :: SQL_SELECT_@@queryname@@(sqlite3 *_pdb /*= NULL*/)
 {
@@ -56,7 +56,7 @@ SQL_SELECT_@@queryname@@ :: print_err(const char *function, int lineno,
     // if there was space! so l > msg.size means it truncated.
     if (l < 250)
         msg.resize(l + offset);
-    err_log_func(err_log_arg, msg);
+    err_log_func(log_arg, msg);
 }
 
 bool
@@ -64,8 +64,16 @@ SQL_SELECT_@@queryname@@ :: get_columns(void)
 {
     int got;
     sqlite3_stmt * pStmt = pStmt_get_query;
+    if (log_row_func)
+        log_row_msg.str("@@queryname@@: ");
 
 @@get_columns@@
+
+    if (log_row_func)
+    {
+        log_row_func(log_arg, log_row_msg.str());
+        log_row_msg.str("");
+    }
 
     return true;
 }
@@ -127,5 +135,5 @@ ________ END
 
 ________ CLASS_SQL_SELECT_register_a_logfunc
     SQL_SELECT_@@queryname@@::register_log_funcs(
-        _upd_func, _get_func, _arg, _err_func, _err_arg);
+        _upd_func, _get_func, _row_func, _err_func, _arg);
 ________ END

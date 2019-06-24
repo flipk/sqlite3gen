@@ -35,6 +35,11 @@ static void dflt_log_get(void *arg, sqlite3_stmt *stmt)
     sqlite3_free(sql);
 }
 
+static void dflt_log_row(void *arg, const std::string &msg)
+{
+    printf("SQL ROW: %s\n", msg.c_str());
+}
+
 static void dflt_log_err(void *arg, const std::string &msg)
 {
     printf("SQL ERROR: %s\n", msg.c_str());
@@ -98,9 +103,9 @@ void _____dummy_blob_spacer(void)
 //static
 sql_log_function_t SQL_TABLE_user :: log_upd_func = &dflt_log_upd;
 sql_log_function_t SQL_TABLE_user :: log_get_func = &dflt_log_get;
-void *             SQL_TABLE_user :: log_arg  = NULL;
+sql_err_function_t SQL_TABLE_user :: log_row_func = &dflt_log_row;
 sql_err_function_t SQL_TABLE_user :: err_log_func = &dflt_log_err;
-void *             SQL_TABLE_user :: err_log_arg  = NULL;
+void *             SQL_TABLE_user :: log_arg  = NULL;
 
 SQL_TABLE_user :: SQL_TABLE_user(sqlite3 *_pdb)
     : pdb(_pdb)
@@ -118,7 +123,12 @@ SQL_TABLE_user :: SQL_TABLE_user(
     const SQL_TABLE_user &other)
 {
     init_statements();
+    operator=(other);
+}
 
+void
+SQL_TABLE_user :: operator=(const SQL_TABLE_user &other)
+{
     pdb = other.pdb;
     rowid = other.rowid;
     userid = other.userid;
@@ -275,7 +285,7 @@ SQL_TABLE_user :: print_err(const char *function, int lineno,
     // if there was space! so l > msg.size means it truncated.
     if (l < 250)
         msg.resize(l + offset);
-    err_log_func(err_log_arg, msg);
+    err_log_func(log_arg, msg);
 }
 
 #undef  PRINT_ERR
@@ -284,6 +294,8 @@ SQL_TABLE_user :: print_err(const char *function, int lineno,
 bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
 {
     int got;
+    if (log_row_func)
+        log_row_msg.str("user: ");
 
     rowid = sqlite3_column_int64(pStmt, 0);
 
@@ -296,12 +308,8 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     userid = sqlite3_column_int(pStmt, 1);
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
+    if (log_row_func)
+        log_row_msg << "userid:" << userid << "; ";
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_TEXT)
     {
@@ -319,12 +327,14 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         firstname.resize(len);
         memcpy((void*)firstname.c_str(), ptr, len);
     }
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "firstname:\"" << firstname << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "firstname:(" << firstname.size()
+                        << " bytes); ";
+    }
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_TEXT)
     {
@@ -342,12 +352,14 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         lastname.resize(len);
         memcpy((void*)lastname.c_str(), ptr, len);
     }
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "lastname:\"" << lastname << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "lastname:(" << lastname.size()
+                        << " bytes); ";
+    }
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_TEXT)
     {
@@ -365,6 +377,14 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         mi.resize(len);
         memcpy((void*)mi.c_str(), ptr, len);
     }
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "mi:\"" << mi << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "mi:(" << mi.size()
+                        << " bytes); ";
+    }
     got = sqlite3_column_type(pStmt, 5);
     if (got != SQLITE_INTEGER)
     {
@@ -374,6 +394,8 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     SSN = sqlite3_column_int(pStmt, 5);
+    if (log_row_func)
+        log_row_msg << "SSN:" << SSN << "; ";
     got = sqlite3_column_type(pStmt, 6);
     if (got != SQLITE_FLOAT)
     {
@@ -383,12 +405,8 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     balance = sqlite3_column_double(pStmt, 6);
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
+    if (log_row_func)
+        log_row_msg << "balance:" << balance << "; ";
     got = sqlite3_column_type(pStmt, 7);
     if (got != SQLITE_BLOB)
     {
@@ -406,6 +424,14 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         proto.resize(len);
         memcpy((void*)proto.c_str(), ptr, len);
     }
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "proto:\"" << proto << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "proto:(" << proto.size()
+                        << " bytes); ";
+    }
     got = sqlite3_column_type(pStmt, 8);
     if (got != SQLITE_INTEGER)
     {
@@ -418,6 +444,9 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         test2 = true;
     else
         test2 = false;
+    if (log_row_func)
+        log_row_msg << "test2:"
+                    << (test2 ? "true" : "false") << "; ";
     got = sqlite3_column_type(pStmt, 9);
     if (got != SQLITE_INTEGER)
     {
@@ -432,7 +461,16 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
     else
         test3 = sample::library2::ENUM_TWO;
 
+    if (log_row_func)
+        log_row_msg << "test3:"
+                    << sample::library2::EnumField_t_Name(test3) << "; ";
 
+
+    if (log_row_func)
+    {
+        log_row_func(log_arg, log_row_msg.str());
+        log_row_msg.str("");
+    }
 
     return true;
 }
@@ -1731,7 +1769,7 @@ SQL_TABLE_user :: copy_from_proto(
             << " (supported is " << TABLE_VERSION
             << ")\n";
         if (err_log_func)
-            err_log_func(err_log_arg, err.str());
+            err_log_func(log_arg, err.str());
         else
             std::cerr << err.str();
     }
@@ -2104,7 +2142,7 @@ SQL_TABLE_user :: copy_from_xml(const tinyxml2::XMLElement *el)
             err << "SQL_TABLE_user :: "
                 << "copy_from_xml : node name is " << el->Value()
                 << " not 'user'!\n";
-            err_log_func(err_log_arg, err.str().c_str());
+            err_log_func(log_arg, err.str().c_str());
         }
         return false;
     }
@@ -2205,7 +2243,7 @@ bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
     	if (errmsg != NULL)
             sqlite3_free(errmsg);
         if (err_log_func)
-            err_log_func(err_log_arg, e.str());
+            err_log_func(log_arg, e.str());
         return false;
     }
 
@@ -2223,7 +2261,7 @@ bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
         if (errmsg != NULL)
             sqlite3_free(errmsg);
         if (err_log_func)
-            err_log_func(err_log_arg, e.str());
+            err_log_func(log_arg, e.str());
         return false;
     }
     errmsg = NULL;
@@ -2240,7 +2278,7 @@ bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
         if (errmsg != NULL)
             sqlite3_free(errmsg);
         if (err_log_func)
-            err_log_func(err_log_arg, e.str());
+            err_log_func(log_arg, e.str());
         return false;
     }
 
@@ -2318,9 +2356,9 @@ bool SQL_TABLE_user :: import_xml(sqlite3 *pdb,
 //static
 sql_log_function_t SQL_TABLE_book :: log_upd_func = &dflt_log_upd;
 sql_log_function_t SQL_TABLE_book :: log_get_func = &dflt_log_get;
-void *             SQL_TABLE_book :: log_arg  = NULL;
+sql_err_function_t SQL_TABLE_book :: log_row_func = &dflt_log_row;
 sql_err_function_t SQL_TABLE_book :: err_log_func = &dflt_log_err;
-void *             SQL_TABLE_book :: err_log_arg  = NULL;
+void *             SQL_TABLE_book :: log_arg  = NULL;
 
 SQL_TABLE_book :: SQL_TABLE_book(sqlite3 *_pdb)
     : pdb(_pdb)
@@ -2338,7 +2376,12 @@ SQL_TABLE_book :: SQL_TABLE_book(
     const SQL_TABLE_book &other)
 {
     init_statements();
+    operator=(other);
+}
 
+void
+SQL_TABLE_book :: operator=(const SQL_TABLE_book &other)
+{
     pdb = other.pdb;
     rowid = other.rowid;
     bookid = other.bookid;
@@ -2461,7 +2504,7 @@ SQL_TABLE_book :: print_err(const char *function, int lineno,
     // if there was space! so l > msg.size means it truncated.
     if (l < 250)
         msg.resize(l + offset);
-    err_log_func(err_log_arg, msg);
+    err_log_func(log_arg, msg);
 }
 
 #undef  PRINT_ERR
@@ -2470,6 +2513,8 @@ SQL_TABLE_book :: print_err(const char *function, int lineno,
 bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
 {
     int got;
+    if (log_row_func)
+        log_row_msg.str("book: ");
 
     rowid = sqlite3_column_int64(pStmt, 0);
 
@@ -2482,12 +2527,8 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     bookid = sqlite3_column_int(pStmt, 1);
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
+    if (log_row_func)
+        log_row_msg << "bookid:" << bookid << "; ";
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_TEXT)
     {
@@ -2505,12 +2546,14 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         title.resize(len);
         memcpy((void*)title.c_str(), ptr, len);
     }
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "title:\"" << title << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "title:(" << title.size()
+                        << " bytes); ";
+    }
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_TEXT)
     {
@@ -2528,6 +2571,14 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         isbn.resize(len);
         memcpy((void*)isbn.c_str(), ptr, len);
     }
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "isbn:\"" << isbn << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "isbn:(" << isbn.size()
+                        << " bytes); ";
+    }
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_FLOAT)
     {
@@ -2537,6 +2588,8 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     price = sqlite3_column_double(pStmt, 4);
+    if (log_row_func)
+        log_row_msg << "price:" << price << "; ";
     got = sqlite3_column_type(pStmt, 5);
     if (got != SQLITE_INTEGER)
     {
@@ -2546,7 +2599,15 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     quantity = sqlite3_column_int(pStmt, 5);
+    if (log_row_func)
+        log_row_msg << "quantity:" << quantity << "; ";
 
+
+    if (log_row_func)
+    {
+        log_row_func(log_arg, log_row_msg.str());
+        log_row_msg.str("");
+    }
 
     return true;
 }
@@ -3316,7 +3377,7 @@ SQL_TABLE_book :: copy_from_proto(
             << " (supported is " << TABLE_VERSION
             << ")\n";
         if (err_log_func)
-            err_log_func(err_log_arg, err.str());
+            err_log_func(log_arg, err.str());
         else
             std::cerr << err.str();
     }
@@ -3517,7 +3578,7 @@ SQL_TABLE_book :: copy_from_xml(const tinyxml2::XMLElement *el)
             err << "SQL_TABLE_book :: "
                 << "copy_from_xml : node name is " << el->Value()
                 << " not 'book'!\n";
-            err_log_func(err_log_arg, err.str().c_str());
+            err_log_func(log_arg, err.str().c_str());
         }
         return false;
     }
@@ -3618,7 +3679,7 @@ bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
     	if (errmsg != NULL)
             sqlite3_free(errmsg);
         if (err_log_func)
-            err_log_func(err_log_arg, e.str());
+            err_log_func(log_arg, e.str());
         return false;
     }
 
@@ -3636,7 +3697,7 @@ bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
         if (errmsg != NULL)
             sqlite3_free(errmsg);
         if (err_log_func)
-            err_log_func(err_log_arg, e.str());
+            err_log_func(log_arg, e.str());
         return false;
     }
     errmsg = NULL;
@@ -3653,7 +3714,7 @@ bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
         if (errmsg != NULL)
             sqlite3_free(errmsg);
         if (err_log_func)
-            err_log_func(err_log_arg, e.str());
+            err_log_func(log_arg, e.str());
         return false;
     }
 
@@ -3731,9 +3792,9 @@ bool SQL_TABLE_book :: import_xml(sqlite3 *pdb,
 //static
 sql_log_function_t SQL_TABLE_checkouts :: log_upd_func = &dflt_log_upd;
 sql_log_function_t SQL_TABLE_checkouts :: log_get_func = &dflt_log_get;
-void *             SQL_TABLE_checkouts :: log_arg  = NULL;
+sql_err_function_t SQL_TABLE_checkouts :: log_row_func = &dflt_log_row;
 sql_err_function_t SQL_TABLE_checkouts :: err_log_func = &dflt_log_err;
-void *             SQL_TABLE_checkouts :: err_log_arg  = NULL;
+void *             SQL_TABLE_checkouts :: log_arg  = NULL;
 
 SQL_TABLE_checkouts :: SQL_TABLE_checkouts(sqlite3 *_pdb)
     : pdb(_pdb)
@@ -3751,7 +3812,12 @@ SQL_TABLE_checkouts :: SQL_TABLE_checkouts(
     const SQL_TABLE_checkouts &other)
 {
     init_statements();
+    operator=(other);
+}
 
+void
+SQL_TABLE_checkouts :: operator=(const SQL_TABLE_checkouts &other)
+{
     pdb = other.pdb;
     rowid = other.rowid;
     bookid2 = other.bookid2;
@@ -3861,7 +3927,7 @@ SQL_TABLE_checkouts :: print_err(const char *function, int lineno,
     // if there was space! so l > msg.size means it truncated.
     if (l < 250)
         msg.resize(l + offset);
-    err_log_func(err_log_arg, msg);
+    err_log_func(log_arg, msg);
 }
 
 #undef  PRINT_ERR
@@ -3870,6 +3936,8 @@ SQL_TABLE_checkouts :: print_err(const char *function, int lineno,
 bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
 {
     int got;
+    if (log_row_func)
+        log_row_msg.str("checkouts: ");
 
     rowid = sqlite3_column_int64(pStmt, 0);
 
@@ -3882,6 +3950,8 @@ bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     bookid2 = sqlite3_column_int(pStmt, 1);
+    if (log_row_func)
+        log_row_msg << "bookid2:" << bookid2 << "; ";
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_INTEGER)
     {
@@ -3891,6 +3961,8 @@ bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     userid2 = sqlite3_column_int(pStmt, 2);
+    if (log_row_func)
+        log_row_msg << "userid2:" << userid2 << "; ";
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_INTEGER)
     {
@@ -3900,7 +3972,15 @@ bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
         return false;
     }
     duedate = sqlite3_column_int64(pStmt, 3);
+    if (log_row_func)
+        log_row_msg << "duedate:" << duedate << "; ";
 
+
+    if (log_row_func)
+    {
+        log_row_func(log_arg, log_row_msg.str());
+        log_row_msg.str("");
+    }
 
     return true;
 }
@@ -4469,7 +4549,7 @@ SQL_TABLE_checkouts :: copy_from_proto(
             << " (supported is " << TABLE_VERSION
             << ")\n";
         if (err_log_func)
-            err_log_func(err_log_arg, err.str());
+            err_log_func(log_arg, err.str());
         else
             std::cerr << err.str();
     }
@@ -4612,7 +4692,7 @@ SQL_TABLE_checkouts :: copy_from_xml(const tinyxml2::XMLElement *el)
             err << "SQL_TABLE_checkouts :: "
                 << "copy_from_xml : node name is " << el->Value()
                 << " not 'checkouts'!\n";
-            err_log_func(err_log_arg, err.str().c_str());
+            err_log_func(log_arg, err.str().c_str());
         }
         return false;
     }
@@ -4713,7 +4793,7 @@ bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
     	if (errmsg != NULL)
             sqlite3_free(errmsg);
         if (err_log_func)
-            err_log_func(err_log_arg, e.str());
+            err_log_func(log_arg, e.str());
         return false;
     }
 
@@ -4731,7 +4811,7 @@ bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
         if (errmsg != NULL)
             sqlite3_free(errmsg);
         if (err_log_func)
-            err_log_func(err_log_arg, e.str());
+            err_log_func(log_arg, e.str());
         return false;
     }
     errmsg = NULL;
@@ -4748,7 +4828,7 @@ bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
         if (errmsg != NULL)
             sqlite3_free(errmsg);
         if (err_log_func)
-            err_log_func(err_log_arg, e.str());
+            err_log_func(log_arg, e.str());
         return false;
     }
 
@@ -4827,9 +4907,9 @@ bool SQL_TABLE_checkouts :: import_xml(sqlite3 *pdb,
 //static
 sql_log_function_t SQL_SELECT_due_books :: log_upd_func = &dflt_log_upd;
 sql_log_function_t SQL_SELECT_due_books :: log_get_func = &dflt_log_get;
-void *             SQL_SELECT_due_books :: log_arg  = NULL;
+sql_row_function_t SQL_SELECT_due_books :: log_row_func = &dflt_log_row;
 sql_err_function_t SQL_SELECT_due_books :: err_log_func = &dflt_log_err;
-void *             SQL_SELECT_due_books :: err_log_arg  = NULL;
+void *             SQL_SELECT_due_books :: log_arg  = NULL;
 
 SQL_SELECT_due_books :: SQL_SELECT_due_books(sqlite3 *_pdb /*= NULL*/)
 {
@@ -4877,7 +4957,7 @@ SQL_SELECT_due_books :: print_err(const char *function, int lineno,
     // if there was space! so l > msg.size means it truncated.
     if (l < 250)
         msg.resize(l + offset);
-    err_log_func(err_log_arg, msg);
+    err_log_func(log_arg, msg);
 }
 
 bool
@@ -4885,6 +4965,8 @@ SQL_SELECT_due_books :: get_columns(void)
 {
     int got;
     sqlite3_stmt * pStmt = pStmt_get_query;
+    if (log_row_func)
+        log_row_msg.str("due_books: ");
 
     got = sqlite3_column_type(pStmt, 0);
     if (got != SQLITE_INTEGER)
@@ -4895,12 +4977,8 @@ SQL_SELECT_due_books :: get_columns(void)
         return false;
     }
     user_rowid = sqlite3_column_int64(pStmt, 0);
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
+    if (log_row_func)
+        log_row_msg << "user_rowid:" << user_rowid << "; ";
     got = sqlite3_column_type(pStmt, 1);
     if (got != SQLITE_TEXT)
     {
@@ -4918,12 +4996,14 @@ SQL_SELECT_due_books :: get_columns(void)
         user_firstname.resize(len);
         memcpy((void*)user_firstname.c_str(), ptr, len);
     }
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "user_firstname:\"" << user_firstname << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "user_firstname:(" << user_firstname.size()
+                        << " bytes); ";
+    }
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_TEXT)
     {
@@ -4941,6 +5021,14 @@ SQL_SELECT_due_books :: get_columns(void)
         user_lastname.resize(len);
         memcpy((void*)user_lastname.c_str(), ptr, len);
     }
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "user_lastname:\"" << user_lastname << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "user_lastname:(" << user_lastname.size()
+                        << " bytes); ";
+    }
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_INTEGER)
     {
@@ -4953,6 +5041,9 @@ SQL_SELECT_due_books :: get_columns(void)
         user_test2 = true;
     else
         user_test2 = false;
+    if (log_row_func)
+        log_row_msg << "user_test2:"
+                    << (user_test2 ? "true" : "false") << "; ";
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_INTEGER)
     {
@@ -4967,6 +5058,9 @@ SQL_SELECT_due_books :: get_columns(void)
     else
         user_test3 = sample::library2::ENUM_TWO;
 
+    if (log_row_func)
+        log_row_msg << "user_test3:"
+                    << sample::library2::EnumField_t_Name(user_test3) << "; ";
     got = sqlite3_column_type(pStmt, 5);
     if (got != SQLITE_INTEGER)
     {
@@ -4976,12 +5070,8 @@ SQL_SELECT_due_books :: get_columns(void)
         return false;
     }
     book_rowid = sqlite3_column_int64(pStmt, 5);
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
+    if (log_row_func)
+        log_row_msg << "book_rowid:" << book_rowid << "; ";
     got = sqlite3_column_type(pStmt, 6);
     if (got != SQLITE_TEXT)
     {
@@ -4999,6 +5089,14 @@ SQL_SELECT_due_books :: get_columns(void)
         book_title.resize(len);
         memcpy((void*)book_title.c_str(), ptr, len);
     }
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "book_title:\"" << book_title << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "book_title:(" << book_title.size()
+                        << " bytes); ";
+    }
     got = sqlite3_column_type(pStmt, 7);
     if (got != SQLITE_INTEGER)
     {
@@ -5008,6 +5106,8 @@ SQL_SELECT_due_books :: get_columns(void)
         return false;
     }
     checkouts_rowid = sqlite3_column_int64(pStmt, 7);
+    if (log_row_func)
+        log_row_msg << "checkouts_rowid:" << checkouts_rowid << "; ";
     got = sqlite3_column_type(pStmt, 8);
     if (got != SQLITE_INTEGER)
     {
@@ -5017,7 +5117,15 @@ SQL_SELECT_due_books :: get_columns(void)
         return false;
     }
     checkouts_duedate = sqlite3_column_int64(pStmt, 8);
+    if (log_row_func)
+        log_row_msg << "checkouts_duedate:" << checkouts_duedate << "; ";
 
+
+    if (log_row_func)
+    {
+        log_row_func(log_arg, log_row_msg.str());
+        log_row_msg.str("");
+    }
 
     return true;
 }
@@ -5096,9 +5204,9 @@ SQL_SELECT_due_books :: get_next(void)
 //static
 sql_log_function_t SQL_SELECT_due_books2 :: log_upd_func = &dflt_log_upd;
 sql_log_function_t SQL_SELECT_due_books2 :: log_get_func = &dflt_log_get;
-void *             SQL_SELECT_due_books2 :: log_arg  = NULL;
+sql_row_function_t SQL_SELECT_due_books2 :: log_row_func = &dflt_log_row;
 sql_err_function_t SQL_SELECT_due_books2 :: err_log_func = &dflt_log_err;
-void *             SQL_SELECT_due_books2 :: err_log_arg  = NULL;
+void *             SQL_SELECT_due_books2 :: log_arg  = NULL;
 
 SQL_SELECT_due_books2 :: SQL_SELECT_due_books2(sqlite3 *_pdb /*= NULL*/)
 {
@@ -5146,7 +5254,7 @@ SQL_SELECT_due_books2 :: print_err(const char *function, int lineno,
     // if there was space! so l > msg.size means it truncated.
     if (l < 250)
         msg.resize(l + offset);
-    err_log_func(err_log_arg, msg);
+    err_log_func(log_arg, msg);
 }
 
 bool
@@ -5154,6 +5262,8 @@ SQL_SELECT_due_books2 :: get_columns(void)
 {
     int got;
     sqlite3_stmt * pStmt = pStmt_get_query;
+    if (log_row_func)
+        log_row_msg.str("due_books2: ");
 
     got = sqlite3_column_type(pStmt, 0);
     if (got != SQLITE_INTEGER)
@@ -5164,12 +5274,8 @@ SQL_SELECT_due_books2 :: get_columns(void)
         return false;
     }
     user_rowid = sqlite3_column_int64(pStmt, 0);
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
+    if (log_row_func)
+        log_row_msg << "user_rowid:" << user_rowid << "; ";
     got = sqlite3_column_type(pStmt, 1);
     if (got != SQLITE_TEXT)
     {
@@ -5187,12 +5293,14 @@ SQL_SELECT_due_books2 :: get_columns(void)
         user_firstname.resize(len);
         memcpy((void*)user_firstname.c_str(), ptr, len);
     }
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "user_firstname:\"" << user_firstname << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "user_firstname:(" << user_firstname.size()
+                        << " bytes); ";
+    }
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_TEXT)
     {
@@ -5210,6 +5318,14 @@ SQL_SELECT_due_books2 :: get_columns(void)
         user_lastname.resize(len);
         memcpy((void*)user_lastname.c_str(), ptr, len);
     }
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "user_lastname:\"" << user_lastname << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "user_lastname:(" << user_lastname.size()
+                        << " bytes); ";
+    }
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_INTEGER)
     {
@@ -5222,6 +5338,9 @@ SQL_SELECT_due_books2 :: get_columns(void)
         user_test2 = true;
     else
         user_test2 = false;
+    if (log_row_func)
+        log_row_msg << "user_test2:"
+                    << (user_test2 ? "true" : "false") << "; ";
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_INTEGER)
     {
@@ -5236,6 +5355,9 @@ SQL_SELECT_due_books2 :: get_columns(void)
     else
         user_test3 = sample::library2::ENUM_TWO;
 
+    if (log_row_func)
+        log_row_msg << "user_test3:"
+                    << sample::library2::EnumField_t_Name(user_test3) << "; ";
     got = sqlite3_column_type(pStmt, 5);
     if (got != SQLITE_INTEGER)
     {
@@ -5245,12 +5367,8 @@ SQL_SELECT_due_books2 :: get_columns(void)
         return false;
     }
     book_rowid = sqlite3_column_int64(pStmt, 5);
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
+    if (log_row_func)
+        log_row_msg << "book_rowid:" << book_rowid << "; ";
     got = sqlite3_column_type(pStmt, 6);
     if (got != SQLITE_TEXT)
     {
@@ -5268,6 +5386,14 @@ SQL_SELECT_due_books2 :: get_columns(void)
         book_title.resize(len);
         memcpy((void*)book_title.c_str(), ptr, len);
     }
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "book_title:\"" << book_title << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "book_title:(" << book_title.size()
+                        << " bytes); ";
+    }
     got = sqlite3_column_type(pStmt, 7);
     if (got != SQLITE_INTEGER)
     {
@@ -5277,6 +5403,8 @@ SQL_SELECT_due_books2 :: get_columns(void)
         return false;
     }
     checkouts_rowid = sqlite3_column_int64(pStmt, 7);
+    if (log_row_func)
+        log_row_msg << "checkouts_rowid:" << checkouts_rowid << "; ";
     got = sqlite3_column_type(pStmt, 8);
     if (got != SQLITE_INTEGER)
     {
@@ -5286,7 +5414,15 @@ SQL_SELECT_due_books2 :: get_columns(void)
         return false;
     }
     checkouts_duedate = sqlite3_column_int64(pStmt, 8);
+    if (log_row_func)
+        log_row_msg << "checkouts_duedate:" << checkouts_duedate << "; ";
 
+
+    if (log_row_func)
+    {
+        log_row_func(log_arg, log_row_msg.str());
+        log_row_msg.str("");
+    }
 
     return true;
 }
@@ -5411,20 +5547,20 @@ void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
 void SQL_TABLE_ALL_TABLES :: register_log_funcs(
     sql_log_function_t _upd_func,
     sql_log_function_t _get_func,
-    void *_arg,
+    sql_row_function_t _row_func,
     sql_err_function_t _err_func,
-    void *_err_arg)
+    void *_arg)
 {
     SQL_TABLE_user::register_log_funcs(
-        _upd_func, _get_func, _arg, _err_func, _err_arg);
+        _upd_func, _get_func, _row_func, _err_func, _arg);
     SQL_TABLE_book::register_log_funcs(
-        _upd_func, _get_func, _arg, _err_func, _err_arg);
+        _upd_func, _get_func, _row_func, _err_func, _arg);
     SQL_TABLE_checkouts::register_log_funcs(
-        _upd_func, _get_func, _arg, _err_func, _err_arg);
+        _upd_func, _get_func, _row_func, _err_func, _arg);
     SQL_SELECT_due_books::register_log_funcs(
-        _upd_func, _get_func, _arg, _err_func, _err_arg);
+        _upd_func, _get_func, _row_func, _err_func, _arg);
     SQL_SELECT_due_books2::register_log_funcs(
-        _upd_func, _get_func, _arg, _err_func, _err_arg);
+        _upd_func, _get_func, _row_func, _err_func, _arg);
 
 }
 

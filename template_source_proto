@@ -26,7 +26,7 @@ SQL_TABLE_@@tablename@@ :: copy_from_proto(
             << " (supported is " << TABLE_VERSION
             << ")\n";
         if (err_log_func)
-            err_log_func(err_log_arg, err.str());
+            err_log_func(log_arg, err.str());
         else
             std::cerr << err.str();
     }

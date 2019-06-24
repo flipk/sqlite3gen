@@ -5,9 +5,9 @@ ________ TABLE_CLASS_IMPL
 //static
 sql_log_function_t SQL_TABLE_@@tablename@@ :: log_upd_func = &dflt_log_upd;
 sql_log_function_t SQL_TABLE_@@tablename@@ :: log_get_func = &dflt_log_get;
-void *             SQL_TABLE_@@tablename@@ :: log_arg  = NULL;
+sql_err_function_t SQL_TABLE_@@tablename@@ :: log_row_func = &dflt_log_row;
 sql_err_function_t SQL_TABLE_@@tablename@@ :: err_log_func = &dflt_log_err;
-void *             SQL_TABLE_@@tablename@@ :: err_log_arg  = NULL;
+void *             SQL_TABLE_@@tablename@@ :: log_arg  = NULL;
 
 SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
     : pdb(_pdb)
@@ -25,7 +25,12 @@ SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(
     const SQL_TABLE_@@tablename@@ &other)
 {
     init_statements();
+    operator=(other);
+}
 
+void
+SQL_TABLE_@@tablename@@ :: operator=(const SQL_TABLE_@@tablename@@ &other)
+{
     pdb = other.pdb;
     rowid = other.rowid;
 @@field_copies@@
@@ -120,7 +125,7 @@ SQL_TABLE_@@tablename@@ :: print_err(const char *function, int lineno,
     // if there was space! so l > msg.size means it truncated.
     if (l < 250)
         msg.resize(l + offset);
-    err_log_func(err_log_arg, msg);
+    err_log_func(log_arg, msg);
 }
 
 #undef  PRINT_ERR
@@ -129,10 +134,18 @@ SQL_TABLE_@@tablename@@ :: print_err(const char *function, int lineno,
 bool SQL_TABLE_@@tablename@@ :: get_columns(sqlite3_stmt * pStmt)
 {
     int got;
+    if (log_row_func)
+        log_row_msg.str("@@tablename@@: ");
 
     rowid = sqlite3_column_int64(pStmt, 0);
 
 @@get_columns@@
+
+    if (log_row_func)
+    {
+        log_row_func(log_arg, log_row_msg.str());
+        log_row_msg.str("");
+    }
 
     return true;
 }
@@ -530,7 +543,7 @@ bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
     	if (errmsg != NULL)
             sqlite3_free(errmsg);
         if (err_log_func)
-            err_log_func(err_log_arg, e.str());
+            err_log_func(log_arg, e.str());
         return false;
     }
 

@@ -10,6 +10,8 @@ ________ TABLE_get_column_pod
         return false;
     }
     @@fieldname@@ = @@sqlite_column_func@@(pStmt, @@select_column_index@@);
+    if (log_row_func)
+        log_row_msg << "@@fieldname@@:" << @@fieldname@@ << "; ";
 ________ END
 
 ________ TABLE_get_column_enum
@@ -26,6 +28,9 @@ ________ TABLE_get_column_enum
             pStmt, @@select_column_index@@);
     else
     @@initial_value@@
+    if (log_row_func)
+        log_row_msg << "@@fieldname@@:"
+                    << @@fieldtype@@_Name(@@fieldname@@) << "; ";
 ________ END
 
 ________ TABLE_get_column_bool
@@ -41,15 +46,12 @@ ________ TABLE_get_column_bool
         @@fieldname@@ = true;
     else
         @@fieldname@@ = false;
+    if (log_row_func)
+        log_row_msg << "@@fieldname@@:"
+                    << (@@fieldname@@ ? "true" : "false") << "; ";
 ________ END
 
 ________ TABLE_get_column_string
-      // SQLITE3 appears to ignore the column type in a CREATE TABLE!
-      // NOTE: if you INSERT a string to a table that contains
-      //       all decimal digits, SQLITE3 does something very strange:
-      //       it stores it as SQLITE_INT! this means this validation
-      //       fails. but if you call sqlite_column_text, it will convert
-      //       it back to a text string for you.
     got = sqlite3_column_type(pStmt, @@select_column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
@@ -66,6 +68,14 @@ ________ TABLE_get_column_string
         int len = sqlite3_column_bytes(pStmt, @@select_column_index@@);
         @@fieldname@@.resize(len);
         memcpy((void*)@@fieldname@@.c_str(), ptr, len);
+    }
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "@@fieldname@@:\"" << @@fieldname@@ << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "@@fieldname@@:(" << @@fieldname@@.size()
+                        << " bytes); ";
     }
 ________ END
 

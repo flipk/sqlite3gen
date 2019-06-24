@@ -35,6 +35,11 @@ static void dflt_log_get(void *arg, sqlite3_stmt *stmt)
     sqlite3_free(sql);
 }
 
+static void dflt_log_row(void *arg, const std::string &msg)
+{
+    printf("SQL ROW: %s\n", msg.c_str());
+}
+
 static void dflt_log_err(void *arg, const std::string &msg)
 {
     printf("SQL ERROR: %s\n", msg.c_str());

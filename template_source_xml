@@ -30,7 +30,7 @@ SQL_TABLE_@@tablename@@ :: copy_from_xml(const tinyxml2::XMLElement *el)
             err << "SQL_TABLE_@@tablename@@ :: "
                 << "copy_from_xml : node name is " << el->Value()
                 << " not '@@tablename@@'!\n";
-            err_log_func(err_log_arg, err.str().c_str());
+            err_log_func(log_arg, err.str().c_str());
         }
         return false;
     }

@@ -198,6 +198,11 @@ void log_sql_get(void *arg, sqlite3_stmt *stmt)
     sqlite3_free(sql);
 }
 
+void log_sql_row(void *arg, const std::string &msg)
+{
+    fprintf(stderr, "** SQL ROW: %s\n", msg.c_str());
+}
+
 void log_sql_err(void *arg, const std::string &msg)
 {
     fprintf(stderr, "** SQL ERROR: %s\n", msg.c_str());
@@ -227,7 +232,7 @@ main()
     u.set_db(pdb);
 
     library::SQL_TABLE_ALL_TABLES::register_log_funcs(
-        &log_sql_upd, &log_sql_get, NULL, &log_sql_err, NULL);
+        &log_sql_upd, &log_sql_get, &log_sql_row, &log_sql_err, NULL);
     if (!library::SQL_TABLE_ALL_TABLES::init_all(pdb, &table_callback))
         goto bail;
 
