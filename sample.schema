@@ -3,6 +3,8 @@
 
 PACKAGE "library"
 
+OPTIONS (xml protobuf)
+
 %PROTOTOP{
 import "sample2.proto";
 // proto top line 2

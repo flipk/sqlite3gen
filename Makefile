@@ -1,23 +1,4 @@
 
-ifeq ($(INCLUDE_XML),1)
-else ifeq ($(INCLUDE_XML),0)
-else
-$(warning please set INCLUDE_XML=0 or 1)
-ERROR=1
-endif
-
-ifeq ($(INCLUDE_PROTOBUF),1)
-else ifeq ($(INCLUDE_PROTOBUF),0)
-else
-$(warning please set INCLUDE_PROTOBUF=0 or 1)
-ERROR=1
-endif
-
-ifeq ($(ERROR),1)
-$(error bailing out)
-endif
-
-
 PROG_TARGETS = template_to_c sql3gen sample
 
 export TARGET=native
@@ -73,51 +54,23 @@ sql3gen_DEFS = -DPARSER_YY_HDR=\"$(sql3gen_parser.yy_HDR)\" \
 sql3gen_LIBS = $(TEMPLATE_OBJS)
 sql3gen_PREMAKE = $(template_to_c_TARGET) $(TEMPLATE_OBJS)
 
-FEATURES=
-ifeq ($(INCLUDE_XML),1)
-FEATURES += -DINCLUDE_SQLITE3GEN_TINYXML2_SUPPORT=1
-endif
-ifeq ($(INCLUDE_PROTOBUF),1)
-FEATURES += -DINCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT=1
-endif
-
 sample_TARGET = $(OBJDIR)/sample
 sample_CXXSRCS = sample_test.cc
-ifeq ($(INCLUDE_PROTOBUF),1)
 sample_PROTOSRCS = sample2.proto
-endif
-sample_DEFS = -DSAMPLE_H_HDR=\"sample.h\" -DSAMPLE_PB_HDR=\"sample.pb.h\" $(FEATURES)
-sample_LIBS =
-sample_INCS = -Isqlite3 -I.
+sample_DEFS = -DSAMPLE_H_HDR=\"sample.h\" -DSAMPLE_PB_HDR=\"sample.pb.h\"
+sample_LIBS = $(OBJDIR)/tinyxml2.o $(OBJDIR)/sample.pb.o \
+		sqlite3/sqlite3.o $(OBJDIR)/sample.o \
+		$(PROTOLIB) -lpthread -ldl
+sample_INCS = -Isqlite3 -I. -Itinyxml2 $(PROTOINC)
 
-ifeq ($(INCLUDE_XML),1)
-sample_LIBS += $(OBJDIR)/tinyxml2.o
-sample_INCS += -Itinyxml2
-endif
-ifeq ($(INCLUDE_PROTOBUF),1)
-sample_LIBS += $(OBJDIR)/sample.pb.o
-sample_INCS += $(PROTOINC)
-endif
-sample_LIBS += sqlite3/sqlite3.o $(OBJDIR)/sample.o -lpthread
-ifeq ($(INCLUDE_PROTOBUF),1)
-sample_LIBS += $(PROTOLIB)
-endif
-sample_LIBS += -ldl
-
-sample_PREMAKE =
-ifeq ($(INCLUDE_XML),1)
-sample_PREMAKE += $(OBJDIR)/tinyxml2.o
-endif
-sample_PREMAKE += $(OBJDIR)/sample.o
+sample_PREMAKE = $(OBJDIR)/tinyxml2.o $(OBJDIR)/sample.o
 
 include Makefile.inc
 
-ifeq ($(INCLUDE_XML),1)
 $(OBJDIR)/tinyxml2.o: tinyxml2/tinyxml2.cpp
 	@echo compiling tinyxml2.cpp
 	@g++ -c -O3 -Wall -DTINYXML2_DEBUG tinyxml2/tinyxml2.cpp \
 		-o $(OBJDIR)/tinyxml2.o
-endif
 
 $(sql3gen_TARGET): $(foreach t,$(TEMPLATES),$(OBJDIR)/template_$(t).o)
 
@@ -137,19 +90,15 @@ endef
 
 $(eval $(foreach t,$(TEMPLATES),$(call TEMPLATE_RULES,$(t))))
 
-ifeq ($(INCLUDE_PROTOBUF),1)
 SAMPLE_PB_O = $(OBJDIR)/sample.pb.o
-endif
 
 $(sample_TARGET): $(OBJDIR)/sample.o $(SAMPLE_PB_O)
 
 $(sample_CXXOBJS): $(OBJDIR)/sample.o $(SAMPLE_PB_O)
 
-ifeq ($(INCLUDE_PROTOBUF),1)
 $(OBJDIR)/sample.pb.o: $(OBJDIR)/sample.pb.cc
 	@echo compiling $(OBJDIR)/sample.pb.cc
 	$(Q)g++ $(sample_INCS) $(CXXFLAGS) -O3 -c $(OBJDIR)/sample.pb.cc -o $(OBJDIR)/sample.pb.o
-endif
 
 # making this depend on sample.cc makes it depend on sample.schema
 # and running sql3gen, which is what we want
@@ -160,7 +109,7 @@ $(OBJDIR)/sample.pb.cc: $(sql3gen_TARGET) $(OBJDIR)/sample.cc
 
 $(OBJDIR)/sample.o: $(OBJDIR)/sample.cc $(OBJDIR)/sample.pb.cc
 	@echo compiling $(OBJDIR)/sample.cc
-	$(Q)g++ $(sample_INCS) $(CXXFLAGS) $(FEATURES) -O3 -c $(OBJDIR)/sample.cc -o $(OBJDIR)/sample.o
+	$(Q)g++ $(sample_INCS) $(CXXFLAGS) -O3 -c $(OBJDIR)/sample.cc -o $(OBJDIR)/sample.o
 
 $(OBJDIR)/sample.cc: $(sql3gen_TARGET) sample.schema
 	@echo generating $(OBJDIR)/sample.cc

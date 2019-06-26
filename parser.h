@@ -231,11 +231,15 @@ struct SchemaDef
     struct TableDef ** tables_next;
     struct CustomSelect * custom_selects;
     struct CustomSelect ** custom_selects_next;
+    bool option_xml;
+    bool option_protobuf;
     SchemaDef(void) {
         tables = NULL;
         tables_next = &tables;
         custom_selects = NULL;
         custom_selects_next = &custom_selects;
+        option_xml = false;
+        option_protobuf = false;
     }
     ~SchemaDef(void) {
         if (tables)

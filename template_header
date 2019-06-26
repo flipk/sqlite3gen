@@ -17,6 +17,10 @@ ________ HEADER_TOP
 #include <map>
 #include <sstream>
 #include "sqlite3.h"
+
+// OPTIONS enabled in this schema:
+@@defines@@
+
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 #include "tinyxml2.h"
 #endif
@@ -299,4 +303,12 @@ public:
 
 @@headerbottom_block@@
 
+________ END
+
+________ HEADER_define_xml
+#define INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT 1
+________ END
+
+________ HEADER_define_protobuf
+#define INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT 1
 ________ END

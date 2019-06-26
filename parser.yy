@@ -36,7 +36,7 @@ static void validate_schema(SchemaDef *sd);
     int line_no;
 }
 
-%token L_CURLY R_CURLY L_PAREN R_PAREN KW_TABLE
+%token L_CURLY R_CURLY L_PAREN R_PAREN KW_TABLE KW_OPTIONS
 %token KW_INT KW_INT64 KW_TEXT KW_BLOB KW_DOUBLE KW_ENUM
 %token KW_INDEX KW_QUERY KW_LIKEQUERY KW_WORD KW_BOOL
 %token KW_CUSTOM_GET KW_CUSTOM_UPD KW_CUSTOM_UPDBY KW_CUSTOM_DEL
@@ -72,6 +72,7 @@ static void validate_schema(SchemaDef *sd);
 SCHEMA_FILE
 	: /*nothing*/
 	| PACKAGE SCHEMA_FILE
+	| OPTIONS SCHEMA_FILE
 	| TABLE SCHEMA_FILE
 	| BLOCK SCHEMA_FILE
 	| CUSTOM_SELECT SCHEMA_FILE
@@ -149,6 +150,27 @@ PACKAGE
             delete $2;
 	}
         ;
+
+OPTIONS
+	: KW_OPTIONS L_PAREN WORDLIST R_PAREN
+	{
+            WordList * w = $3, * ww;
+            for (ww = w; ww; ww = ww->next)
+            {
+                if (ww->word == "protobuf")
+                    schema_def->option_protobuf = true;
+                else if (ww->word == "xml")
+                    schema_def->option_xml = true;
+                else
+                {
+                    cerr << "ERROR: OPTIONS '" << ww->word
+                         << "' is not known\n";
+                    exit(1);
+                }
+            }
+            delete w;
+	}
+	;
 
 CUSTOM_SELECT
 	: KW_CUSTOM_SELECT KW_WORD
@@ -391,6 +413,12 @@ DATATYPE
         }
 	| KW_ENUM KW_WORD
         {
+            if (schema_def->option_protobuf == false)
+            {
+                cerr << "ERROR: cannot use ENUM if "
+                     << "\"OPTIONS (protobuf)\" not set\n";
+                exit(1);
+            }
             $$ = new TypeDefValue;
             $$->init(TYPE_ENUM);
             $$->enum_name = *$2;
@@ -472,6 +500,11 @@ ATTRIBUTES
                     fprintf(stderr, "ERROR: PROTOID 1 is reserved for "
                             "schema_version, please start numbering at 2\n");
                     exit(1);
+                }
+                if (schema_def->option_protobuf == false)
+                {
+                    cerr << "WARNING: PROTOID ignored if "
+                         << "\"OPTIONS (protobuf)\" not set\n";
                 }
 	}
 	| ATTRIBUTES TOK_STRING

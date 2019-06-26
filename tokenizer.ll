@@ -45,6 +45,7 @@ static int line_no;
 \)         { return R_PAREN; }
 
 TABLE      { return KW_TABLE; }
+OPTIONS    { return KW_OPTIONS; }
 BOOL       { return KW_BOOL; }
 INT        { return KW_INT; }
 INT64      { return KW_INT64; }

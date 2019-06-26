@@ -36,11 +36,18 @@ void emit_header(const std::string &fname,
 
     ostringstream protobuf_header;
     ostringstream class_forwards;
+    ostringstream defines;
+
+    if (schema->option_xml)
+        output_HEADER_define_xml(defines, patterns);
+
+    if (schema->option_protobuf)
+        output_HEADER_define_protobuf(defines, patterns);
 
     if (schema->package != "")
         protobuf_header << "#include \""
                         << proto_hdr_fname
-                        << "\"\n";
+                        << "\"";
 
     for (td = schema->tables; td; td = td->next)
     {
@@ -49,6 +56,7 @@ void emit_header(const std::string &fname,
 
     SET_PATTERN(protobuf_header);
     SET_PATTERN(class_forwards);
+    SET_PATTERN(defines);
     output_HEADER_TOP(out, patterns);
 
     for (td = schema->tables; td; td = td->next)

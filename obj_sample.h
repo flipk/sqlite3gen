@@ -14,12 +14,17 @@
 #include <map>
 #include <sstream>
 #include "sqlite3.h"
+
+// OPTIONS enabled in this schema:
+#define INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT 1
+#define INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT 1
+
+
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 #include "tinyxml2.h"
 #endif
 #ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 #include "sample.pb.h"
-
 #endif
 
 
