@@ -1514,7 +1514,6 @@ bool SQL_TABLE_user :: update_balance(void)
         PRINT_ERR("update balance: r = %d (%s)", r, msg);
         return false;
     }
-    previous_get = NULL;
 
     return ret;
 }
@@ -1584,7 +1583,6 @@ bool SQL_TABLE_user :: update_firstlast(void)
         PRINT_ERR("update firstlast: r = %d (%s)", r, msg);
         return false;
     }
-    previous_get = NULL;
 
     return ret;
 }
@@ -1682,7 +1680,6 @@ bool SQL_TABLE_user :: update_by_userid_stuff(int32_t v1, const std::string & v2
         PRINT_ERR("update userid_stuff: r = %d (%s)", r, msg);
         return false;
     }
-    previous_get = NULL;
 
     return ret;
 }
@@ -1736,7 +1733,6 @@ bool SQL_TABLE_user :: delete_SSN(int32_t v1)
         PRINT_ERR("delete SSN: r = %d (%s)", r, msg);
         return false;
     }
-    previous_get = NULL;
 
     return ret;
 }
@@ -3302,7 +3298,6 @@ bool SQL_TABLE_book :: update_quantity(void)
         PRINT_ERR("update quantity: r = %d (%s)", r, msg);
         return false;
     }
-    previous_get = NULL;
 
     return ret;
 }
@@ -3360,7 +3355,6 @@ bool SQL_TABLE_book :: update_price(void)
         PRINT_ERR("update price: r = %d (%s)", r, msg);
         return false;
     }
-    previous_get = NULL;
 
     return ret;
 }
@@ -5717,47 +5711,18 @@ SQL_TRANSACTION :: SQL_TRANSACTION(sqlite3 *_pdb /*= NULL*/,
                                    bool _commit_on_delete /*= false*/)
     : pdb(_pdb), commit_on_delete(_commit_on_delete), started(false)
 {
-    pBegin = pCommit = pRollback = NULL;
-    set_db(_pdb);
 }
 
 SQL_TRANSACTION :: ~SQL_TRANSACTION(void)
 {
     finish(commit_on_delete);
-    finalize();
 }
 
 void
 SQL_TRANSACTION :: set_db(sqlite3 *_pdb)
 {
     finish(commit_on_delete);
-    finalize();
     pdb = _pdb;
-    if (pdb)
-        prepare();
-}
-
-void
-SQL_TRANSACTION :: prepare(void)
-{
-    // these are only used for debugging statements!
-    if (upd_log_func)
-    {
-        sqlite3_prepare_v2(pdb, "BEGIN TRANSACTION",  -1, &pBegin   , NULL);
-        sqlite3_prepare_v2(pdb, "COMMIT TRANSACTION", -1, &pCommit  , NULL);
-        sqlite3_prepare_v2(pdb, "BEGIN TRANSACTION",  -1, &pRollback, NULL);
-    }
-}
-
-void
-SQL_TRANSACTION :: finalize(void)
-{
-    if (pBegin)
-        sqlite3_finalize(pBegin);
-    if (pCommit)
-        sqlite3_finalize(pCommit);
-    if (pRollback)
-        sqlite3_finalize(pRollback);
 }
 
 bool
@@ -5776,7 +5741,12 @@ SQL_TRANSACTION :: begin(void)
     else
     {
         if (upd_log_func)
-            upd_log_func(log_arg, pBegin);
+        {
+            sqlite3_stmt * pStmt;
+            sqlite3_prepare_v2(pdb, "BEGIN TRANSACTION",  -1, &pStmt, NULL);
+            upd_log_func(log_arg, pStmt);
+            sqlite3_finalize(pStmt);
+        }
         ret = started = true;
     }
 
@@ -5805,7 +5775,13 @@ SQL_TRANSACTION :: finish(bool commit)
             else
             {
                 if (upd_log_func)
-                    upd_log_func(log_arg, pCommit);
+                {
+                    sqlite3_stmt * pStmt;
+                    sqlite3_prepare_v2(pdb, "COMMIT TRANSACTION",
+                                       -1, &pStmt, NULL);
+                    upd_log_func(log_arg, pStmt);
+                    sqlite3_finalize(pStmt);
+                }
                 ret = true;
             }
         }
@@ -5818,12 +5794,22 @@ SQL_TRANSACTION :: finish(bool commit)
             else
             {
                 if (upd_log_func)
-                    upd_log_func(log_arg, pRollback);
+                {
+                    sqlite3_stmt * pStmt;
+                    sqlite3_prepare_v2(pdb, "ROLLBACK TRANSACTION",
+                                       -1, &pStmt, NULL);
+                    upd_log_func(log_arg, pStmt);
+                    sqlite3_finalize(pStmt);
+                }
                 ret = true;
             }
         }
         started = false;
     }
+
+    if (msg)
+        sqlite3_free(msg);
+
     return ret;
 }
 

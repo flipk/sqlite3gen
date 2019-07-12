@@ -598,14 +598,9 @@ class SQL_TRANSACTION {
     static void print_err(const char *function, int lineno,
                           const char *format, ...);
     sqlite3 *pdb;
-    sqlite3_stmt * pBegin;
-    sqlite3_stmt * pCommit;
-    sqlite3_stmt * pRollback;
     bool commit_on_delete;
     bool started;
     bool finish(bool commit);
-    void prepare(void);
-    void finalize(void);
 public:
     static void register_log_funcs(sql_log_function_t _upd_func,
                                    sql_err_function_t _err_func,
