@@ -138,6 +138,8 @@ bool SQL_TABLE_@@tablename@@ :: get_columns(sqlite3_stmt * pStmt)
         log_row_msg.str("@@tablename@@: ");
 
     rowid = sqlite3_column_int64(pStmt, 0);
+    if (log_row_func)
+        log_row_msg << "rowid:" << rowid << "; ";
 
 @@get_columns@@
 

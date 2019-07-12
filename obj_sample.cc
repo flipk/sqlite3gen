@@ -298,6 +298,8 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         log_row_msg.str("user: ");
 
     rowid = sqlite3_column_int64(pStmt, 0);
+    if (log_row_func)
+        log_row_msg << "rowid:" << rowid << "; ";
 
     got = sqlite3_column_type(pStmt, 1);
     if (got != SQLITE_INTEGER)
@@ -1340,6 +1342,7 @@ bool SQL_TABLE_user :: get_great_balance(double v1)
     {
         ret = get_columns(pStmt_get_great_balance);
         previous_get = pStmt_get_great_balance;
+        ret = true;
     }
     else if (r == SQLITE_DONE)
         previous_get = NULL;
@@ -1385,6 +1388,7 @@ bool SQL_TABLE_user :: get_founders(void)
     {
         ret = get_columns(pStmt_get_founders);
         previous_get = pStmt_get_founders;
+        ret = true;
     }
     else if (r == SQLITE_DONE)
         previous_get = NULL;
@@ -1448,6 +1452,7 @@ bool SQL_TABLE_user :: get_firstlast(const std::string & v1, const std::string &
     {
         ret = get_columns(pStmt_get_firstlast);
         previous_get = pStmt_get_firstlast;
+        ret = true;
     }
     else if (r == SQLITE_DONE)
         previous_get = NULL;
@@ -1501,7 +1506,9 @@ bool SQL_TABLE_user :: update_balance(void)
         log_upd_func(log_arg, pStmt_update_balance);
 
     r = sqlite3_step(pStmt_update_balance);
-    if (r != SQLITE_DONE)
+    if (r == SQLITE_DONE)
+        ret = true;
+    else
     {
         const char *msg = sqlite3_errmsg(pdb);
         PRINT_ERR("update balance: r = %d (%s)", r, msg);
@@ -1569,7 +1576,9 @@ bool SQL_TABLE_user :: update_firstlast(void)
         log_upd_func(log_arg, pStmt_update_firstlast);
 
     r = sqlite3_step(pStmt_update_firstlast);
-    if (r != SQLITE_DONE)
+    if (r == SQLITE_DONE)
+        ret = true;
+    else
     {
         const char *msg = sqlite3_errmsg(pdb);
         PRINT_ERR("update firstlast: r = %d (%s)", r, msg);
@@ -1665,7 +1674,9 @@ bool SQL_TABLE_user :: update_by_userid_stuff(int32_t v1, const std::string & v2
         log_upd_func(log_arg, pStmt_update_by_userid_stuff);
 
     r = sqlite3_step(pStmt_update_by_userid_stuff);
-    if (r != SQLITE_DONE)
+    if (r == SQLITE_DONE)
+        ret = true;
+    else
     {
         const char *msg = sqlite3_errmsg(pdb);
         PRINT_ERR("update userid_stuff: r = %d (%s)", r, msg);
@@ -1717,13 +1728,15 @@ bool SQL_TABLE_user :: delete_SSN(int32_t v1)
         log_upd_func(log_arg, pStmt_del_SSN);
 
     r = sqlite3_step(pStmt_del_SSN);
-    if (r == SQLITE_ROW)
+    if (r == SQLITE_DONE)
+        ret = true;
+    else
     {
-        ret = get_columns(pStmt_del_SSN);
-        previous_get = pStmt_del_SSN;
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("delete SSN: r = %d (%s)", r, msg);
+        return false;
     }
-    else if (r == SQLITE_DONE)
-        previous_get = NULL;
+    previous_get = NULL;
 
     return ret;
 }
@@ -2517,6 +2530,8 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         log_row_msg.str("book: ");
 
     rowid = sqlite3_column_int64(pStmt, 0);
+    if (log_row_func)
+        log_row_msg << "rowid:" << rowid << "; ";
 
     got = sqlite3_column_type(pStmt, 1);
     if (got != SQLITE_INTEGER)
@@ -3225,6 +3240,7 @@ bool SQL_TABLE_book :: get_out_of_stock(void)
     {
         ret = get_columns(pStmt_get_out_of_stock);
         previous_get = pStmt_get_out_of_stock;
+        ret = true;
     }
     else if (r == SQLITE_DONE)
         previous_get = NULL;
@@ -3278,7 +3294,9 @@ bool SQL_TABLE_book :: update_quantity(void)
         log_upd_func(log_arg, pStmt_update_quantity);
 
     r = sqlite3_step(pStmt_update_quantity);
-    if (r != SQLITE_DONE)
+    if (r == SQLITE_DONE)
+        ret = true;
+    else
     {
         const char *msg = sqlite3_errmsg(pdb);
         PRINT_ERR("update quantity: r = %d (%s)", r, msg);
@@ -3334,7 +3352,9 @@ bool SQL_TABLE_book :: update_price(void)
         log_upd_func(log_arg, pStmt_update_price);
 
     r = sqlite3_step(pStmt_update_price);
-    if (r != SQLITE_DONE)
+    if (r == SQLITE_DONE)
+        ret = true;
+    else
     {
         const char *msg = sqlite3_errmsg(pdb);
         PRINT_ERR("update price: r = %d (%s)", r, msg);
@@ -3940,6 +3960,8 @@ bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
         log_row_msg.str("checkouts: ");
 
     rowid = sqlite3_column_int64(pStmt, 0);
+    if (log_row_func)
+        log_row_msg << "rowid:" << rowid << "; ";
 
     got = sqlite3_column_type(pStmt, 1);
     if (got != SQLITE_INTEGER)
@@ -4511,6 +4533,7 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
     {
         ret = get_columns(pStmt_get_due_now);
         previous_get = pStmt_get_due_now;
+        ret = true;
     }
     else if (r == SQLITE_DONE)
         previous_get = NULL;
