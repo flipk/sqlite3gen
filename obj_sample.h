@@ -593,9 +593,8 @@ public:
 
 class SQL_TRANSACTION {
     static sql_log_function_t upd_log_func;
-    static void *log_arg;
     static sql_err_function_t err_log_func;
-    static void *err_log_arg;
+    static void *log_arg;
     static void print_err(const char *function, int lineno,
                           const char *format, ...);
     sqlite3 *pdb;
@@ -604,14 +603,12 @@ class SQL_TRANSACTION {
     bool finish(bool commit);
 public:
     static void register_log_funcs(sql_log_function_t _upd_func,
-                                   void *_arg,
                                    sql_err_function_t _err_func,
-                                   void *_err_arg)
+                                   void *_arg)
     {
         upd_log_func = _upd_func;
-        log_arg = _arg;
         err_log_func = _err_func;
-        err_log_arg = _err_arg;
+        log_arg = _arg;
     }
     SQL_TRANSACTION(sqlite3 *_pdb = NULL,
                     bool _commit_on_delete = false);
