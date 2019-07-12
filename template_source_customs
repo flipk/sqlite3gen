@@ -141,7 +141,6 @@ bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
         PRINT_ERR("update @@customname@@: r = %d (%s)", r, msg);
         return false;
     }
-    previous_get = NULL;
 
     return ret;
 }
@@ -191,7 +190,6 @@ bool SQL_TABLE_@@tablename@@ :: update_by_@@customname@@(@@type_and_vX@@)
         PRINT_ERR("update @@customname@@: r = %d (%s)", r, msg);
         return false;
     }
-    previous_get = NULL;
 
     return ret;
 }
@@ -330,7 +328,6 @@ bool SQL_TABLE_@@tablename@@ :: delete_@@customname@@(@@type_and_vX@@)
         PRINT_ERR("delete @@customname@@: r = %d (%s)", r, msg);
         return false;
     }
-    previous_get = NULL;
 
     return ret;
 }
