@@ -40,6 +40,7 @@ bool SQL_TABLE_@@tablename@@ :: get_@@customname@@(@@type_and_vX@@)
     {
         ret = get_columns(pStmt_get_@@customname@@);
         previous_get = pStmt_get_@@customname@@;
+        ret = true;
     }
     else if (r == SQLITE_DONE)
         previous_get = NULL;
@@ -132,7 +133,9 @@ bool SQL_TABLE_@@tablename@@ :: update_@@customname@@(void)
         log_upd_func(log_arg, pStmt_update_@@customname@@);
 
     r = sqlite3_step(pStmt_update_@@customname@@);
-    if (r != SQLITE_DONE)
+    if (r == SQLITE_DONE)
+        ret = true;
+    else
     {
         const char *msg = sqlite3_errmsg(pdb);
         PRINT_ERR("update @@customname@@: r = %d (%s)", r, msg);
@@ -180,7 +183,9 @@ bool SQL_TABLE_@@tablename@@ :: update_by_@@customname@@(@@type_and_vX@@)
         log_upd_func(log_arg, pStmt_update_by_@@customname@@);
 
     r = sqlite3_step(pStmt_update_by_@@customname@@);
-    if (r != SQLITE_DONE)
+    if (r == SQLITE_DONE)
+        ret = true;
+    else
     {
         const char *msg = sqlite3_errmsg(pdb);
         PRINT_ERR("update @@customname@@: r = %d (%s)", r, msg);
@@ -317,13 +322,15 @@ bool SQL_TABLE_@@tablename@@ :: delete_@@customname@@(@@type_and_vX@@)
         log_upd_func(log_arg, pStmt_del_@@customname@@);
 
     r = sqlite3_step(pStmt_del_@@customname@@);
-    if (r == SQLITE_ROW)
+    if (r == SQLITE_DONE)
+        ret = true;
+    else
     {
-        ret = get_columns(pStmt_del_@@customname@@);
-        previous_get = pStmt_del_@@customname@@;
+        const char *msg = sqlite3_errmsg(pdb);
+        PRINT_ERR("delete @@customname@@: r = %d (%s)", r, msg);
+        return false;
     }
-    else if (r == SQLITE_DONE)
-        previous_get = NULL;
+    previous_get = NULL;
 
     return ret;
 }
