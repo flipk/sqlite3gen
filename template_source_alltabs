@@ -72,6 +72,8 @@ void SQL_TABLE_ALL_TABLES :: register_log_funcs(
     void *_arg)
 {
 @@register_all_logfuncs@@
+    SQL_TRANSACTION :: register_log_funcs(_upd_func, _arg,
+                                          _err_func, _err_arg);
 }
 
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
@@ -115,6 +117,39 @@ bool SQL_TABLE_ALL_TABLES :: import_xml_all(sqlite3 *pdb,
 }
 #endif
 
+sql_log_function_t SQL_TRANSACTION :: upd_log_func = &dflt_log_upd;
+void * SQL_TRANSACTION :: log_arg = NULL;
+sql_err_function_t SQL_TRANSACTION :: err_log_func = &dflt_log_err;
+void * SQL_TRANSACTION :: err_log_arg = NULL;
+
+//static
+void
+SQL_TRANSACTION :: print_err(const char *function, int lineno,
+                                     const char *format, ...)
+{
+    if (err_log_func == NULL)
+        // don't bother formatting the args.
+        return;
+
+    std::ostringstream msg_out;
+    msg_out << function << ":" << lineno << ": ";
+    std::string msg = msg_out.str();
+
+    size_t offset = msg.size();
+    msg.resize(offset + 250);
+
+    va_list ap;
+    va_start(ap, format);
+    size_t l = vsnprintf((char*)msg.c_str() + offset,
+                         250, format, ap);
+    va_end(ap);
+    // note that *snprintf returns what it WOULD have written
+    // if there was space! so l > msg.size means it truncated.
+    if (l < 250)
+        msg.resize(l + offset);
+    err_log_func(err_log_arg, msg);
+}
+
 SQL_TRANSACTION :: SQL_TRANSACTION(sqlite3 *_pdb /*= NULL*/,
                                    bool _commit_on_delete /*= false*/)
     : pdb(_pdb), commit_on_delete(_commit_on_delete), started(false)
@@ -144,9 +179,8 @@ SQL_TRANSACTION :: begin(void)
     int r = sqlite3_exec(pdb, "BEGIN TRANSACTION", NULL, NULL, &msg);
 
     if (r != SQLITE_OK)
-        fprintf(stderr,
-                "ERROR SQL_TRANSACTION BEGIN: %d (%s)\n",
-                r, msg);
+        PRINT_ERR("ERROR SQL_TRANSACTION BEGIN: %d (%s)\n",
+                  r, msg);
     else
         ret = started = true;
 
@@ -170,8 +204,7 @@ SQL_TRANSACTION :: finish(bool commit)
         {
             r = sqlite3_exec(pdb, "COMMIT TRANSACTION", NULL, NULL, &msg);
             if (r != SQLITE_OK)
-                fprintf(stderr,
-                        "ERROR SQL_TRANSACTION COMMIT: %d (%s)\n",
+                PRINT_ERR("ERROR SQL_TRANSACTION COMMIT: %d (%s)\n",
                         r, msg);
             else
                 ret = true;
@@ -180,8 +213,7 @@ SQL_TRANSACTION :: finish(bool commit)
         {
             r = sqlite3_exec(pdb, "ROLLBACK TRANSACTION", NULL, NULL, &msg);
             if (r != SQLITE_OK)
-                fprintf(stderr,
-                        "ERROR SQL_TRANSACTION ROLLBACK: %d (%s)\n",
+                PRINT_ERR("ERROR SQL_TRANSACTION ROLLBACK: %d (%s)\n",
                         r, msg);
             else
                 ret = true;
