@@ -152,18 +152,47 @@ SQL_TRANSACTION :: SQL_TRANSACTION(sqlite3 *_pdb /*= NULL*/,
                                    bool _commit_on_delete /*= false*/)
     : pdb(_pdb), commit_on_delete(_commit_on_delete), started(false)
 {
+    pBegin = pCommit = pRollback = NULL;
+    set_db(_pdb);
 }
 
 SQL_TRANSACTION :: ~SQL_TRANSACTION(void)
 {
     finish(commit_on_delete);
+    finalize();
 }
 
 void
 SQL_TRANSACTION :: set_db(sqlite3 *_pdb)
 {
     finish(commit_on_delete);
+    finalize();
     pdb = _pdb;
+    if (pdb)
+        prepare();
+}
+
+void
+SQL_TRANSACTION :: prepare(void)
+{
+    // these are only used for debugging statements!
+    if (upd_log_func)
+    {
+        sqlite3_prepare_v2(pdb, "BEGIN TRANSACTION",  -1, &pBegin   , NULL);
+        sqlite3_prepare_v2(pdb, "COMMIT TRANSACTION", -1, &pCommit  , NULL);
+        sqlite3_prepare_v2(pdb, "BEGIN TRANSACTION",  -1, &pRollback, NULL);
+    }
+}
+
+void
+SQL_TRANSACTION :: finalize(void)
+{
+    if (pBegin)
+        sqlite3_finalize(pBegin);
+    if (pCommit)
+        sqlite3_finalize(pCommit);
+    if (pRollback)
+        sqlite3_finalize(pRollback);
 }
 
 bool
@@ -180,7 +209,11 @@ SQL_TRANSACTION :: begin(void)
         PRINT_ERR("ERROR SQL_TRANSACTION BEGIN: %d (%s)\n",
                   r, msg);
     else
+    {
+        if (upd_log_func)
+            upd_log_func(log_arg, pBegin);
         ret = started = true;
+    }
 
     if (msg)
         sqlite3_free(msg);
@@ -205,7 +238,11 @@ SQL_TRANSACTION :: finish(bool commit)
                 PRINT_ERR("ERROR SQL_TRANSACTION COMMIT: %d (%s)\n",
                         r, msg);
             else
+            {
+                if (upd_log_func)
+                    upd_log_func(log_arg, pCommit);
                 ret = true;
+            }
         }
         else
         {
@@ -214,7 +251,11 @@ SQL_TRANSACTION :: finish(bool commit)
                 PRINT_ERR("ERROR SQL_TRANSACTION ROLLBACK: %d (%s)\n",
                         r, msg);
             else
+            {
+                if (upd_log_func)
+                    upd_log_func(log_arg, pRollback);
                 ret = true;
+            }
         }
         started = false;
     }

@@ -309,13 +309,8 @@ test_subtables(sqlite3 * pdb)
 
     library::SQL_TRANSACTION t(pdb);
 
-    if (t.begin())
-        printf(" ** TRANSACTION BEGUN\n");
-    else
-    {
-        printf(" ** TRANSACTION FAILED\n");
+    if (!t.begin())
         exit(1);
-    }
 
     {
         library::SQL_TABLE_user      u(pdb);
@@ -403,13 +398,8 @@ test_subtables(sqlite3 * pdb)
         printf("inserted 4 checkouts\n");
     }
 
-    if (t.commit())
-        printf(" ** TRANSACTION COMPLETE\n");
-    else
-    {
-        printf(" ** TRANSACTION FAILED\n");
+    if (!t.commit())
         exit(1);
-    }
 
 #ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
     {
