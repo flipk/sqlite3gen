@@ -21,6 +21,15 @@
 
 namespace library {
 
+#define PRINT_ERR(args...) SQL_TABLE_ALL_TABLES::print_err(\
+        __PRETTY_FUNCTION__, __LINE__, args)
+
+#define log_row_func SQL_TABLE_ALL_TABLES::log_row_func
+#define log_get_func SQL_TABLE_ALL_TABLES::log_get_func
+#define log_upd_func SQL_TABLE_ALL_TABLES::log_upd_func
+#define err_log_func SQL_TABLE_ALL_TABLES::err_log_func
+#define      log_arg SQL_TABLE_ALL_TABLES::log_arg
+
 static void dflt_log_upd(void *arg, sqlite3_stmt *stmt)
 {
     char * sql = sqlite3_expanded_sql(stmt);
@@ -99,13 +108,6 @@ void _____dummy_blob_spacer(void)
     hex_to_blob(a,b);
     blob_to_hex(a,b);
 }
-
-//static
-sql_log_function_t SQL_TABLE_user :: log_upd_func = &dflt_log_upd;
-sql_log_function_t SQL_TABLE_user :: log_get_func = &dflt_log_get;
-sql_err_function_t SQL_TABLE_user :: log_row_func = &dflt_log_row;
-sql_err_function_t SQL_TABLE_user :: err_log_func = &dflt_log_err;
-void *             SQL_TABLE_user :: log_arg  = NULL;
 
 SQL_TABLE_user :: SQL_TABLE_user(sqlite3 *_pdb)
     : pdb(_pdb)
@@ -259,37 +261,6 @@ void SQL_TABLE_user :: set_db(sqlite3 *_pdb)
     }
 
 }
-
-//static
-void
-SQL_TABLE_user :: print_err(const char *function, int lineno,
-                                     const char *format, ...)
-{
-    if (err_log_func == NULL)
-        // don't bother formatting the args.
-        return;
-
-    std::ostringstream msg_out;
-    msg_out << function << ":" << lineno << ": ";
-    std::string msg = msg_out.str();
-
-    size_t offset = msg.size();
-    msg.resize(offset + 250);
-
-    va_list ap;
-    va_start(ap, format);
-    size_t l = vsnprintf((char*)msg.c_str() + offset,
-                         250, format, ap);
-    va_end(ap);
-    // note that *snprintf returns what it WOULD have written
-    // if there was space! so l > msg.size means it truncated.
-    if (l < 250)
-        msg.resize(l + offset);
-    err_log_func(log_arg, msg);
-}
-
-#undef  PRINT_ERR
-#define PRINT_ERR(args...) print_err(__PRETTY_FUNCTION__, __LINE__, args)
 
 bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
 {
@@ -2362,13 +2333,6 @@ bool SQL_TABLE_user :: import_xml(sqlite3 *pdb,
 }
 #endif
 
-//static
-sql_log_function_t SQL_TABLE_book :: log_upd_func = &dflt_log_upd;
-sql_log_function_t SQL_TABLE_book :: log_get_func = &dflt_log_get;
-sql_err_function_t SQL_TABLE_book :: log_row_func = &dflt_log_row;
-sql_err_function_t SQL_TABLE_book :: err_log_func = &dflt_log_err;
-void *             SQL_TABLE_book :: log_arg  = NULL;
-
 SQL_TABLE_book :: SQL_TABLE_book(sqlite3 *_pdb)
     : pdb(_pdb)
 {
@@ -2487,37 +2451,6 @@ void SQL_TABLE_book :: set_db(sqlite3 *_pdb)
     pdb = _pdb;
 
 }
-
-//static
-void
-SQL_TABLE_book :: print_err(const char *function, int lineno,
-                                     const char *format, ...)
-{
-    if (err_log_func == NULL)
-        // don't bother formatting the args.
-        return;
-
-    std::ostringstream msg_out;
-    msg_out << function << ":" << lineno << ": ";
-    std::string msg = msg_out.str();
-
-    size_t offset = msg.size();
-    msg.resize(offset + 250);
-
-    va_list ap;
-    va_start(ap, format);
-    size_t l = vsnprintf((char*)msg.c_str() + offset,
-                         250, format, ap);
-    va_end(ap);
-    // note that *snprintf returns what it WOULD have written
-    // if there was space! so l > msg.size means it truncated.
-    if (l < 250)
-        msg.resize(l + offset);
-    err_log_func(log_arg, msg);
-}
-
-#undef  PRINT_ERR
-#define PRINT_ERR(args...) print_err(__PRETTY_FUNCTION__, __LINE__, args)
 
 bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
 {
@@ -3803,13 +3736,6 @@ bool SQL_TABLE_book :: import_xml(sqlite3 *pdb,
 }
 #endif
 
-//static
-sql_log_function_t SQL_TABLE_checkouts :: log_upd_func = &dflt_log_upd;
-sql_log_function_t SQL_TABLE_checkouts :: log_get_func = &dflt_log_get;
-sql_err_function_t SQL_TABLE_checkouts :: log_row_func = &dflt_log_row;
-sql_err_function_t SQL_TABLE_checkouts :: err_log_func = &dflt_log_err;
-void *             SQL_TABLE_checkouts :: log_arg  = NULL;
-
 SQL_TABLE_checkouts :: SQL_TABLE_checkouts(sqlite3 *_pdb)
     : pdb(_pdb)
 {
@@ -3915,37 +3841,6 @@ void SQL_TABLE_checkouts :: set_db(sqlite3 *_pdb)
     pdb = _pdb;
 
 }
-
-//static
-void
-SQL_TABLE_checkouts :: print_err(const char *function, int lineno,
-                                     const char *format, ...)
-{
-    if (err_log_func == NULL)
-        // don't bother formatting the args.
-        return;
-
-    std::ostringstream msg_out;
-    msg_out << function << ":" << lineno << ": ";
-    std::string msg = msg_out.str();
-
-    size_t offset = msg.size();
-    msg.resize(offset + 250);
-
-    va_list ap;
-    va_start(ap, format);
-    size_t l = vsnprintf((char*)msg.c_str() + offset,
-                         250, format, ap);
-    va_end(ap);
-    // note that *snprintf returns what it WOULD have written
-    // if there was space! so l > msg.size means it truncated.
-    if (l < 250)
-        msg.resize(l + offset);
-    err_log_func(log_arg, msg);
-}
-
-#undef  PRINT_ERR
-#define PRINT_ERR(args...) print_err(__PRETTY_FUNCTION__, __LINE__, args)
 
 bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
 {
@@ -4920,14 +4815,6 @@ bool SQL_TABLE_checkouts :: import_xml(sqlite3 *pdb,
 }
 #endif
 
-
-//static
-sql_log_function_t SQL_SELECT_due_books :: log_upd_func = &dflt_log_upd;
-sql_log_function_t SQL_SELECT_due_books :: log_get_func = &dflt_log_get;
-sql_row_function_t SQL_SELECT_due_books :: log_row_func = &dflt_log_row;
-sql_err_function_t SQL_SELECT_due_books :: err_log_func = &dflt_log_err;
-void *             SQL_SELECT_due_books :: log_arg  = NULL;
-
 SQL_SELECT_due_books :: SQL_SELECT_due_books(sqlite3 *_pdb /*= NULL*/)
 {
     pStmt_get_query = NULL;
@@ -4947,34 +4834,6 @@ SQL_SELECT_due_books :: set_db(sqlite3 *_pdb)
         sqlite3_finalize(pStmt_get_query);
     pStmt_get_query = NULL;
     pdb = _pdb;
-}
-
-//static
-void
-SQL_SELECT_due_books :: print_err(const char *function, int lineno,
-                                     const char *format, ...)
-{
-    if (err_log_func == NULL)
-        // don't bother formatting the args.
-        return;
-
-    std::ostringstream msg_out;
-    msg_out << function << ":" << lineno << ": ";
-    std::string msg = msg_out.str();
-
-    size_t offset = msg.size();
-    msg.resize(offset + 250);
-
-    va_list ap;
-    va_start(ap, format);
-    size_t l = vsnprintf((char*)msg.c_str() + offset,
-                         250, format, ap);
-    va_end(ap);
-    // note that *snprintf returns what it WOULD have written
-    // if there was space! so l > msg.size means it truncated.
-    if (l < 250)
-        msg.resize(l + offset);
-    err_log_func(log_arg, msg);
 }
 
 bool
@@ -5217,14 +5076,6 @@ SQL_SELECT_due_books :: get_next(void)
     return ret;
 }
 
-
-//static
-sql_log_function_t SQL_SELECT_due_books2 :: log_upd_func = &dflt_log_upd;
-sql_log_function_t SQL_SELECT_due_books2 :: log_get_func = &dflt_log_get;
-sql_row_function_t SQL_SELECT_due_books2 :: log_row_func = &dflt_log_row;
-sql_err_function_t SQL_SELECT_due_books2 :: err_log_func = &dflt_log_err;
-void *             SQL_SELECT_due_books2 :: log_arg  = NULL;
-
 SQL_SELECT_due_books2 :: SQL_SELECT_due_books2(sqlite3 *_pdb /*= NULL*/)
 {
     pStmt_get_query = NULL;
@@ -5244,34 +5095,6 @@ SQL_SELECT_due_books2 :: set_db(sqlite3 *_pdb)
         sqlite3_finalize(pStmt_get_query);
     pStmt_get_query = NULL;
     pdb = _pdb;
-}
-
-//static
-void
-SQL_SELECT_due_books2 :: print_err(const char *function, int lineno,
-                                     const char *format, ...)
-{
-    if (err_log_func == NULL)
-        // don't bother formatting the args.
-        return;
-
-    std::ostringstream msg_out;
-    msg_out << function << ":" << lineno << ": ";
-    std::string msg = msg_out.str();
-
-    size_t offset = msg.size();
-    msg.resize(offset + 250);
-
-    va_list ap;
-    va_start(ap, format);
-    size_t l = vsnprintf((char*)msg.c_str() + offset,
-                         250, format, ap);
-    va_end(ap);
-    // note that *snprintf returns what it WOULD have written
-    // if there was space! so l > msg.size means it truncated.
-    if (l < 250)
-        msg.resize(l + offset);
-    err_log_func(log_arg, msg);
 }
 
 bool
@@ -5561,6 +5384,12 @@ void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
                  NULL, NULL, NULL);
 }
 
+sql_log_function_t SQL_TABLE_ALL_TABLES :: log_upd_func = &dflt_log_upd;
+sql_log_function_t SQL_TABLE_ALL_TABLES :: log_get_func = &dflt_log_get;
+sql_row_function_t SQL_TABLE_ALL_TABLES :: log_row_func = &dflt_log_row;
+sql_err_function_t SQL_TABLE_ALL_TABLES :: err_log_func = &dflt_log_err;
+void *             SQL_TABLE_ALL_TABLES :: log_arg      = NULL;
+
 void SQL_TABLE_ALL_TABLES :: register_log_funcs(
     sql_log_function_t _upd_func,
     sql_log_function_t _get_func,
@@ -5568,18 +5397,39 @@ void SQL_TABLE_ALL_TABLES :: register_log_funcs(
     sql_err_function_t _err_func,
     void *_arg)
 {
-    SQL_TABLE_user::register_log_funcs(
-        _upd_func, _get_func, _row_func, _err_func, _arg);
-    SQL_TABLE_book::register_log_funcs(
-        _upd_func, _get_func, _row_func, _err_func, _arg);
-    SQL_TABLE_checkouts::register_log_funcs(
-        _upd_func, _get_func, _row_func, _err_func, _arg);
-    SQL_SELECT_due_books::register_log_funcs(
-        _upd_func, _get_func, _row_func, _err_func, _arg);
-    SQL_SELECT_due_books2::register_log_funcs(
-        _upd_func, _get_func, _row_func, _err_func, _arg);
+    log_upd_func = _upd_func;
+    log_get_func = _get_func;
+    log_row_func = _row_func;
+    err_log_func = _err_func;
+    log_arg = _arg;
+}
 
-    SQL_TRANSACTION :: register_log_funcs(_upd_func, _err_func, _arg);
+//static
+void
+SQL_TABLE_ALL_TABLES :: print_err(const char *function, int lineno,
+                                     const char *format, ...)
+{
+    if (err_log_func == NULL)
+        // don't bother formatting the args.
+        return;
+
+    std::ostringstream msg_out;
+    msg_out << function << ":" << lineno << ": ";
+    std::string msg = msg_out.str();
+
+    size_t offset = msg.size();
+    msg.resize(offset + 250);
+
+    va_list ap;
+    va_start(ap, format);
+    size_t l = vsnprintf((char*)msg.c_str() + offset,
+                         250, format, ap);
+    va_end(ap);
+    // note that *snprintf returns what it WOULD have written
+    // if there was space! so l > msg.size means it truncated.
+    if (l < 250)
+        msg.resize(l + offset);
+    err_log_func(log_arg, msg);
 }
 
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
@@ -5675,38 +5525,6 @@ bool SQL_TABLE_ALL_TABLES :: import_xml_all(sqlite3 *pdb,
 }
 #endif
 
-sql_log_function_t SQL_TRANSACTION :: upd_log_func = &dflt_log_upd;
-sql_err_function_t SQL_TRANSACTION :: err_log_func = &dflt_log_err;
-void * SQL_TRANSACTION :: log_arg = NULL;
-
-//static
-void
-SQL_TRANSACTION :: print_err(const char *function, int lineno,
-                                     const char *format, ...)
-{
-    if (err_log_func == NULL)
-        // don't bother formatting the args.
-        return;
-
-    std::ostringstream msg_out;
-    msg_out << function << ":" << lineno << ": ";
-    std::string msg = msg_out.str();
-
-    size_t offset = msg.size();
-    msg.resize(offset + 250);
-
-    va_list ap;
-    va_start(ap, format);
-    size_t l = vsnprintf((char*)msg.c_str() + offset,
-                         250, format, ap);
-    va_end(ap);
-    // note that *snprintf returns what it WOULD have written
-    // if there was space! so l > msg.size means it truncated.
-    if (l < 250)
-        msg.resize(l + offset);
-    err_log_func(log_arg, msg);
-}
-
 SQL_TRANSACTION :: SQL_TRANSACTION(sqlite3 *_pdb /*= NULL*/,
                                    bool _commit_on_delete /*= false*/)
     : pdb(_pdb), commit_on_delete(_commit_on_delete), started(false)
@@ -5740,11 +5558,11 @@ SQL_TRANSACTION :: begin(void)
                   r, msg);
     else
     {
-        if (upd_log_func)
+        if (log_upd_func)
         {
             sqlite3_stmt * pStmt;
             sqlite3_prepare_v2(pdb, "BEGIN TRANSACTION",  -1, &pStmt, NULL);
-            upd_log_func(log_arg, pStmt);
+            log_upd_func(log_arg, pStmt);
             sqlite3_finalize(pStmt);
         }
         ret = started = true;
@@ -5774,12 +5592,12 @@ SQL_TRANSACTION :: finish(bool commit)
                         r, msg);
             else
             {
-                if (upd_log_func)
+                if (log_upd_func)
                 {
                     sqlite3_stmt * pStmt;
                     sqlite3_prepare_v2(pdb, "COMMIT TRANSACTION",
                                        -1, &pStmt, NULL);
-                    upd_log_func(log_arg, pStmt);
+                    log_upd_func(log_arg, pStmt);
                     sqlite3_finalize(pStmt);
                 }
                 ret = true;
@@ -5793,12 +5611,12 @@ SQL_TRANSACTION :: finish(bool commit)
                         r, msg);
             else
             {
-                if (upd_log_func)
+                if (log_upd_func)
                 {
                     sqlite3_stmt * pStmt;
                     sqlite3_prepare_v2(pdb, "ROLLBACK TRANSACTION",
                                        -1, &pStmt, NULL);
-                    upd_log_func(log_arg, pStmt);
+                    log_upd_func(log_arg, pStmt);
                     sqlite3_finalize(pStmt);
                 }
                 ret = true;

@@ -2,13 +2,6 @@
 
 ________ TABLE_CLASS_IMPL
 
-//static
-sql_log_function_t SQL_TABLE_@@tablename@@ :: log_upd_func = &dflt_log_upd;
-sql_log_function_t SQL_TABLE_@@tablename@@ :: log_get_func = &dflt_log_get;
-sql_err_function_t SQL_TABLE_@@tablename@@ :: log_row_func = &dflt_log_row;
-sql_err_function_t SQL_TABLE_@@tablename@@ :: err_log_func = &dflt_log_err;
-void *             SQL_TABLE_@@tablename@@ :: log_arg  = NULL;
-
 SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
     : pdb(_pdb)
 {
@@ -99,37 +92,6 @@ void SQL_TABLE_@@tablename@@ :: set_db(sqlite3 *_pdb)
     pdb = _pdb;
 @@set_db_subtables@@
 }
-
-//static
-void
-SQL_TABLE_@@tablename@@ :: print_err(const char *function, int lineno,
-                                     const char *format, ...)
-{
-    if (err_log_func == NULL)
-        // don't bother formatting the args.
-        return;
-
-    std::ostringstream msg_out;
-    msg_out << function << ":" << lineno << ": ";
-    std::string msg = msg_out.str();
-
-    size_t offset = msg.size();
-    msg.resize(offset + 250);
-
-    va_list ap;
-    va_start(ap, format);
-    size_t l = vsnprintf((char*)msg.c_str() + offset,
-                         250, format, ap);
-    va_end(ap);
-    // note that *snprintf returns what it WOULD have written
-    // if there was space! so l > msg.size means it truncated.
-    if (l < 250)
-        msg.resize(l + offset);
-    err_log_func(log_arg, msg);
-}
-
-#undef  PRINT_ERR
-#define PRINT_ERR(args...) print_err(__PRETTY_FUNCTION__, __LINE__, args)
 
 bool SQL_TABLE_@@tablename@@ :: get_columns(sqlite3_stmt * pStmt)
 {

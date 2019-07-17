@@ -48,7 +48,6 @@ void emit_source(const std::string &fname,
 
     ostringstream create_all_tables;
     ostringstream drop_all_tables;
-    ostringstream register_all_logfuncs;
     ostringstream table_export_all;
     ostringstream table_import_all;
 
@@ -852,8 +851,6 @@ void emit_source(const std::string &fname,
 
         output_CLASS_ALL_TABLES_create_a_table(create_all_tables, patterns);
         output_CLASS_ALL_TABLES_drop_a_table(drop_all_tables, patterns);
-        output_CLASS_ALL_TABLES_register_a_logfunc(
-            register_all_logfuncs, patterns);
     }
 
     for (csel = schema->custom_selects; csel; csel = csel->next)
@@ -996,13 +993,10 @@ void emit_source(const std::string &fname,
         SET_PATTERN(queryargs);
         SET_PATTERN(get_columns);
         output_QUERY_CLASS_IMPL(out, patterns);
-        output_CLASS_SQL_SELECT_register_a_logfunc(
-            register_all_logfuncs, patterns);
     }
 
     SET_PATTERN(create_all_tables);
     SET_PATTERN(drop_all_tables);
-    SET_PATTERN(register_all_logfuncs);
     SET_PATTERN(table_export_all);
     SET_PATTERN(table_import_all);
 

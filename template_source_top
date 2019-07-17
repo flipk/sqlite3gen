@@ -21,6 +21,15 @@ ________ SOURCE_TOP
 
 namespace @@package@@ {
 
+#define PRINT_ERR(args...) SQL_TABLE_ALL_TABLES::print_err(\
+        __PRETTY_FUNCTION__, __LINE__, args)
+
+#define log_row_func SQL_TABLE_ALL_TABLES::log_row_func
+#define log_get_func SQL_TABLE_ALL_TABLES::log_get_func
+#define log_upd_func SQL_TABLE_ALL_TABLES::log_upd_func
+#define err_log_func SQL_TABLE_ALL_TABLES::err_log_func
+#define      log_arg SQL_TABLE_ALL_TABLES::log_arg
+
 static void dflt_log_upd(void *arg, sqlite3_stmt *stmt)
 {
     char * sql = sqlite3_expanded_sql(stmt);

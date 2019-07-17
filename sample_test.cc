@@ -50,8 +50,10 @@ public:
             return false;
         }
 
-        if (log_get_func)
-            log_get_func(log_arg, pStmt_by_great_balance);
+        if (library::SQL_TABLE_ALL_TABLES::log_get_func)
+            library::SQL_TABLE_ALL_TABLES::log_get_func(
+                library::SQL_TABLE_ALL_TABLES::log_arg,
+                pStmt_by_great_balance);
 
         r = sqlite3_step(pStmt_by_great_balance);
         if (r == SQLITE_ROW)
