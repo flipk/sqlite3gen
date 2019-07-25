@@ -8,6 +8,7 @@
 
 enum TypeDef
 {
+    // NOTE this must match SQLITE3GEN_Column_TypeDef in template_header
     TYPE_INT    = 1,
     TYPE_INT64  = 2,
     TYPE_TEXT   = 3,

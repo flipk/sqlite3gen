@@ -49,6 +49,28 @@ class SQL_TABLE_book; // forward
 class SQL_TABLE_checkouts; // forward
 
 
+enum SQLITE3GEN_Column_TypeDef
+{
+    // NOTE this must match TypeDef in sqlite3gen/parser.h
+    TYPE_INT    = 1,
+    TYPE_INT64  = 2,
+    TYPE_TEXT   = 3,
+    TYPE_BLOB   = 4,
+    TYPE_DOUBLE = 5,
+    TYPE_BOOL   = 6,
+    TYPE_ENUM   = 7,
+    TYPE_SUBTABLE = 8
+};
+
+struct SQL_Column_Descriptor
+{
+    std::string   tablename;
+    std::string   fieldname;
+    std::string   ctype;
+    int           sqlite_type; // SQLITE_{INTEGER,FLOAT,BLOB,TEXT}
+    SQLITE3GEN_Column_TypeDef  sqlite3gen_type;
+};
+
 class SQL_TABLE_user {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_insert_force;
@@ -111,6 +133,8 @@ public:
     virtual ~SQL_TABLE_user(void);
 
     static const int TABLE_VERSION = 19;
+    static void get_column_descriptors(
+        std::vector<SQL_Column_Descriptor> &columns);
 
 // set all fields to default values
     void init(void);
@@ -252,6 +276,8 @@ public:
     virtual ~SQL_TABLE_book(void);
 
     static const int TABLE_VERSION = 1;
+    static void get_column_descriptors(
+        std::vector<SQL_Column_Descriptor> &columns);
 
 // set all fields to default values
     void init(void);
@@ -366,6 +392,8 @@ public:
     virtual ~SQL_TABLE_checkouts(void);
 
     static const int TABLE_VERSION = 1;
+    static void get_column_descriptors(
+        std::vector<SQL_Column_Descriptor> &columns);
 
 // set all fields to default values
     void init(void);
@@ -437,6 +465,8 @@ public:
     SQL_SELECT_due_books(sqlite3 *_pdb = NULL);
     ~SQL_SELECT_due_books(void);
 // init pdb here, or set to NULL to finalize stmt and release
+    static void get_column_descriptors(
+        std::vector<SQL_Column_Descriptor> &columns);
     void set_db(sqlite3 *_pdb);
 // WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC
     bool get(int32_t v1, int32_t v2);
@@ -462,6 +492,8 @@ public:
     SQL_SELECT_due_books2(sqlite3 *_pdb = NULL);
     ~SQL_SELECT_due_books2(void);
 // init pdb here, or set to NULL to finalize stmt and release
+    static void get_column_descriptors(
+        std::vector<SQL_Column_Descriptor> &columns);
     void set_db(sqlite3 *_pdb);
 // FROM user, checkouts, book WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC
     bool get(int32_t v1, int32_t v2);

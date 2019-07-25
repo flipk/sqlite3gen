@@ -95,6 +95,7 @@ void emit_source(const std::string &fname,
         ostringstream insert_all_subtables_force;
         ostringstream set_db_subtables;
         ostringstream autoincr_rowid_fetch;
+        ostringstream column_descriptors;
 
         const FieldDef * fd;
         const CustomGetUpdList * cust;
@@ -503,6 +504,11 @@ void emit_source(const std::string &fname,
                 // using the classes for those tables.
                 break;
             }
+
+            patterns["fieldtype_mutable"] = TypeDef_to_Ctype(&fd->type, false);
+            patterns["sqlite3gen_type"] = TypeDef_to_string(t);
+
+            output_TABLE_descriptor(column_descriptors, patterns);
         }
 
         table_create_constraints << td->constraints;
@@ -836,6 +842,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(insert_all_subtables_force);
         SET_PATTERN(set_db_subtables);
         SET_PATTERN(autoincr_rowid_fetch);
+        SET_PATTERN(column_descriptors);
 
         patterns["is_subtable"] = td->is_subtable ? "true" : "false";
 
@@ -864,6 +871,7 @@ void emit_source(const std::string &fname,
         ostringstream querybinders;
         ostringstream queryfields;
         ostringstream querybody;
+        ostringstream column_descriptors;
 
         patterns["queryname"] = csel->name;
 
@@ -968,6 +976,13 @@ void emit_source(const std::string &fname,
                 break;
             }
 
+            patterns["tablename"] = td->name;
+            patterns["fieldname"] = fieldname;
+            patterns["fieldtype_mutable"] = fieldtype;
+            patterns["sqlite3gen_type"] = TypeDef_to_string(t);
+
+            output_TABLE_descriptor(column_descriptors, patterns);
+
             argcount++;
         }
 
@@ -992,6 +1007,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(querybinders);
         SET_PATTERN(queryargs);
         SET_PATTERN(get_columns);
+        SET_PATTERN(column_descriptors);
         output_QUERY_CLASS_IMPL(out, patterns);
     }
 

@@ -86,6 +86,15 @@ void SQL_TABLE_@@tablename@@ :: init(void)
     previous_get = NULL;
 }
 
+//static
+void SQL_TABLE_@@tablename@@ :: get_column_descriptors(
+    std::vector<SQL_Column_Descriptor> &columns)
+{
+    SQL_Column_Descriptor desc;
+    columns.clear();
+@@column_descriptors@@
+}
+
 void SQL_TABLE_@@tablename@@ :: set_db(sqlite3 *_pdb)
 {
     finalize();
@@ -636,4 +645,14 @@ ________ END
 ________ TABLE_finalize_custom_del
     if (pStmt_del_@@customname@@)
         sqlite3_finalize(pStmt_del_@@customname@@);
+________ END
+
+________ TABLE_descriptor
+
+    desc.tablename = "@@tablename@@";
+    desc.fieldname = "@@fieldname@@";
+    desc.ctype = "@@fieldtype_mutable@@";
+    desc.sqlite_type = SQLITE_@@sqlite_type@@;
+    desc.sqlite3gen_type = @@sqlite3gen_type@@;
+    columns.push_back(desc);
 ________ END

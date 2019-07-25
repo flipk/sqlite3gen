@@ -14,6 +14,15 @@ SQL_SELECT_@@queryname@@ :: ~SQL_SELECT_@@queryname@@(void)
         sqlite3_finalize(pStmt_get_query);
 }
 
+//static
+void SQL_SELECT_@@queryname@@ :: get_column_descriptors(
+    std::vector<SQL_Column_Descriptor> &columns)
+{
+    SQL_Column_Descriptor desc;
+    columns.clear();
+@@column_descriptors@@
+}
+
 void
 SQL_SELECT_@@queryname@@ :: set_db(sqlite3 *_pdb)
 {

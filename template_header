@@ -43,6 +43,28 @@ typedef void (*table_version_callback)(
     int version_in_code);
 
 @@class_forwards@@
+
+enum SQLITE3GEN_Column_TypeDef
+{
+    // NOTE this must match TypeDef in sqlite3gen/parser.h
+    TYPE_INT    = 1,
+    TYPE_INT64  = 2,
+    TYPE_TEXT   = 3,
+    TYPE_BLOB   = 4,
+    TYPE_DOUBLE = 5,
+    TYPE_BOOL   = 6,
+    TYPE_ENUM   = 7,
+    TYPE_SUBTABLE = 8
+};
+
+struct SQL_Column_Descriptor
+{
+    std::string   tablename;
+    std::string   fieldname;
+    std::string   ctype;
+    int           sqlite_type; // SQLITE_{INTEGER,FLOAT,BLOB,TEXT}
+    SQLITE3GEN_Column_TypeDef  sqlite3gen_type;
+};
 ________ END
 
 ________ TABLE_CLASS_DEFN
@@ -87,6 +109,8 @@ public:
     virtual ~SQL_TABLE_@@tablename@@(void);
 
     static const int TABLE_VERSION = @@tableversion@@;
+    static void get_column_descriptors(
+        std::vector<SQL_Column_Descriptor> &columns);
 
 // set all fields to default values
     void init(void);
@@ -223,6 +247,8 @@ public:
     SQL_SELECT_@@queryname@@(sqlite3 *_pdb = NULL);
     ~SQL_SELECT_@@queryname@@(void);
 // init pdb here, or set to NULL to finalize stmt and release
+    static void get_column_descriptors(
+        std::vector<SQL_Column_Descriptor> &columns);
     void set_db(sqlite3 *_pdb);
 // @@querybody@@
     bool get(@@queryargs@@);

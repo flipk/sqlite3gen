@@ -249,6 +249,78 @@ void SQL_TABLE_user :: init(void)
     previous_get = NULL;
 }
 
+//static
+void SQL_TABLE_user :: get_column_descriptors(
+    std::vector<SQL_Column_Descriptor> &columns)
+{
+    SQL_Column_Descriptor desc;
+    columns.clear();
+
+    desc.tablename = "user";
+    desc.fieldname = "userid";
+    desc.ctype = "int32_t";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "firstname";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_TEXT;
+    desc.sqlite3gen_type = TYPE_TEXT;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "lastname";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_TEXT;
+    desc.sqlite3gen_type = TYPE_TEXT;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "mi";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_TEXT;
+    desc.sqlite3gen_type = TYPE_TEXT;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "SSN";
+    desc.ctype = "int32_t";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "balance";
+    desc.ctype = "double";
+    desc.sqlite_type = SQLITE_FLOAT;
+    desc.sqlite3gen_type = TYPE_DOUBLE;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "proto";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_BLOB;
+    desc.sqlite3gen_type = TYPE_BLOB;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "test2";
+    desc.ctype = "bool";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_BOOL;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "test3";
+    desc.ctype = "sample::library2::EnumField_t";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_ENUM;
+    columns.push_back(desc);
+
+}
+
 void SQL_TABLE_user :: set_db(sqlite3 *_pdb)
 {
     finalize();
@@ -2445,6 +2517,50 @@ void SQL_TABLE_book :: init(void)
     previous_get = NULL;
 }
 
+//static
+void SQL_TABLE_book :: get_column_descriptors(
+    std::vector<SQL_Column_Descriptor> &columns)
+{
+    SQL_Column_Descriptor desc;
+    columns.clear();
+
+    desc.tablename = "book";
+    desc.fieldname = "bookid";
+    desc.ctype = "int32_t";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT;
+    columns.push_back(desc);
+
+    desc.tablename = "book";
+    desc.fieldname = "title";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_TEXT;
+    desc.sqlite3gen_type = TYPE_TEXT;
+    columns.push_back(desc);
+
+    desc.tablename = "book";
+    desc.fieldname = "isbn";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_TEXT;
+    desc.sqlite3gen_type = TYPE_TEXT;
+    columns.push_back(desc);
+
+    desc.tablename = "book";
+    desc.fieldname = "price";
+    desc.ctype = "double";
+    desc.sqlite_type = SQLITE_FLOAT;
+    desc.sqlite3gen_type = TYPE_DOUBLE;
+    columns.push_back(desc);
+
+    desc.tablename = "book";
+    desc.fieldname = "quantity";
+    desc.ctype = "int32_t";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT;
+    columns.push_back(desc);
+
+}
+
 void SQL_TABLE_book :: set_db(sqlite3 *_pdb)
 {
     finalize();
@@ -3835,6 +3951,36 @@ void SQL_TABLE_checkouts :: init(void)
     previous_get = NULL;
 }
 
+//static
+void SQL_TABLE_checkouts :: get_column_descriptors(
+    std::vector<SQL_Column_Descriptor> &columns)
+{
+    SQL_Column_Descriptor desc;
+    columns.clear();
+
+    desc.tablename = "checkouts";
+    desc.fieldname = "bookid2";
+    desc.ctype = "int32_t";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT;
+    columns.push_back(desc);
+
+    desc.tablename = "checkouts";
+    desc.fieldname = "userid2";
+    desc.ctype = "int32_t";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT;
+    columns.push_back(desc);
+
+    desc.tablename = "checkouts";
+    desc.fieldname = "duedate";
+    desc.ctype = "int64_t";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT64;
+    columns.push_back(desc);
+
+}
+
 void SQL_TABLE_checkouts :: set_db(sqlite3 *_pdb)
 {
     finalize();
@@ -4827,6 +4973,78 @@ SQL_SELECT_due_books :: ~SQL_SELECT_due_books(void)
         sqlite3_finalize(pStmt_get_query);
 }
 
+//static
+void SQL_SELECT_due_books :: get_column_descriptors(
+    std::vector<SQL_Column_Descriptor> &columns)
+{
+    SQL_Column_Descriptor desc;
+    columns.clear();
+
+    desc.tablename = "user";
+    desc.fieldname = "rowid";
+    desc.ctype = "sqlite3_int64";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT64;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "firstname";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_TEXT;
+    desc.sqlite3gen_type = TYPE_TEXT;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "lastname";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_TEXT;
+    desc.sqlite3gen_type = TYPE_TEXT;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "test2";
+    desc.ctype = "bool";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_BOOL;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "test3";
+    desc.ctype = "sample::library2::EnumField_t";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_ENUM;
+    columns.push_back(desc);
+
+    desc.tablename = "book";
+    desc.fieldname = "rowid";
+    desc.ctype = "sqlite3_int64";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT64;
+    columns.push_back(desc);
+
+    desc.tablename = "book";
+    desc.fieldname = "title";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_TEXT;
+    desc.sqlite3gen_type = TYPE_TEXT;
+    columns.push_back(desc);
+
+    desc.tablename = "checkouts";
+    desc.fieldname = "rowid";
+    desc.ctype = "sqlite3_int64";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT64;
+    columns.push_back(desc);
+
+    desc.tablename = "checkouts";
+    desc.fieldname = "duedate";
+    desc.ctype = "int64_t";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT64;
+    columns.push_back(desc);
+
+}
+
 void
 SQL_SELECT_due_books :: set_db(sqlite3 *_pdb)
 {
@@ -5086,6 +5304,78 @@ SQL_SELECT_due_books2 :: ~SQL_SELECT_due_books2(void)
 {
     if (pStmt_get_query != NULL)
         sqlite3_finalize(pStmt_get_query);
+}
+
+//static
+void SQL_SELECT_due_books2 :: get_column_descriptors(
+    std::vector<SQL_Column_Descriptor> &columns)
+{
+    SQL_Column_Descriptor desc;
+    columns.clear();
+
+    desc.tablename = "user";
+    desc.fieldname = "rowid";
+    desc.ctype = "sqlite3_int64";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT64;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "firstname";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_TEXT;
+    desc.sqlite3gen_type = TYPE_TEXT;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "lastname";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_TEXT;
+    desc.sqlite3gen_type = TYPE_TEXT;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "test2";
+    desc.ctype = "bool";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_BOOL;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "test3";
+    desc.ctype = "sample::library2::EnumField_t";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_ENUM;
+    columns.push_back(desc);
+
+    desc.tablename = "book";
+    desc.fieldname = "rowid";
+    desc.ctype = "sqlite3_int64";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT64;
+    columns.push_back(desc);
+
+    desc.tablename = "book";
+    desc.fieldname = "title";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_TEXT;
+    desc.sqlite3gen_type = TYPE_TEXT;
+    columns.push_back(desc);
+
+    desc.tablename = "checkouts";
+    desc.fieldname = "rowid";
+    desc.ctype = "sqlite3_int64";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT64;
+    columns.push_back(desc);
+
+    desc.tablename = "checkouts";
+    desc.fieldname = "duedate";
+    desc.ctype = "int64_t";
+    desc.sqlite_type = SQLITE_INTEGER;
+    desc.sqlite3gen_type = TYPE_INT64;
+    columns.push_back(desc);
+
 }
 
 void

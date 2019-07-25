@@ -56,6 +56,23 @@ TypeDef_to_Ctype(const TypeDefValue *t, bool do_const,
 }
 
 static inline std::string
+TypeDef_to_string(TypeDef t)
+{
+    switch (t)
+    {
+    case TYPE_INT:      return "TYPE_INT";
+    case TYPE_BOOL:     return "TYPE_BOOL";
+    case TYPE_INT64:    return "TYPE_INT64";
+    case TYPE_DOUBLE:   return "TYPE_DOUBLE";
+    case TYPE_TEXT:     return "TYPE_TEXT";
+    case TYPE_BLOB:     return "TYPE_BLOB";
+    case TYPE_ENUM:     return "TYPE_ENUM";
+    case TYPE_SUBTABLE: return "TYPE_SUBTABLE";
+    }
+    return "UNKNOWN_TYPE";
+}
+
+static inline std::string
 TypeDef_to_sqlite_macro(TypeDef t)
 {
     switch (t)
