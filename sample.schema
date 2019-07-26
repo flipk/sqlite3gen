@@ -92,7 +92,7 @@ TABLE checkouts VERSION 1
 # a TOK_STRING unless the open and close quotes are on the same line.
 
 CUSTOM-SELECT due_books
-   (user.rowid user.firstname user.lastname user.test2 user.test3
+   (user.rowid user.firstname user.lastname user.test2 user.test3 user.proto
     book.rowid book.title
     checkouts.rowid checkouts.duedate)
   (user checkouts book)
@@ -100,7 +100,7 @@ CUSTOM-SELECT due_books
   "checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC"
 
 CUSTOM-SELECT due_books2
-   (user.rowid user.firstname user.lastname user.test2 user.test3
+   (user.rowid user.firstname user.lastname user.test2 user.test3 user.proto
     book.rowid book.title
     checkouts.rowid checkouts.duedate)
   (INT INT)

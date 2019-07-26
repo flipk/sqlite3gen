@@ -120,6 +120,9 @@ public:
     sqlite3_int64 rowid;
 
 @@table_field_type_name_decls@@
+    std::string rowid_toString(void);
+@@table_field_type_name_tostring_decls@@
+    std::string toString(void);
 @@table_query_method_protos@@
     // get all subtables
     void get_subtables(void);
@@ -192,6 +195,18 @@ ________ TABLE_CLASS_table_field_type_name_decls
     @@fieldtype@@ @@fieldname@@;
 ________ END
 
+________ TABLE_CLASS_table_field_type_name_tostring_decls
+    std::string @@fieldname@@_toString(void);
+________ END
+
+________ QUERY_CLASS_query_field
+    @@fieldtype@@ @@tablename@@_@@fieldname@@;
+________ END
+
+________ QUERY_CLASS_table_field_type_name_tostring_decls
+    std::string @@tablename@@_@@fieldname@@_toString(void);
+________ END
+
 ________ TABLE_CLASS_table_query_method_protos
     bool get_by_@@fieldname@@(@@fieldtype@@ v);
 ________ END
@@ -255,6 +270,8 @@ public:
     bool get_next(void);
 
 @@queryfields@@
+@@queryfields_tostring@@
+    std::string toString(void);
 };
 ________ END
 

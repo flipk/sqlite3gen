@@ -155,6 +155,19 @@ public:
     // NOTE this is only populated by get_subtable_checkouts()
     std::vector<SQL_TABLE_checkouts> checkouts;
 
+    std::string rowid_toString(void);
+    std::string userid_toString(void);
+    std::string firstname_toString(void);
+    std::string lastname_toString(void);
+    std::string mi_toString(void);
+    std::string SSN_toString(void);
+    std::string balance_toString(void);
+    std::string proto_toString(void);
+    std::string test2_toString(void);
+    std::string test3_toString(void);
+    std::string checkouts_toString(void);
+
+    std::string toString(void);
     bool get_by_userid(int32_t v);
     bool get_by_SSN(int32_t v);
     bool get_by_test2(bool v);
@@ -292,6 +305,14 @@ public:
     double price;
     int32_t quantity;
 
+    std::string rowid_toString(void);
+    std::string bookid_toString(void);
+    std::string title_toString(void);
+    std::string isbn_toString(void);
+    std::string price_toString(void);
+    std::string quantity_toString(void);
+
+    std::string toString(void);
     bool get_by_bookid(int32_t v);
     bool get_by_isbn(const std::string & v);
 
@@ -406,6 +427,12 @@ public:
     int32_t userid2;
     int64_t duedate;
 
+    std::string rowid_toString(void);
+    std::string bookid2_toString(void);
+    std::string userid2_toString(void);
+    std::string duedate_toString(void);
+
+    std::string toString(void);
     bool get_by_bookid2(int32_t v);
     bool get_by_userid2(int32_t v);
 
@@ -477,11 +504,24 @@ public:
     std::string user_lastname;
     bool user_test2;
     sample::library2::EnumField_t user_test3;
+    std::string user_proto;
     sqlite3_int64 book_rowid;
     std::string book_title;
     sqlite3_int64 checkouts_rowid;
     int64_t checkouts_duedate;
 
+    std::string user_rowid_toString(void);
+    std::string user_firstname_toString(void);
+    std::string user_lastname_toString(void);
+    std::string user_test2_toString(void);
+    std::string user_test3_toString(void);
+    std::string user_proto_toString(void);
+    std::string book_rowid_toString(void);
+    std::string book_title_toString(void);
+    std::string checkouts_rowid_toString(void);
+    std::string checkouts_duedate_toString(void);
+
+    std::string toString(void);
 };
 class SQL_SELECT_due_books2 {
     sqlite3_stmt * pStmt_get_query;
@@ -504,11 +544,24 @@ public:
     std::string user_lastname;
     bool user_test2;
     sample::library2::EnumField_t user_test3;
+    std::string user_proto;
     sqlite3_int64 book_rowid;
     std::string book_title;
     sqlite3_int64 checkouts_rowid;
     int64_t checkouts_duedate;
 
+    std::string user_rowid_toString(void);
+    std::string user_firstname_toString(void);
+    std::string user_lastname_toString(void);
+    std::string user_test2_toString(void);
+    std::string user_test3_toString(void);
+    std::string user_proto_toString(void);
+    std::string book_rowid_toString(void);
+    std::string book_title_toString(void);
+    std::string checkouts_rowid_toString(void);
+    std::string checkouts_duedate_toString(void);
+
+    std::string toString(void);
 };
 
 class SQL_TABLE_ALL_TABLES {

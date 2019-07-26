@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 
 
 /* source top line 1 */
@@ -319,6 +320,113 @@ void SQL_TABLE_user :: get_column_descriptors(
     desc.sqlite3gen_type = TYPE_ENUM;
     columns.push_back(desc);
 
+}
+
+std::string SQL_TABLE_user :: rowid_toString(void)
+{
+    std::ostringstream out;
+    out << rowid;
+    return out.str();
+}
+
+std::string
+SQL_TABLE_user :: userid_toString(void)
+{
+    std::ostringstream out;
+    out << userid;
+    return out.str();
+}
+std::string
+SQL_TABLE_user :: firstname_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << firstname << "\"";
+    return out.str();
+}
+std::string
+SQL_TABLE_user :: lastname_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << lastname << "\"";
+    return out.str();
+}
+std::string
+SQL_TABLE_user :: mi_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << mi << "\"";
+    return out.str();
+}
+std::string
+SQL_TABLE_user :: SSN_toString(void)
+{
+    std::ostringstream out;
+    out << SSN;
+    return out.str();
+}
+std::string
+SQL_TABLE_user :: balance_toString(void)
+{
+    std::ostringstream out;
+    out << balance;
+    return out.str();
+}
+std::string
+SQL_TABLE_user :: proto_toString(void)
+{
+    std::ostringstream out;
+    out << "BLOB:";
+    for (size_t ind = 0; ind < proto.size(); ind++)
+    {
+        uint8_t b = (uint8_t) proto[ind];
+        out << std::hex << std::setw(2) << (int) b;
+    }
+    return out.str();
+}
+std::string
+SQL_TABLE_user :: test2_toString(void)
+{
+    return test2 ? "true" : "false";
+}
+std::string
+SQL_TABLE_user :: test3_toString(void)
+{
+    return sample::library2::EnumField_t_Name(test3);
+}
+std::string
+SQL_TABLE_user :: checkouts_toString(void)
+{
+    std::ostringstream out;
+    bool first = true;
+    for (size_t ind = 0; ind < checkouts.size(); ind++)
+    {
+        if (!first)
+            out << ",";
+        out << "{";
+        out << checkouts[ind].toString();
+        out << "}";
+        first = false;
+    }
+    return out.str();
+}
+
+
+std::string SQL_TABLE_user :: toString(void)
+{
+    std::ostringstream out;
+    out << "rowid:" << rowid_toString() << ";";
+    out << "userid: " << userid_toString() << "; ";
+    out << "firstname: " << firstname_toString() << "; ";
+    out << "lastname: " << lastname_toString() << "; ";
+    out << "mi: " << mi_toString() << "; ";
+    out << "SSN: " << SSN_toString() << "; ";
+    out << "balance: " << balance_toString() << "; ";
+    out << "proto: " << proto_toString() << "; ";
+    out << "test2: " << test2_toString() << "; ";
+    out << "test3: " << test3_toString() << "; ";
+    out << "checkouts: " << checkouts_toString() << "; ";
+
+    return out.str();
 }
 
 void SQL_TABLE_user :: set_db(sqlite3 *_pdb)
@@ -2561,6 +2669,63 @@ void SQL_TABLE_book :: get_column_descriptors(
 
 }
 
+std::string SQL_TABLE_book :: rowid_toString(void)
+{
+    std::ostringstream out;
+    out << rowid;
+    return out.str();
+}
+
+std::string
+SQL_TABLE_book :: bookid_toString(void)
+{
+    std::ostringstream out;
+    out << bookid;
+    return out.str();
+}
+std::string
+SQL_TABLE_book :: title_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << title << "\"";
+    return out.str();
+}
+std::string
+SQL_TABLE_book :: isbn_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << isbn << "\"";
+    return out.str();
+}
+std::string
+SQL_TABLE_book :: price_toString(void)
+{
+    std::ostringstream out;
+    out << price;
+    return out.str();
+}
+std::string
+SQL_TABLE_book :: quantity_toString(void)
+{
+    std::ostringstream out;
+    out << quantity;
+    return out.str();
+}
+
+
+std::string SQL_TABLE_book :: toString(void)
+{
+    std::ostringstream out;
+    out << "rowid:" << rowid_toString() << ";";
+    out << "bookid: " << bookid_toString() << "; ";
+    out << "title: " << title_toString() << "; ";
+    out << "isbn: " << isbn_toString() << "; ";
+    out << "price: " << price_toString() << "; ";
+    out << "quantity: " << quantity_toString() << "; ";
+
+    return out.str();
+}
+
 void SQL_TABLE_book :: set_db(sqlite3 *_pdb)
 {
     finalize();
@@ -3981,6 +4146,47 @@ void SQL_TABLE_checkouts :: get_column_descriptors(
 
 }
 
+std::string SQL_TABLE_checkouts :: rowid_toString(void)
+{
+    std::ostringstream out;
+    out << rowid;
+    return out.str();
+}
+
+std::string
+SQL_TABLE_checkouts :: bookid2_toString(void)
+{
+    std::ostringstream out;
+    out << bookid2;
+    return out.str();
+}
+std::string
+SQL_TABLE_checkouts :: userid2_toString(void)
+{
+    std::ostringstream out;
+    out << userid2;
+    return out.str();
+}
+std::string
+SQL_TABLE_checkouts :: duedate_toString(void)
+{
+    std::ostringstream out;
+    out << duedate;
+    return out.str();
+}
+
+
+std::string SQL_TABLE_checkouts :: toString(void)
+{
+    std::ostringstream out;
+    out << "rowid:" << rowid_toString() << ";";
+    out << "bookid2: " << bookid2_toString() << "; ";
+    out << "userid2: " << userid2_toString() << "; ";
+    out << "duedate: " << duedate_toString() << "; ";
+
+    return out.str();
+}
+
 void SQL_TABLE_checkouts :: set_db(sqlite3 *_pdb)
 {
     finalize();
@@ -5015,6 +5221,13 @@ void SQL_SELECT_due_books :: get_column_descriptors(
     desc.sqlite3gen_type = TYPE_ENUM;
     columns.push_back(desc);
 
+    desc.tablename = "user";
+    desc.fieldname = "proto";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_BLOB;
+    desc.sqlite3gen_type = TYPE_BLOB;
+    columns.push_back(desc);
+
     desc.tablename = "book";
     desc.fieldname = "rowid";
     desc.ctype = "sqlite3_int64";
@@ -5156,30 +5369,55 @@ SQL_SELECT_due_books :: get_columns(void)
         log_row_msg << "user_test3:"
                     << sample::library2::EnumField_t_Name(user_test3) << "; ";
     got = sqlite3_column_type(pStmt, 5);
+    if (got != SQLITE_BLOB)
+    {
+#if 0 // coerce everything to string.
+        PRINT_ERR("get_columns (user_proto) : "
+                "column 5 wrong type (%d %d)",
+                got, SQLITE_BLOB);
+        return false;
+#endif
+    }
+    {
+        const void * ptr = sqlite3_column_blob(
+            pStmt, 5);
+        int len = sqlite3_column_bytes(pStmt, 5);
+        user_proto.resize(len);
+        memcpy((void*)user_proto.c_str(), ptr, len);
+    }
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "user_proto:\"" << user_proto << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "user_proto:(" << user_proto.size()
+                        << " bytes); ";
+    }
+    got = sqlite3_column_type(pStmt, 6);
     if (got != SQLITE_INTEGER)
     {
         PRINT_ERR("get_columns (book_rowid) : "
-                "column 5 wrong type (%d %d)",
+                "column 6 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    book_rowid = sqlite3_column_int64(pStmt, 5);
+    book_rowid = sqlite3_column_int64(pStmt, 6);
     if (log_row_func)
         log_row_msg << "book_rowid:" << book_rowid << "; ";
-    got = sqlite3_column_type(pStmt, 6);
+    got = sqlite3_column_type(pStmt, 7);
     if (got != SQLITE_TEXT)
     {
 #if 0 // coerce everything to string.
         PRINT_ERR("get_columns (book_title) : "
-                "column 6 wrong type (%d %d)",
+                "column 7 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
 #endif
     }
     {
         const void * ptr = sqlite3_column_text(
-            pStmt, 6);
-        int len = sqlite3_column_bytes(pStmt, 6);
+            pStmt, 7);
+        int len = sqlite3_column_bytes(pStmt, 7);
         book_title.resize(len);
         memcpy((void*)book_title.c_str(), ptr, len);
     }
@@ -5191,26 +5429,26 @@ SQL_SELECT_due_books :: get_columns(void)
             log_row_msg << "book_title:(" << book_title.size()
                         << " bytes); ";
     }
-    got = sqlite3_column_type(pStmt, 7);
-    if (got != SQLITE_INTEGER)
-    {
-        PRINT_ERR("get_columns (checkouts_rowid) : "
-                "column 7 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
-    }
-    checkouts_rowid = sqlite3_column_int64(pStmt, 7);
-    if (log_row_func)
-        log_row_msg << "checkouts_rowid:" << checkouts_rowid << "; ";
     got = sqlite3_column_type(pStmt, 8);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (checkouts_duedate) : "
+        PRINT_ERR("get_columns (checkouts_rowid) : "
                 "column 8 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    checkouts_duedate = sqlite3_column_int64(pStmt, 8);
+    checkouts_rowid = sqlite3_column_int64(pStmt, 8);
+    if (log_row_func)
+        log_row_msg << "checkouts_rowid:" << checkouts_rowid << "; ";
+    got = sqlite3_column_type(pStmt, 9);
+    if (got != SQLITE_INTEGER)
+    {
+        PRINT_ERR("get_columns (checkouts_duedate) : "
+                "column 9 wrong type (%d %d)",
+                got, SQLITE_INTEGER);
+        return false;
+    }
+    checkouts_duedate = sqlite3_column_int64(pStmt, 9);
     if (log_row_func)
         log_row_msg << "checkouts_duedate:" << checkouts_duedate << "; ";
 
@@ -5222,6 +5460,107 @@ SQL_SELECT_due_books :: get_columns(void)
     }
 
     return true;
+}
+
+std::string
+SQL_SELECT_due_books :: user_rowid_toString(void)
+{
+    std::ostringstream out;
+    out << user_rowid;
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books :: user_firstname_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << user_firstname << "\"";
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books :: user_lastname_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << user_lastname << "\"";
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books :: user_test2_toString(void)
+{
+    return user_test2 ? "true" : "false";
+}
+std::string
+SQL_SELECT_due_books :: user_test3_toString(void)
+{
+    return sample::library2::EnumField_t_Name(user_test3);
+}
+std::string
+SQL_SELECT_due_books :: user_proto_toString(void)
+{
+    std::ostringstream out;
+    out << "BLOB:";
+    for (size_t ind = 0; ind < user_proto.size(); ind++)
+    {
+        uint8_t b = (uint8_t) user_proto[ind];
+        out << std::hex << std::setw(2) << (int) b;
+    }
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books :: book_rowid_toString(void)
+{
+    std::ostringstream out;
+    out << book_rowid;
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books :: book_title_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << book_title << "\"";
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books :: checkouts_rowid_toString(void)
+{
+    std::ostringstream out;
+    out << checkouts_rowid;
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books :: checkouts_duedate_toString(void)
+{
+    std::ostringstream out;
+    out << checkouts_duedate;
+    return out.str();
+}
+
+
+std::string
+SQL_SELECT_due_books :: toString(void)
+{
+    std::ostringstream out;
+    out << "user_rowid: "
+        << user_rowid_toString() << "; ";
+    out << "user_firstname: "
+        << user_firstname_toString() << "; ";
+    out << "user_lastname: "
+        << user_lastname_toString() << "; ";
+    out << "user_test2: "
+        << user_test2_toString() << "; ";
+    out << "user_test3: "
+        << user_test3_toString() << "; ";
+    out << "user_proto: "
+        << user_proto_toString() << "; ";
+    out << "book_rowid: "
+        << book_rowid_toString() << "; ";
+    out << "book_title: "
+        << book_title_toString() << "; ";
+    out << "checkouts_rowid: "
+        << checkouts_rowid_toString() << "; ";
+    out << "checkouts_duedate: "
+        << checkouts_duedate_toString() << "; ";
+
+    return out.str();
 }
 
 bool
@@ -5237,7 +5576,7 @@ SQL_SELECT_due_books :: get(int32_t v1, int32_t v2)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT user.rowid, user.firstname, user.lastname, user.test2, user.test3, book.rowid, book.title, checkouts.rowid, checkouts.duedate "
+            "SELECT user.rowid, user.firstname, user.lastname, user.test2, user.test3, user.proto, book.rowid, book.title, checkouts.rowid, checkouts.duedate "
             "FROM user, checkouts, book WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC",
             -1, &pStmt_get_query, NULL);
         if (r != SQLITE_OK)
@@ -5346,6 +5685,13 @@ void SQL_SELECT_due_books2 :: get_column_descriptors(
     desc.ctype = "sample::library2::EnumField_t";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_ENUM;
+    columns.push_back(desc);
+
+    desc.tablename = "user";
+    desc.fieldname = "proto";
+    desc.ctype = "std::string";
+    desc.sqlite_type = SQLITE_BLOB;
+    desc.sqlite3gen_type = TYPE_BLOB;
     columns.push_back(desc);
 
     desc.tablename = "book";
@@ -5489,30 +5835,55 @@ SQL_SELECT_due_books2 :: get_columns(void)
         log_row_msg << "user_test3:"
                     << sample::library2::EnumField_t_Name(user_test3) << "; ";
     got = sqlite3_column_type(pStmt, 5);
+    if (got != SQLITE_BLOB)
+    {
+#if 0 // coerce everything to string.
+        PRINT_ERR("get_columns (user_proto) : "
+                "column 5 wrong type (%d %d)",
+                got, SQLITE_BLOB);
+        return false;
+#endif
+    }
+    {
+        const void * ptr = sqlite3_column_blob(
+            pStmt, 5);
+        int len = sqlite3_column_bytes(pStmt, 5);
+        user_proto.resize(len);
+        memcpy((void*)user_proto.c_str(), ptr, len);
+    }
+    if (log_row_func)
+    {
+        if (got == SQLITE_TEXT)
+            log_row_msg << "user_proto:\"" << user_proto << "\"; ";
+        else // can't print a blob! just print length
+            log_row_msg << "user_proto:(" << user_proto.size()
+                        << " bytes); ";
+    }
+    got = sqlite3_column_type(pStmt, 6);
     if (got != SQLITE_INTEGER)
     {
         PRINT_ERR("get_columns (book_rowid) : "
-                "column 5 wrong type (%d %d)",
+                "column 6 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    book_rowid = sqlite3_column_int64(pStmt, 5);
+    book_rowid = sqlite3_column_int64(pStmt, 6);
     if (log_row_func)
         log_row_msg << "book_rowid:" << book_rowid << "; ";
-    got = sqlite3_column_type(pStmt, 6);
+    got = sqlite3_column_type(pStmt, 7);
     if (got != SQLITE_TEXT)
     {
 #if 0 // coerce everything to string.
         PRINT_ERR("get_columns (book_title) : "
-                "column 6 wrong type (%d %d)",
+                "column 7 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
 #endif
     }
     {
         const void * ptr = sqlite3_column_text(
-            pStmt, 6);
-        int len = sqlite3_column_bytes(pStmt, 6);
+            pStmt, 7);
+        int len = sqlite3_column_bytes(pStmt, 7);
         book_title.resize(len);
         memcpy((void*)book_title.c_str(), ptr, len);
     }
@@ -5524,26 +5895,26 @@ SQL_SELECT_due_books2 :: get_columns(void)
             log_row_msg << "book_title:(" << book_title.size()
                         << " bytes); ";
     }
-    got = sqlite3_column_type(pStmt, 7);
-    if (got != SQLITE_INTEGER)
-    {
-        PRINT_ERR("get_columns (checkouts_rowid) : "
-                "column 7 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
-    }
-    checkouts_rowid = sqlite3_column_int64(pStmt, 7);
-    if (log_row_func)
-        log_row_msg << "checkouts_rowid:" << checkouts_rowid << "; ";
     got = sqlite3_column_type(pStmt, 8);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (checkouts_duedate) : "
+        PRINT_ERR("get_columns (checkouts_rowid) : "
                 "column 8 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    checkouts_duedate = sqlite3_column_int64(pStmt, 8);
+    checkouts_rowid = sqlite3_column_int64(pStmt, 8);
+    if (log_row_func)
+        log_row_msg << "checkouts_rowid:" << checkouts_rowid << "; ";
+    got = sqlite3_column_type(pStmt, 9);
+    if (got != SQLITE_INTEGER)
+    {
+        PRINT_ERR("get_columns (checkouts_duedate) : "
+                "column 9 wrong type (%d %d)",
+                got, SQLITE_INTEGER);
+        return false;
+    }
+    checkouts_duedate = sqlite3_column_int64(pStmt, 9);
     if (log_row_func)
         log_row_msg << "checkouts_duedate:" << checkouts_duedate << "; ";
 
@@ -5555,6 +5926,107 @@ SQL_SELECT_due_books2 :: get_columns(void)
     }
 
     return true;
+}
+
+std::string
+SQL_SELECT_due_books2 :: user_rowid_toString(void)
+{
+    std::ostringstream out;
+    out << user_rowid;
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books2 :: user_firstname_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << user_firstname << "\"";
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books2 :: user_lastname_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << user_lastname << "\"";
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books2 :: user_test2_toString(void)
+{
+    return user_test2 ? "true" : "false";
+}
+std::string
+SQL_SELECT_due_books2 :: user_test3_toString(void)
+{
+    return sample::library2::EnumField_t_Name(user_test3);
+}
+std::string
+SQL_SELECT_due_books2 :: user_proto_toString(void)
+{
+    std::ostringstream out;
+    out << "BLOB:";
+    for (size_t ind = 0; ind < user_proto.size(); ind++)
+    {
+        uint8_t b = (uint8_t) user_proto[ind];
+        out << std::hex << std::setw(2) << (int) b;
+    }
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books2 :: book_rowid_toString(void)
+{
+    std::ostringstream out;
+    out << book_rowid;
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books2 :: book_title_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << book_title << "\"";
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books2 :: checkouts_rowid_toString(void)
+{
+    std::ostringstream out;
+    out << checkouts_rowid;
+    return out.str();
+}
+std::string
+SQL_SELECT_due_books2 :: checkouts_duedate_toString(void)
+{
+    std::ostringstream out;
+    out << checkouts_duedate;
+    return out.str();
+}
+
+
+std::string
+SQL_SELECT_due_books2 :: toString(void)
+{
+    std::ostringstream out;
+    out << "user_rowid: "
+        << user_rowid_toString() << "; ";
+    out << "user_firstname: "
+        << user_firstname_toString() << "; ";
+    out << "user_lastname: "
+        << user_lastname_toString() << "; ";
+    out << "user_test2: "
+        << user_test2_toString() << "; ";
+    out << "user_test3: "
+        << user_test3_toString() << "; ";
+    out << "user_proto: "
+        << user_proto_toString() << "; ";
+    out << "book_rowid: "
+        << book_rowid_toString() << "; ";
+    out << "book_title: "
+        << book_title_toString() << "; ";
+    out << "checkouts_rowid: "
+        << checkouts_rowid_toString() << "; ";
+    out << "checkouts_duedate: "
+        << checkouts_duedate_toString() << "; ";
+
+    return out.str();
 }
 
 bool
@@ -5570,7 +6042,7 @@ SQL_SELECT_due_books2 :: get(int32_t v1, int32_t v2)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT user.rowid, user.firstname, user.lastname, user.test2, user.test3, book.rowid, book.title, checkouts.rowid, checkouts.duedate "
+            "SELECT user.rowid, user.firstname, user.lastname, user.test2, user.test3, user.proto, book.rowid, book.title, checkouts.rowid, checkouts.duedate "
             "FROM user, checkouts, book WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC",
             -1, &pStmt_get_query, NULL);
         if (r != SQLITE_OK)

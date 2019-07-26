@@ -96,6 +96,8 @@ void emit_source(const std::string &fname,
         ostringstream set_db_subtables;
         ostringstream autoincr_rowid_fetch;
         ostringstream column_descriptors;
+        ostringstream field_tostring_funcs;
+        ostringstream tostring_fields;
 
         const FieldDef * fd;
         const CustomGetUpdList * cust;
@@ -261,6 +263,10 @@ void emit_source(const std::string &fname,
                     proto_copy_to, patterns);
                 output_TABLE_proto_copy_from_subtable(
                     proto_copy_from, patterns);
+                output_TABLE_field_subtable_tostring_func(
+                    field_tostring_funcs, patterns);
+                output_TABLE_tostring_field(
+                    tostring_fields, patterns);
                 continue;
             }
 
@@ -418,6 +424,34 @@ void emit_source(const std::string &fname,
             case TYPE_INT:
             case TYPE_INT64:
             case TYPE_DOUBLE:
+                output_TABLE_field_pod_tostring_func(
+                    field_tostring_funcs, patterns);
+                break;
+            case TYPE_TEXT:
+                output_TABLE_field_text_tostring_func(
+                    field_tostring_funcs, patterns);
+                break;
+            case TYPE_BLOB:
+                output_TABLE_field_blob_tostring_func(
+                    field_tostring_funcs, patterns);
+                break;
+            case TYPE_BOOL:
+                output_TABLE_field_bool_tostring_func(
+                    field_tostring_funcs, patterns);
+                break;
+            case TYPE_ENUM:
+                output_TABLE_field_enum_tostring_func(
+                    field_tostring_funcs, patterns);
+                break;
+            case TYPE_SUBTABLE:
+                break;
+            }
+
+            switch (t)
+            {
+            case TYPE_INT:
+            case TYPE_INT64:
+            case TYPE_DOUBLE:
                 if (fd->attrs.auto_increment == false)
                 {
                     patterns["stmt"] = "insert";
@@ -509,6 +543,8 @@ void emit_source(const std::string &fname,
             patterns["sqlite3gen_type"] = TypeDef_to_string(t);
 
             output_TABLE_descriptor(column_descriptors, patterns);
+            output_TABLE_tostring_field(
+                tostring_fields, patterns);
         }
 
         table_create_constraints << td->constraints;
@@ -843,6 +879,8 @@ void emit_source(const std::string &fname,
         SET_PATTERN(set_db_subtables);
         SET_PATTERN(autoincr_rowid_fetch);
         SET_PATTERN(column_descriptors);
+        SET_PATTERN(field_tostring_funcs);
+        SET_PATTERN(tostring_fields);
 
         patterns["is_subtable"] = td->is_subtable ? "true" : "false";
 
@@ -872,6 +910,8 @@ void emit_source(const std::string &fname,
         ostringstream queryfields;
         ostringstream querybody;
         ostringstream column_descriptors;
+        ostringstream field_tostring_funcs;
+        ostringstream tostring_fields;
 
         patterns["queryname"] = csel->name;
 
@@ -981,8 +1021,37 @@ void emit_source(const std::string &fname,
             patterns["fieldtype_mutable"] = fieldtype;
             patterns["sqlite3gen_type"] = TypeDef_to_string(t);
 
-            output_TABLE_descriptor(column_descriptors, patterns);
+            switch (t)
+            {
+            case TYPE_INT:
+            case TYPE_INT64:
+            case TYPE_DOUBLE:
+                output_QUERY_field_pod_tostring_func(
+                    field_tostring_funcs, patterns);
+                break;
+            case TYPE_TEXT:
+                output_QUERY_field_text_tostring_func(
+                    field_tostring_funcs, patterns);
+                break;
+            case TYPE_BLOB:
+                output_QUERY_field_blob_tostring_func(
+                    field_tostring_funcs, patterns);
+                break;
+            case TYPE_BOOL:
+                output_QUERY_field_bool_tostring_func(
+                    field_tostring_funcs, patterns);
+                break;
+            case TYPE_ENUM:
+                output_QUERY_field_enum_tostring_func(
+                    field_tostring_funcs, patterns);
+                break;
+            case TYPE_SUBTABLE:
+                break;
+            }
 
+            output_TABLE_descriptor(column_descriptors, patterns);
+            output_QUERY_tostring_field(
+                tostring_fields, patterns);
             argcount++;
         }
 
@@ -1008,6 +1077,8 @@ void emit_source(const std::string &fname,
         SET_PATTERN(queryargs);
         SET_PATTERN(get_columns);
         SET_PATTERN(column_descriptors);
+        SET_PATTERN(field_tostring_funcs);
+        SET_PATTERN(tostring_fields);
         output_QUERY_CLASS_IMPL(out, patterns);
     }
 

@@ -51,6 +51,16 @@ SQL_SELECT_@@queryname@@ :: get_columns(void)
     return true;
 }
 
+@@field_tostring_funcs@@
+
+std::string
+SQL_SELECT_@@queryname@@ :: toString(void)
+{
+    std::ostringstream out;
+@@tostring_fields@@
+    return out.str();
+}
+
 bool
 SQL_SELECT_@@queryname@@ :: get(@@queryargs@@)
 {
@@ -104,4 +114,60 @@ SQL_SELECT_@@queryname@@ :: get_next(void)
 
     return ret;
 }
+________ END
+
+________ QUERY_field_pod_tostring_func
+std::string
+SQL_SELECT_@@queryname@@ :: @@tablename@@_@@fieldname@@_toString(void)
+{
+    std::ostringstream out;
+    out << @@tablename@@_@@fieldname@@;
+    return out.str();
+}
+________ END
+
+________ QUERY_field_text_tostring_func
+std::string
+SQL_SELECT_@@queryname@@ :: @@tablename@@_@@fieldname@@_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << @@tablename@@_@@fieldname@@ << "\"";
+    return out.str();
+}
+________ END
+
+________ QUERY_field_blob_tostring_func
+std::string
+SQL_SELECT_@@queryname@@ :: @@tablename@@_@@fieldname@@_toString(void)
+{
+    std::ostringstream out;
+    out << "BLOB:";
+    for (size_t ind = 0; ind < @@tablename@@_@@fieldname@@.size(); ind++)
+    {
+        uint8_t b = (uint8_t) @@tablename@@_@@fieldname@@[ind];
+        out << std::hex << std::setw(2) << (int) b;
+    }
+    return out.str();
+}
+________ END
+
+________ QUERY_field_bool_tostring_func
+std::string
+SQL_SELECT_@@queryname@@ :: @@tablename@@_@@fieldname@@_toString(void)
+{
+    return @@tablename@@_@@fieldname@@ ? "true" : "false";
+}
+________ END
+
+________ QUERY_field_enum_tostring_func
+std::string
+SQL_SELECT_@@queryname@@ :: @@tablename@@_@@fieldname@@_toString(void)
+{
+    return @@fieldtype@@_Name(@@tablename@@_@@fieldname@@);
+}
+________ END
+
+________ QUERY_tostring_field
+    out << "@@tablename@@_@@fieldname@@: "
+        << @@tablename@@_@@fieldname@@_toString() << "; ";
 ________ END

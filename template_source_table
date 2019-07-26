@@ -95,6 +95,23 @@ void SQL_TABLE_@@tablename@@ :: get_column_descriptors(
 @@column_descriptors@@
 }
 
+std::string SQL_TABLE_@@tablename@@ :: rowid_toString(void)
+{
+    std::ostringstream out;
+    out << rowid;
+    return out.str();
+}
+
+@@field_tostring_funcs@@
+
+std::string SQL_TABLE_@@tablename@@ :: toString(void)
+{
+    std::ostringstream out;
+    out << "rowid:" << rowid_toString() << ";";
+@@tostring_fields@@
+    return out.str();
+}
+
 void SQL_TABLE_@@tablename@@ :: set_db(sqlite3 *_pdb)
 {
     finalize();
@@ -655,4 +672,78 @@ ________ TABLE_descriptor
     desc.sqlite_type = SQLITE_@@sqlite_type@@;
     desc.sqlite3gen_type = @@sqlite3gen_type@@;
     columns.push_back(desc);
+________ END
+
+________ TABLE_field_pod_tostring_func
+std::string
+SQL_TABLE_@@tablename@@ :: @@fieldname@@_toString(void)
+{
+    std::ostringstream out;
+    out << @@fieldname@@;
+    return out.str();
+}
+________ END
+
+________ TABLE_field_text_tostring_func
+std::string
+SQL_TABLE_@@tablename@@ :: @@fieldname@@_toString(void)
+{
+    std::ostringstream out;
+    out << "\"" << @@fieldname@@ << "\"";
+    return out.str();
+}
+________ END
+
+________ TABLE_field_blob_tostring_func
+std::string
+SQL_TABLE_@@tablename@@ :: @@fieldname@@_toString(void)
+{
+    std::ostringstream out;
+    out << "BLOB:";
+    for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
+    {
+        uint8_t b = (uint8_t) @@fieldname@@[ind];
+        out << std::hex << std::setw(2) << (int) b;
+    }
+    return out.str();
+}
+________ END
+
+________ TABLE_field_bool_tostring_func
+std::string
+SQL_TABLE_@@tablename@@ :: @@fieldname@@_toString(void)
+{
+    return @@fieldname@@ ? "true" : "false";
+}
+________ END
+
+________ TABLE_field_enum_tostring_func
+std::string
+SQL_TABLE_@@tablename@@ :: @@fieldname@@_toString(void)
+{
+    return @@fieldtype@@_Name(@@fieldname@@);
+}
+________ END
+
+________ TABLE_field_subtable_tostring_func
+std::string
+SQL_TABLE_@@tablename@@ :: @@fieldname@@_toString(void)
+{
+    std::ostringstream out;
+    bool first = true;
+    for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
+    {
+        if (!first)
+            out << ",";
+        out << "{";
+        out << @@fieldname@@[ind].toString();
+        out << "}";
+        first = false;
+    }
+    return out.str();
+}
+________ END
+
+________ TABLE_tostring_field
+    out << "@@fieldname@@: " << @@fieldname@@_toString() << "; ";
 ________ END

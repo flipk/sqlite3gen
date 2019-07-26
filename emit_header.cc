@@ -68,6 +68,7 @@ void emit_header(const std::string &fname,
         ostringstream stmt_custom_upd_decls;
         ostringstream stmt_custom_del_decls;
         ostringstream table_field_type_name_decls;
+        ostringstream table_field_type_name_tostring_decls;
         ostringstream table_query_method_protos;
         ostringstream table_query_like_method_protos;
         ostringstream table_custom_get_method_protos;
@@ -114,6 +115,10 @@ void emit_header(const std::string &fname,
                 TypeDef_to_Ctype(&fd->type, false, fd->name);
             output_TABLE_CLASS_table_field_type_name_decls(
                 table_field_type_name_decls, patterns);
+
+            output_TABLE_CLASS_table_field_type_name_tostring_decls(
+                table_field_type_name_tostring_decls, patterns);
+
             if (fd->attrs.protoid != -1)
                 include_protos = true;
 
@@ -196,6 +201,7 @@ void emit_header(const std::string &fname,
         SET_PATTERN(stmt_custom_upd_decls);
         SET_PATTERN(stmt_custom_del_decls);
         SET_PATTERN(table_field_type_name_decls);
+        SET_PATTERN(table_field_type_name_tostring_decls);
         SET_PATTERN(table_query_method_protos);
         SET_PATTERN(table_query_like_method_protos);
         SET_PATTERN(table_custom_get_method_protos);
@@ -211,6 +217,7 @@ void emit_header(const std::string &fname,
     {
         ostringstream queryargs;
         ostringstream queryfields;
+        ostringstream queryfields_tostring;
 
         patterns["queryname"] = csel->name;
 
@@ -234,8 +241,14 @@ void emit_header(const std::string &fname,
                 (fd == NULL) ? "sqlite3_int64" :
                 TypeDef_to_Ctype(&fd->type, false, fieldname);
 
-            queryfields << "    " << fieldtype << " "
-                        << td->name << "_" << fieldname << ";\n";
+            patterns["fieldtype"] = fieldtype;
+            patterns["tablename"] = td->name;
+            patterns["fieldname"] = fieldname;
+
+            output_QUERY_CLASS_query_field(
+                queryfields, patterns);
+            output_QUERY_CLASS_table_field_type_name_tostring_decls(
+                queryfields_tostring, patterns);
         }
 
         if (csel->where_clause.size() > 0)
@@ -245,6 +258,7 @@ void emit_header(const std::string &fname,
 
         SET_PATTERN(queryargs);
         SET_PATTERN(queryfields);
+        SET_PATTERN(queryfields_tostring);
 
         output_QUERY_CLASS_DEFN(out, patterns);
     }

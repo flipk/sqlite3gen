@@ -83,6 +83,7 @@ public:
                    (int64_t) checkouts[ind].rowid,   checkouts[ind].userid2,
                    checkouts[ind].bookid2, checkouts[ind].duedate);
         }
+        printf("TOSTRING: %s\n", toString().c_str());
     }
 };
 
@@ -495,6 +496,7 @@ test_subtables(sqlite3 * pdb)
                    due.book_title.c_str(),
                    (int64_t) due.checkouts_rowid,
                    (int64_t) due.checkouts_duedate);
+            printf("TOSTRING: %s\n", due.toString().c_str());
             ok = due.get_next();
         }
     }
@@ -517,6 +519,7 @@ test_subtables(sqlite3 * pdb)
                    due.book_title.c_str(),
                    (int64_t) due.checkouts_rowid,
                    (int64_t) due.checkouts_duedate);
+            printf("TOSTRING: %s\n", due.toString().c_str());
             ok = due.get_next();
         }
     }
