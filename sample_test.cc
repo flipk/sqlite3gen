@@ -240,6 +240,22 @@ main()
         goto bail;
 
     {
+        std::vector<library::SQL_Column_Descriptor>  cols;
+
+        library::SQL_TABLE_user::get_column_descriptors(cols);
+
+        printf("USER table column descriptors:\n");
+        for (size_t ind = 0; ind < cols.size(); ind++)
+        {
+            library::SQL_Column_Descriptor &c = cols[ind];
+
+            printf("tab '%s' field '%s' ctype '%s' sqty %d genty %d\n",
+                   c.tablename.c_str(), c.fieldname.c_str(),
+                   c.ctype.c_str(), c.sqlite_type, c.sqlite3gen_type);
+        }
+    }
+
+    {
 
         user.firstname = "flippy";
         user.lastname = "kadoodle";

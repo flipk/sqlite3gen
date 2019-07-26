@@ -477,6 +477,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         const void * ptr = sqlite3_column_text(
             pStmt, 2);
         int len = sqlite3_column_bytes(pStmt, 2);
+        firstname.clear();
         firstname.resize(len);
         memcpy((void*)firstname.c_str(), ptr, len);
     }
@@ -502,6 +503,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         const void * ptr = sqlite3_column_text(
             pStmt, 3);
         int len = sqlite3_column_bytes(pStmt, 3);
+        lastname.clear();
         lastname.resize(len);
         memcpy((void*)lastname.c_str(), ptr, len);
     }
@@ -527,6 +529,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         const void * ptr = sqlite3_column_text(
             pStmt, 4);
         int len = sqlite3_column_bytes(pStmt, 4);
+        mi.clear();
         mi.resize(len);
         memcpy((void*)mi.c_str(), ptr, len);
     }
@@ -574,6 +577,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
         const void * ptr = sqlite3_column_blob(
             pStmt, 7);
         int len = sqlite3_column_bytes(pStmt, 7);
+        proto.clear();
         proto.resize(len);
         memcpy((void*)proto.c_str(), ptr, len);
     }
@@ -2768,6 +2772,7 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         const void * ptr = sqlite3_column_text(
             pStmt, 2);
         int len = sqlite3_column_bytes(pStmt, 2);
+        title.clear();
         title.resize(len);
         memcpy((void*)title.c_str(), ptr, len);
     }
@@ -2793,6 +2798,7 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
         const void * ptr = sqlite3_column_text(
             pStmt, 3);
         int len = sqlite3_column_bytes(pStmt, 3);
+        isbn.clear();
         isbn.resize(len);
         memcpy((void*)isbn.c_str(), ptr, len);
     }
@@ -5300,6 +5306,7 @@ SQL_SELECT_due_books :: get_columns(void)
         const void * ptr = sqlite3_column_text(
             pStmt, 1);
         int len = sqlite3_column_bytes(pStmt, 1);
+        user_firstname.clear();
         user_firstname.resize(len);
         memcpy((void*)user_firstname.c_str(), ptr, len);
     }
@@ -5325,6 +5332,7 @@ SQL_SELECT_due_books :: get_columns(void)
         const void * ptr = sqlite3_column_text(
             pStmt, 2);
         int len = sqlite3_column_bytes(pStmt, 2);
+        user_lastname.clear();
         user_lastname.resize(len);
         memcpy((void*)user_lastname.c_str(), ptr, len);
     }
@@ -5382,6 +5390,7 @@ SQL_SELECT_due_books :: get_columns(void)
         const void * ptr = sqlite3_column_blob(
             pStmt, 5);
         int len = sqlite3_column_bytes(pStmt, 5);
+        user_proto.clear();
         user_proto.resize(len);
         memcpy((void*)user_proto.c_str(), ptr, len);
     }
@@ -5418,6 +5427,7 @@ SQL_SELECT_due_books :: get_columns(void)
         const void * ptr = sqlite3_column_text(
             pStmt, 7);
         int len = sqlite3_column_bytes(pStmt, 7);
+        book_title.clear();
         book_title.resize(len);
         memcpy((void*)book_title.c_str(), ptr, len);
     }
@@ -5766,6 +5776,7 @@ SQL_SELECT_due_books2 :: get_columns(void)
         const void * ptr = sqlite3_column_text(
             pStmt, 1);
         int len = sqlite3_column_bytes(pStmt, 1);
+        user_firstname.clear();
         user_firstname.resize(len);
         memcpy((void*)user_firstname.c_str(), ptr, len);
     }
@@ -5791,6 +5802,7 @@ SQL_SELECT_due_books2 :: get_columns(void)
         const void * ptr = sqlite3_column_text(
             pStmt, 2);
         int len = sqlite3_column_bytes(pStmt, 2);
+        user_lastname.clear();
         user_lastname.resize(len);
         memcpy((void*)user_lastname.c_str(), ptr, len);
     }
@@ -5848,6 +5860,7 @@ SQL_SELECT_due_books2 :: get_columns(void)
         const void * ptr = sqlite3_column_blob(
             pStmt, 5);
         int len = sqlite3_column_bytes(pStmt, 5);
+        user_proto.clear();
         user_proto.resize(len);
         memcpy((void*)user_proto.c_str(), ptr, len);
     }
@@ -5884,6 +5897,7 @@ SQL_SELECT_due_books2 :: get_columns(void)
         const void * ptr = sqlite3_column_text(
             pStmt, 7);
         int len = sqlite3_column_bytes(pStmt, 7);
+        book_title.clear();
         book_title.resize(len);
         memcpy((void*)book_title.c_str(), ptr, len);
     }
