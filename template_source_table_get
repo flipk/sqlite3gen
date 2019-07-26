@@ -66,6 +66,7 @@ ________ TABLE_get_column_string
         const void * ptr = @@sqlite_column_func@@(
             pStmt, @@select_column_index@@);
         int len = sqlite3_column_bytes(pStmt, @@select_column_index@@);
+        @@fieldname@@.clear();
         @@fieldname@@.resize(len);
         memcpy((void*)@@fieldname@@.c_str(), ptr, len);
     }
