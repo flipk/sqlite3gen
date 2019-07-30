@@ -211,10 +211,19 @@ struct CustomSelect
 
     CustomSelect(void) {
         next = NULL;
+        field_names = NULL;
+        table_names = NULL;
+        types = NULL;
     }
     ~CustomSelect(void) {
         if (next)
             delete next;
+        if (field_names)
+            delete field_names;
+        if (table_names)
+            delete table_names;
+        if (types)
+            delete types;
     }
 };
 
