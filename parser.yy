@@ -57,7 +57,7 @@ static void validate_schema(SchemaDef *sd);
 %type <attrs>   ATTRIBUTES
 %type <number_int> TOK_INTEGER
 %type <number_double> TOK_DOUBLE;
-%type <word>    TOK_STRING
+%type <word>    TOK_STRING TOK_STRINGS
 %type <words>   WORDLIST
 %type <getupdlist> CUSTOMGET CUSTOMUPD CUSTOMUPDBY CUSTOMDEL CUSTOMS
 %type <line_no>    KW_PROTOTOP  KW_PROTOBOTTOM
@@ -176,7 +176,7 @@ CUSTOM_SELECT
 	: KW_CUSTOM_SELECT KW_WORD
 	  L_PAREN WORDLIST R_PAREN
 	  L_PAREN WORDLIST R_PAREN
-	  L_PAREN TYPELIST R_PAREN TOK_STRING
+	  L_PAREN TYPELIST R_PAREN TOK_STRINGS
         {
             CustomSelect * csel = new CustomSelect;
             csel->name = *$2;
@@ -192,7 +192,7 @@ CUSTOM_SELECT
 	| KW_CUSTOM_SELECT KW_WORD
 	  L_PAREN WORDLIST R_PAREN
 	  L_PAREN TYPELIST R_PAREN
-	  TOK_STRING
+	  TOK_STRINGS
 	{
             CustomSelect * csel = new CustomSelect;
             csel->name = *$2;
@@ -241,7 +241,7 @@ CONSTRAINTS
 	;
 
 CONSTRAINT
-	: KW_CONSTRAINT TOK_STRING
+	: KW_CONSTRAINT TOK_STRINGS
 	{
             $$ = new string("CONSTRAINT ");
             *$$ += *$2;
@@ -315,7 +315,7 @@ CUSTOMS
 	;
 
 CUSTOMGET
-	: KW_CUSTOM_GET KW_WORD L_PAREN TYPELIST R_PAREN TOK_STRING
+	: KW_CUSTOM_GET KW_WORD L_PAREN TYPELIST R_PAREN TOK_STRINGS
 	{
             $$ = new CustomGetUpdList;
             $$->init_get(*$2, $4, *$6);
@@ -325,7 +325,7 @@ CUSTOMGET
 	;
 
 CUSTOMDEL
-	: KW_CUSTOM_DEL KW_WORD L_PAREN TYPELIST R_PAREN TOK_STRING
+	: KW_CUSTOM_DEL KW_WORD L_PAREN TYPELIST R_PAREN TOK_STRINGS
 	{
             $$ = new CustomGetUpdList;
             $$->init_del(*$2, $4, *$6);
@@ -357,7 +357,7 @@ CUSTOMUPD
 
 CUSTOMUPDBY
 	: KW_CUSTOM_UPDBY KW_WORD L_PAREN WORDLIST R_PAREN
-          L_PAREN TYPELIST R_PAREN TOK_STRING
+          L_PAREN TYPELIST R_PAREN TOK_STRINGS
 	{
             $$ = new CustomGetUpdList;
             $$->init_updby(*$2, $4, $7, *$9);
@@ -464,7 +464,7 @@ ATTRIBUTES
 		}
 		delete $3;
 	}
-	| ATTRIBUTES KW_DEFAULT TOK_STRING
+	| ATTRIBUTES KW_DEFAULT TOK_STRINGS
 	{
 		$$ = $1;
 		$$->init_string = *$3;
@@ -507,10 +507,23 @@ ATTRIBUTES
                          << "\"OPTIONS (protobuf)\" not set\n";
                 }
 	}
-	| ATTRIBUTES TOK_STRING
+	| ATTRIBUTES TOK_STRINGS
 	{
             $$ = $1;
             $$->constraints = *$2;
+            delete $2;
+	}
+	;
+
+TOK_STRINGS
+	: TOK_STRING
+	{
+            $$ = $1;
+	}
+	| TOK_STRINGS TOK_STRING
+	{
+            $$ = $1;
+            $$->append(*$2);
             delete $2;
 	}
 	;

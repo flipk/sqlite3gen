@@ -78,33 +78,29 @@ TABLE checkouts VERSION 1
     CUSTOM-GET due_now (INT64)  "duedate < ?"
 }
 
-# fun query:
-#
-#     select user.rowid as a,
-#            checkouts.rowid as b,
-#            checkouts.duedate
-#       from user, checkouts, book
-#      where user.userid = checkouts.userid2
-#        and checkouts.bookid2 = book.bookid
-#
-# someday it would be nice to break up long strings across
-# multiple lines, but for now the tokenizer doesn't recognize
-# a TOK_STRING unless the open and close quotes are on the same line.
-
 CUSTOM-SELECT due_books
    (user.rowid user.firstname user.lastname user.test2 user.test3 user.proto
     book.rowid book.title
     checkouts.rowid checkouts.duedate)
   (user checkouts book)
   (INT INT)
-  "checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC"
+  "checkouts.bookid2 = book.bookid "
+  "AND checkouts.userid2 = user.userid "
+  "AND book.bookid > ? "
+  "AND book.bookid < ? "
+  "ORDER BY duedate ASC"
 
 CUSTOM-SELECT due_books2
    (user.rowid user.firstname user.lastname user.test2 user.test3 user.proto
     book.rowid book.title
     checkouts.rowid checkouts.duedate)
   (INT INT)
-   "FROM user, checkouts, book WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC"
+   "FROM user, checkouts, book "
+   "WHERE checkouts.bookid2 = book.bookid "
+   "AND checkouts.userid2 = user.userid "
+   "AND book.bookid > ? "
+   "AND book.bookid < ? "
+   "ORDER BY duedate ASC"
 
 %PROTOBOTTOM{
 // proto bottom line 1
