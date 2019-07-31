@@ -535,7 +535,7 @@ public:
     static void get_column_descriptors(
         std::vector<SQL_Column_Descriptor> &columns);
     void set_db(sqlite3 *_pdb);
-// FROM user, checkouts, book WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC
+// FROM user JOIN checkouts, book ON checkouts.bookid2 = book.bookid                     AND checkouts.userid2 = user.userid WHERE book.bookid > ?   AND book.bookid < ? ORDER BY duedate ASC 
     bool get(int32_t v1, int32_t v2);
     bool get_next(void);
 

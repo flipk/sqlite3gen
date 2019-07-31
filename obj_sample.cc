@@ -6057,7 +6057,7 @@ SQL_SELECT_due_books2 :: get(int32_t v1, int32_t v2)
         r = sqlite3_prepare_v2(
             pdb,
             "SELECT user.rowid, user.firstname, user.lastname, user.test2, user.test3, user.proto, book.rowid, book.title, checkouts.rowid, checkouts.duedate "
-            "FROM user, checkouts, book WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC",
+            "FROM user JOIN checkouts, book ON checkouts.bookid2 = book.bookid                     AND checkouts.userid2 = user.userid WHERE book.bookid > ?   AND book.bookid < ? ORDER BY duedate ASC ",
             -1, &pStmt_get_query, NULL);
         if (r != SQLITE_OK)
         {

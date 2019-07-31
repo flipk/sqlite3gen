@@ -95,12 +95,12 @@ CUSTOM-SELECT due_books2
     book.rowid book.title
     checkouts.rowid checkouts.duedate)
   (INT INT)
-   "FROM user, checkouts, book "
-   "WHERE checkouts.bookid2 = book.bookid "
-   "AND checkouts.userid2 = user.userid "
-   "AND book.bookid > ? "
-   "AND book.bookid < ? "
-   "ORDER BY duedate ASC"
+   "FROM user "
+   "JOIN checkouts, book ON checkouts.bookid2 = book.bookid "
+   "                    AND checkouts.userid2 = user.userid "
+   "WHERE book.bookid > ? "
+   "  AND book.bookid < ? "
+   "ORDER BY duedate ASC "
 
 %PROTOBOTTOM{
 // proto bottom line 1
