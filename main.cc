@@ -25,6 +25,8 @@ usage(void)
 int
 main(int argc, char ** argv)
 {
+    printf("sql3gen version: %s\n", VERSION);
+
     if (argc != 5)
     {
         usage();

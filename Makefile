@@ -1,4 +1,6 @@
 
+VERSION := $(shell git describe --match 'SQLITE3GEN_v*' --dirty)
+
 PROG_TARGETS = template_to_c sql3gen sample
 
 export TARGET=native
@@ -50,7 +52,7 @@ sql3gen_YYSRCS = parser.yy
 sql3gen_CXXSRCS = main.cc template_patterns.cc \
 	emit_header.cc emit_source.cc emit_proto.cc
 sql3gen_DEFS = -DPARSER_YY_HDR=\"$(sql3gen_parser.yy_HDR)\" \
-	-DYY_TYPEDEF_YY_SIZE_T=1 -Dyy_size_t=int
+	-DYY_TYPEDEF_YY_SIZE_T=1 -Dyy_size_t=int -DVERSION=\"$(VERSION)\"
 sql3gen_LIBS = $(TEMPLATE_OBJS)
 sql3gen_PREMAKE = $(template_to_c_TARGET) $(TEMPLATE_OBJS)
 
