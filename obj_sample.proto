@@ -19,14 +19,14 @@ import "sample2.proto";
 
 
 
-enum TABLE_user_VERSION_t
+enum TABLE_User_VERSION_t
 {
-    TABLE_user_VERSION = 19;
+    TABLE_User_VERSION = 19;
 }
 
-message TABLE_user_m
+message TABLE_User_m
 {
-  /* note this is int32 instead of TABLE_user_VERSION_t
+  /* note this is int32 instead of TABLE_User_VERSION_t
      to prevent protobuf decode errors when version enum
      value changes. we're kinda breaking google's rules a little
      bit by redefining enum values. */
@@ -40,19 +40,19 @@ message TABLE_user_m
   optional bytes proto = 8;
   optional bool test2 = 9;
   optional sample.library2.EnumField_t test3 = 10;
-  /*SUBTABLE*/ repeated TABLE_checkouts_m checkouts = 11;
+  /*SUBTABLE*/ repeated TABLE_Checkouts_m Checkouts = 11;
 
 }
 
 
-enum TABLE_book_VERSION_t
+enum TABLE_Book_VERSION_t
 {
-    TABLE_book_VERSION = 1;
+    TABLE_Book_VERSION = 1;
 }
 
-message TABLE_book_m
+message TABLE_Book_m
 {
-  /* note this is int32 instead of TABLE_book_VERSION_t
+  /* note this is int32 instead of TABLE_Book_VERSION_t
      to prevent protobuf decode errors when version enum
      value changes. we're kinda breaking google's rules a little
      bit by redefining enum values. */
@@ -66,14 +66,14 @@ message TABLE_book_m
 }
 
 
-enum TABLE_checkouts_VERSION_t
+enum TABLE_Checkouts_VERSION_t
 {
-    TABLE_checkouts_VERSION = 1;
+    TABLE_Checkouts_VERSION = 1;
 }
 
-message TABLE_checkouts_m
+message TABLE_Checkouts_m
 {
-  /* note this is int32 instead of TABLE_checkouts_VERSION_t
+  /* note this is int32 instead of TABLE_Checkouts_VERSION_t
      to prevent protobuf decode errors when version enum
      value changes. we're kinda breaking google's rules a little
      bit by redefining enum values. */

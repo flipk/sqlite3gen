@@ -63,17 +63,17 @@ ________ TABLE_proto_copy_from_field_bool
 ________ END
 
 ________ TABLE_proto_copy_to_subtable
-    msg.clear_@@fieldname@@();
+    msg.clear_@@fieldname_lower@@();
     for (size_t ind = 0; ind < @@fieldname@@.size(); ind++)
-        @@fieldname@@[ind].copy_to_proto(*msg.add_@@fieldname@@());
+        @@fieldname@@[ind].copy_to_proto(*msg.add_@@fieldname_lower@@());
 ________ END
 
 ________ TABLE_proto_copy_from_subtable
     @@fieldname@@.clear();
-    @@fieldname@@.resize(msg.@@fieldname@@_size());
-    for (int ind = 0; ind < msg.@@fieldname@@_size(); ind++)
+    @@fieldname@@.resize(msg.@@fieldname_lower@@_size());
+    for (int ind = 0; ind < msg.@@fieldname_lower@@_size(); ind++)
     {
         @@fieldname@@[ind].set_db(pdb);
-        @@fieldname@@[ind].copy_from_proto(msg.@@fieldname@@(ind));
+        @@fieldname@@[ind].copy_from_proto(msg.@@fieldname_lower@@(ind));
     }
 ________ END

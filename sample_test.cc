@@ -10,11 +10,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-class SQL_TABLE_user_custom : public library::SQL_TABLE_user {
+class SQL_TABLE_user_custom : public library::SQL_TABLE_User {
     sqlite3_stmt * pStmt_by_great_balance;
 public:
     SQL_TABLE_user_custom(sqlite3 *_pdb = NULL)
-        : SQL_TABLE_user(_pdb)
+        : SQL_TABLE_User(_pdb)
     {
         pStmt_by_great_balance = NULL;
     }
@@ -75,13 +75,13 @@ public:
                (int64_t) rowid, userid,
                firstname.c_str(), mi.c_str(), lastname.c_str(),
                SSN, balance, (int) proto.length(), proto.c_str());
-        printf("%d checkouts:\n", (int) checkouts.size());
-        for (size_t ind = 0; ind < checkouts.size(); ind++)
+        printf("%d checkouts:\n", (int) Checkouts.size());
+        for (size_t ind = 0; ind < Checkouts.size(); ind++)
         {
             printf("   row %" PRId64 " userid2 %d"
                    " bookid %d duedate %" PRId64 "\n",
-                   (int64_t) checkouts[ind].rowid,   checkouts[ind].userid2,
-                   checkouts[ind].bookid2, checkouts[ind].duedate);
+                   (int64_t) Checkouts[ind].rowid,   Checkouts[ind].userid2,
+                   Checkouts[ind].bookid2, Checkouts[ind].duedate);
         }
         printf("TOSTRING: %s\n", toString().c_str());
     }
@@ -173,7 +173,7 @@ test_protobuf(sqlite3 *pdb, int32_t userid)
     }
     SQL_TABLE_user_custom  t(pdb);
     do {
-        library::TABLE_user_m  msg;
+        library::TABLE_User_m  msg;
         std::string binary;
         u.copy_to_proto(msg);
         msg.SerializeToString(&binary);
@@ -224,7 +224,7 @@ int
 main()
 {
     sqlite3 * pdb;
-    library::SQL_TABLE_user  user;
+    library::SQL_TABLE_User  user;
 
     printf("UPDATE_BALANCE = '%s'\n",  getenv("UPDATE_BALANCE"));
     printf("DELETE_BY_ROWID = '%s'\n", getenv("DELETE_BY_ROWID"));
@@ -242,7 +242,7 @@ main()
     {
         std::vector<library::SQL_Column_Descriptor>  cols;
 
-        library::SQL_TABLE_user::get_column_descriptors(cols);
+        library::SQL_TABLE_User::get_column_descriptors(cols);
 
         printf("USER table column descriptors:\n");
         for (size_t ind = 0; ind < cols.size(); ind++)
@@ -332,9 +332,9 @@ test_subtables(sqlite3 * pdb)
         exit(1);
 
     {
-        library::SQL_TABLE_user      u(pdb);
-        library::SQL_TABLE_book      b(pdb);
-        library::SQL_TABLE_checkouts c(pdb);
+        library::SQL_TABLE_User      u(pdb);
+        library::SQL_TABLE_Book      b(pdb);
+        library::SQL_TABLE_Checkouts c(pdb);
 
         u.firstname = "fir1";
         u.lastname = "las1";
@@ -427,9 +427,9 @@ test_subtables(sqlite3 * pdb)
         if (u.get_by_userid(u1))
         {
             printf("got userid %d!\n", u1);
-            u.get_subtable_checkouts();
+            u.get_subtable_Checkouts();
             u.print();
-            library::TABLE_user_m  msg;
+            library::TABLE_User_m  msg;
             u.copy_to_proto(msg);
 
             {
@@ -505,13 +505,13 @@ test_subtables(sqlite3 * pdb)
             printf("user_rid %" PRId64 " %s %s "
                    "book_rid %" PRId64 " %s "
                    "checkouts_rid %" PRId64 " due %" PRId64 "\n",
-                   (int64_t) due.user_rowid,
-                   due.user_firstname.c_str(),
-                   due.user_lastname.c_str(),
-                   (int64_t) due.book_rowid,
-                   due.book_title.c_str(),
-                   (int64_t) due.checkouts_rowid,
-                   (int64_t) due.checkouts_duedate);
+                   (int64_t) due.User_rowid,
+                   due.User_firstname.c_str(),
+                   due.User_lastname.c_str(),
+                   (int64_t) due.Book_rowid,
+                   due.Book_title.c_str(),
+                   (int64_t) due.Checkouts_rowid,
+                   (int64_t) due.Checkouts_duedate);
             printf("TOSTRING: %s\n", due.toString().c_str());
             ok = due.get_next();
         }
@@ -528,13 +528,13 @@ test_subtables(sqlite3 * pdb)
             printf("user_rid %" PRId64 " %s %s "
                    "book_rid %" PRId64 " %s "
                    "checkouts_rid %" PRId64 " due %" PRId64 "\n",
-                   (int64_t) due.user_rowid,
-                   due.user_firstname.c_str(),
-                   due.user_lastname.c_str(),
-                   (int64_t) due.book_rowid,
-                   due.book_title.c_str(),
-                   (int64_t) due.checkouts_rowid,
-                   (int64_t) due.checkouts_duedate);
+                   (int64_t) due.User_rowid,
+                   due.User_firstname.c_str(),
+                   due.User_lastname.c_str(),
+                   (int64_t) due.Book_rowid,
+                   due.Book_title.c_str(),
+                   (int64_t) due.Checkouts_rowid,
+                   (int64_t) due.Checkouts_duedate);
             printf("TOSTRING: %s\n", due.toString().c_str());
             ok = due.get_next();
         }

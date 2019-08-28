@@ -44,9 +44,9 @@ typedef void (*table_version_callback)(
     int version_in_file,
     int version_in_code);
 
-class SQL_TABLE_user; // forward
-class SQL_TABLE_book; // forward
-class SQL_TABLE_checkouts; // forward
+class SQL_TABLE_User; // forward
+class SQL_TABLE_Book; // forward
+class SQL_TABLE_Checkouts; // forward
 
 
 enum SQLITE3GEN_Column_TypeDef
@@ -71,7 +71,7 @@ struct SQL_Column_Descriptor
     SQLITE3GEN_Column_TypeDef  sqlite3gen_type;
 };
 
-class SQL_TABLE_user {
+class SQL_TABLE_User {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_insert_force;
     sqlite3_stmt * pStmt_update;
@@ -106,7 +106,7 @@ protected:
     std::ostringstream log_row_msg;
 
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
-    typedef bool (SQL_TABLE_user::*xml_decoder_func_t)
+    typedef bool (SQL_TABLE_User::*xml_decoder_func_t)
         (const tinyxml2::XMLElement *el);
     typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
     xml_decoder_map_t xml_decoders;
@@ -121,16 +121,16 @@ protected:
     bool xml_decoder_proto(const tinyxml2::XMLElement *el);
     bool xml_decoder_test2(const tinyxml2::XMLElement *el);
     bool xml_decoder_test3(const tinyxml2::XMLElement *el);
-    bool xml_decoder_checkouts(const tinyxml2::XMLElement *el);
+    bool xml_decoder_Checkouts(const tinyxml2::XMLElement *el);
 
 #endif
 
 public:
-    SQL_TABLE_user(sqlite3 *_pdb = NULL);
+    SQL_TABLE_User(sqlite3 *_pdb = NULL);
 // copy constructor, sets all fields and pdb, but not stmts.
-    SQL_TABLE_user(const SQL_TABLE_user &other);
-    void operator=(const SQL_TABLE_user &other);
-    virtual ~SQL_TABLE_user(void);
+    SQL_TABLE_User(const SQL_TABLE_User &other);
+    void operator=(const SQL_TABLE_User &other);
+    virtual ~SQL_TABLE_User(void);
 
     static const int TABLE_VERSION = 19;
     static void get_column_descriptors(
@@ -152,8 +152,8 @@ public:
     std::string proto;
     bool test2;
     sample::library2::EnumField_t test3;
-    // NOTE this is only populated by get_subtable_checkouts()
-    std::vector<SQL_TABLE_checkouts> checkouts;
+    // NOTE this is only populated by get_subtable_Checkouts()
+    std::vector<SQL_TABLE_Checkouts> Checkouts;
 
     std::string rowid_toString(void);
     std::string userid_toString(void);
@@ -165,7 +165,7 @@ public:
     std::string proto_toString(void);
     std::string test2_toString(void);
     std::string test3_toString(void);
-    std::string checkouts_toString(void);
+    std::string Checkouts_toString(void);
 
     std::string toString(void);
     bool get_by_userid(int32_t v);
@@ -174,10 +174,10 @@ public:
     bool get_by_test3(sample::library2::EnumField_t v);
 // note this assumes foreign key userid2 is populated;
 // returns number of rows fetched.
-    int get_subtable_checkouts(void);
+    int get_subtable_Checkouts(void);
 // true if ok, false if failure inserting (duplicate keys?)
-    bool insert_subtable_checkouts(void);
-    bool insert_subtable_checkouts_force(void);
+    bool insert_subtable_Checkouts(void);
+    bool insert_subtable_Checkouts_force(void);
 
     // get all subtables
     void get_subtables(void);
@@ -217,8 +217,8 @@ public:
 #ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 // NOTE these only copy SUBTABLEs if you have called the
 //      get_subtable_* methods to populate them.
-    void copy_to_proto(library::TABLE_user_m &msg);
-    void copy_from_proto(const library::TABLE_user_m &msg);
+    void copy_to_proto(library::TABLE_User_m &msg);
+    void copy_from_proto(const library::TABLE_User_m &msg);
 
 #endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
@@ -238,7 +238,7 @@ public:
 };
 
 
-class SQL_TABLE_book {
+class SQL_TABLE_Book {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_insert_force;
     sqlite3_stmt * pStmt_update;
@@ -267,7 +267,7 @@ protected:
     std::ostringstream log_row_msg;
 
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
-    typedef bool (SQL_TABLE_book::*xml_decoder_func_t)
+    typedef bool (SQL_TABLE_Book::*xml_decoder_func_t)
         (const tinyxml2::XMLElement *el);
     typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
     xml_decoder_map_t xml_decoders;
@@ -282,11 +282,11 @@ protected:
 #endif
 
 public:
-    SQL_TABLE_book(sqlite3 *_pdb = NULL);
+    SQL_TABLE_Book(sqlite3 *_pdb = NULL);
 // copy constructor, sets all fields and pdb, but not stmts.
-    SQL_TABLE_book(const SQL_TABLE_book &other);
-    void operator=(const SQL_TABLE_book &other);
-    virtual ~SQL_TABLE_book(void);
+    SQL_TABLE_Book(const SQL_TABLE_Book &other);
+    void operator=(const SQL_TABLE_Book &other);
+    virtual ~SQL_TABLE_Book(void);
 
     static const int TABLE_VERSION = 1;
     static void get_column_descriptors(
@@ -346,8 +346,8 @@ public:
 #ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 // NOTE these only copy SUBTABLEs if you have called the
 //      get_subtable_* methods to populate them.
-    void copy_to_proto(library::TABLE_book_m &msg);
-    void copy_from_proto(const library::TABLE_book_m &msg);
+    void copy_to_proto(library::TABLE_Book_m &msg);
+    void copy_from_proto(const library::TABLE_Book_m &msg);
 
 #endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
@@ -367,7 +367,7 @@ public:
 };
 
 
-class SQL_TABLE_checkouts {
+class SQL_TABLE_Checkouts {
     sqlite3_stmt * pStmt_insert;
     sqlite3_stmt * pStmt_insert_force;
     sqlite3_stmt * pStmt_update;
@@ -393,7 +393,7 @@ protected:
     std::ostringstream log_row_msg;
 
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
-    typedef bool (SQL_TABLE_checkouts::*xml_decoder_func_t)
+    typedef bool (SQL_TABLE_Checkouts::*xml_decoder_func_t)
         (const tinyxml2::XMLElement *el);
     typedef std::map<std::string,xml_decoder_func_t> xml_decoder_map_t;
     xml_decoder_map_t xml_decoders;
@@ -406,11 +406,11 @@ protected:
 #endif
 
 public:
-    SQL_TABLE_checkouts(sqlite3 *_pdb = NULL);
+    SQL_TABLE_Checkouts(sqlite3 *_pdb = NULL);
 // copy constructor, sets all fields and pdb, but not stmts.
-    SQL_TABLE_checkouts(const SQL_TABLE_checkouts &other);
-    void operator=(const SQL_TABLE_checkouts &other);
-    virtual ~SQL_TABLE_checkouts(void);
+    SQL_TABLE_Checkouts(const SQL_TABLE_Checkouts &other);
+    void operator=(const SQL_TABLE_Checkouts &other);
+    virtual ~SQL_TABLE_Checkouts(void);
 
     static const int TABLE_VERSION = 1;
     static void get_column_descriptors(
@@ -463,8 +463,8 @@ public:
 #ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 // NOTE these only copy SUBTABLEs if you have called the
 //      get_subtable_* methods to populate them.
-    void copy_to_proto(library::TABLE_checkouts_m &msg);
-    void copy_from_proto(const library::TABLE_checkouts_m &msg);
+    void copy_to_proto(library::TABLE_Checkouts_m &msg);
+    void copy_from_proto(const library::TABLE_Checkouts_m &msg);
 
 #endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
@@ -495,31 +495,31 @@ public:
     static void get_column_descriptors(
         std::vector<SQL_Column_Descriptor> &columns);
     void set_db(sqlite3 *_pdb);
-// WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC
+// WHERE Checkouts.bookid2 = Book.bookid AND Checkouts.userid2 = User.userid AND Book.bookid > ? AND Book.bookid < ? ORDER BY duedate ASC
     bool get(int32_t v1, int32_t v2);
     bool get_next(void);
 
-    sqlite3_int64 user_rowid;
-    std::string user_firstname;
-    std::string user_lastname;
-    bool user_test2;
-    sample::library2::EnumField_t user_test3;
-    std::string user_proto;
-    sqlite3_int64 book_rowid;
-    std::string book_title;
-    sqlite3_int64 checkouts_rowid;
-    int64_t checkouts_duedate;
+    sqlite3_int64 User_rowid;
+    std::string User_firstname;
+    std::string User_lastname;
+    bool User_test2;
+    sample::library2::EnumField_t User_test3;
+    std::string User_proto;
+    sqlite3_int64 Book_rowid;
+    std::string Book_title;
+    sqlite3_int64 Checkouts_rowid;
+    int64_t Checkouts_duedate;
 
-    std::string user_rowid_toString(void);
-    std::string user_firstname_toString(void);
-    std::string user_lastname_toString(void);
-    std::string user_test2_toString(void);
-    std::string user_test3_toString(void);
-    std::string user_proto_toString(void);
-    std::string book_rowid_toString(void);
-    std::string book_title_toString(void);
-    std::string checkouts_rowid_toString(void);
-    std::string checkouts_duedate_toString(void);
+    std::string User_rowid_toString(void);
+    std::string User_firstname_toString(void);
+    std::string User_lastname_toString(void);
+    std::string User_test2_toString(void);
+    std::string User_test3_toString(void);
+    std::string User_proto_toString(void);
+    std::string Book_rowid_toString(void);
+    std::string Book_title_toString(void);
+    std::string Checkouts_rowid_toString(void);
+    std::string Checkouts_duedate_toString(void);
 
     std::string toString(void);
 };
@@ -535,31 +535,31 @@ public:
     static void get_column_descriptors(
         std::vector<SQL_Column_Descriptor> &columns);
     void set_db(sqlite3 *_pdb);
-// FROM user JOIN checkouts, book ON checkouts.bookid2 = book.bookid                     AND checkouts.userid2 = user.userid WHERE book.bookid > ?   AND book.bookid < ? ORDER BY duedate ASC 
+// FROM User JOIN Checkouts, Book ON Checkouts.bookid2 = Book.bookid                     AND Checkouts.userid2 = User.userid WHERE Book.bookid > ?   AND Book.bookid < ? ORDER BY duedate ASC 
     bool get(int32_t v1, int32_t v2);
     bool get_next(void);
 
-    sqlite3_int64 user_rowid;
-    std::string user_firstname;
-    std::string user_lastname;
-    bool user_test2;
-    sample::library2::EnumField_t user_test3;
-    std::string user_proto;
-    sqlite3_int64 book_rowid;
-    std::string book_title;
-    sqlite3_int64 checkouts_rowid;
-    int64_t checkouts_duedate;
+    sqlite3_int64 User_rowid;
+    std::string User_firstname;
+    std::string User_lastname;
+    bool User_test2;
+    sample::library2::EnumField_t User_test3;
+    std::string User_proto;
+    sqlite3_int64 Book_rowid;
+    std::string Book_title;
+    sqlite3_int64 Checkouts_rowid;
+    int64_t Checkouts_duedate;
 
-    std::string user_rowid_toString(void);
-    std::string user_firstname_toString(void);
-    std::string user_lastname_toString(void);
-    std::string user_test2_toString(void);
-    std::string user_test3_toString(void);
-    std::string user_proto_toString(void);
-    std::string book_rowid_toString(void);
-    std::string book_title_toString(void);
-    std::string checkouts_rowid_toString(void);
-    std::string checkouts_duedate_toString(void);
+    std::string User_rowid_toString(void);
+    std::string User_firstname_toString(void);
+    std::string User_lastname_toString(void);
+    std::string User_test2_toString(void);
+    std::string User_test3_toString(void);
+    std::string User_proto_toString(void);
+    std::string Book_rowid_toString(void);
+    std::string Book_title_toString(void);
+    std::string Checkouts_rowid_toString(void);
+    std::string Checkouts_duedate_toString(void);
 
     std::string toString(void);
 };

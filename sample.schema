@@ -20,7 +20,7 @@ import "sample2.proto";
 /* source top line 2 */
 %}
 
-TABLE user VERSION 19
+TABLE User VERSION 19
 {
     # NOTE PROTOID 1 is reserved for schema_version
     userid    INT   INDEX QUERY AUTOINCR "PRIMARY KEY" PROTOID 2 DEFAULT -1
@@ -36,7 +36,7 @@ TABLE user VERSION 19
     test3     ENUM sample.library2.EnumField_t QUERY   PROTOID 10
     	      DEFAULT sample.library2.ENUM_TWO
 
-    SUBTABLE checkouts                                 PROTOID 11
+    SUBTABLE Checkouts                                 PROTOID 11
 
     CONSTRAINT "user_constraint1 UNIQUE (firstname, lastname)"
     CONSTRAINT "user_constraint2 UNIQUE (mi, SSN)"
@@ -53,7 +53,7 @@ TABLE user VERSION 19
     CUSTOM-DEL SSN (INT)  "ssn = ?"
 }
 
-TABLE book VERSION 1
+TABLE Book VERSION 1
 {
     # NOTE PROTOID 1 is reserved for schema_version
     bookid    INT    INDEX   QUERY AUTOINCR "PRIMARY KEY" PROTOID 2
@@ -68,38 +68,38 @@ TABLE book VERSION 1
     CUSTOM-UPD price    (price)
 }
 
-TABLE checkouts VERSION 1
+TABLE Checkouts VERSION 1
 {
     # NOTE PROTOID 1 is reserved for schema_version
-    bookid2         INT  INDEX QUERY  FOREIGN book.bookid PROTOID 2
-    userid2         INT  INDEX QUERY  FOREIGN user.userid PROTOID 3
+    bookid2         INT  INDEX QUERY  FOREIGN Book.bookid PROTOID 2
+    userid2         INT  INDEX QUERY  FOREIGN User.userid PROTOID 3
     duedate         INT64                                 PROTOID 4
 
     CUSTOM-GET due_now (INT64)  "duedate < ?"
 }
 
 CUSTOM-SELECT due_books
-   (user.rowid user.firstname user.lastname user.test2 user.test3 user.proto
-    book.rowid book.title
-    checkouts.rowid checkouts.duedate)
-  (user checkouts book)
+   (User.rowid User.firstname User.lastname User.test2 User.test3 User.proto
+    Book.rowid Book.title
+    Checkouts.rowid Checkouts.duedate)
+  (User Checkouts Book)
   (INT INT)
-  "checkouts.bookid2 = book.bookid "
-  "AND checkouts.userid2 = user.userid "
-  "AND book.bookid > ? "
-  "AND book.bookid < ? "
+  "Checkouts.bookid2 = Book.bookid "
+  "AND Checkouts.userid2 = User.userid "
+  "AND Book.bookid > ? "
+  "AND Book.bookid < ? "
   "ORDER BY duedate ASC"
 
 CUSTOM-SELECT due_books2
-   (user.rowid user.firstname user.lastname user.test2 user.test3 user.proto
-    book.rowid book.title
-    checkouts.rowid checkouts.duedate)
+   (User.rowid User.firstname User.lastname User.test2 User.test3 User.proto
+    Book.rowid Book.title
+    Checkouts.rowid Checkouts.duedate)
   (INT INT)
-   "FROM user "
-   "JOIN checkouts, book ON checkouts.bookid2 = book.bookid "
-   "                    AND checkouts.userid2 = user.userid "
-   "WHERE book.bookid > ? "
-   "  AND book.bookid < ? "
+   "FROM User "
+   "JOIN Checkouts, Book ON Checkouts.bookid2 = Book.bookid "
+   "                    AND Checkouts.userid2 = User.userid "
+   "WHERE Book.bookid > ? "
+   "  AND Book.bookid < ? "
    "ORDER BY duedate ASC "
 
 %PROTOBOTTOM{

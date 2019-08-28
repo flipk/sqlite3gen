@@ -110,7 +110,7 @@ void _____dummy_blob_spacer(void)
     blob_to_hex(a,b);
 }
 
-SQL_TABLE_user :: SQL_TABLE_user(sqlite3 *_pdb)
+SQL_TABLE_User :: SQL_TABLE_User(sqlite3 *_pdb)
     : pdb(_pdb)
 {
     init_statements();
@@ -122,15 +122,15 @@ SQL_TABLE_user :: SQL_TABLE_user(sqlite3 *_pdb)
 // copy constructor, duplicates all the data fields (including rowid)
 // but does not duplicate the statement pointers, because then they'd
 // get double-freed.
-SQL_TABLE_user :: SQL_TABLE_user(
-    const SQL_TABLE_user &other)
+SQL_TABLE_User :: SQL_TABLE_User(
+    const SQL_TABLE_User &other)
 {
     init_statements();
     operator=(other);
 }
 
 void
-SQL_TABLE_user :: operator=(const SQL_TABLE_user &other)
+SQL_TABLE_User :: operator=(const SQL_TABLE_User &other)
 {
     pdb = other.pdb;
     rowid = other.rowid;
@@ -143,12 +143,12 @@ SQL_TABLE_user :: operator=(const SQL_TABLE_user &other)
     proto = other.proto;
     test2 = other.test2;
     test3 = other.test3;
-    checkouts = other.checkouts;
+    Checkouts = other.Checkouts;
 
 }
 
 void
-SQL_TABLE_user :: init_statements(void)
+SQL_TABLE_User :: init_statements(void)
 {
     pStmt_insert = NULL;
     pStmt_insert_force = NULL;
@@ -179,13 +179,13 @@ SQL_TABLE_user :: init_statements(void)
     init();
 }
 
-SQL_TABLE_user :: ~SQL_TABLE_user(void)
+SQL_TABLE_User :: ~SQL_TABLE_User(void)
 {
     finalize();
 }
 
 void
-SQL_TABLE_user :: finalize(void)
+SQL_TABLE_User :: finalize(void)
 {
     if (pStmt_insert)
         sqlite3_finalize(pStmt_insert);
@@ -233,7 +233,7 @@ SQL_TABLE_user :: finalize(void)
     init_statements();
 }
 
-void SQL_TABLE_user :: init(void)
+void SQL_TABLE_User :: init(void)
 {
     rowid = -1;
     userid = -1;
@@ -245,75 +245,75 @@ void SQL_TABLE_user :: init(void)
     proto.clear();
     test2 = false;
     test3 = sample::library2::ENUM_TWO;
-    checkouts.clear();
+    Checkouts.clear();
 
     previous_get = NULL;
 }
 
 //static
-void SQL_TABLE_user :: get_column_descriptors(
+void SQL_TABLE_User :: get_column_descriptors(
     std::vector<SQL_Column_Descriptor> &columns)
 {
     SQL_Column_Descriptor desc;
     columns.clear();
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "userid";
     desc.ctype = "int32_t";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_INT;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "firstname";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_TEXT;
     desc.sqlite3gen_type = TYPE_TEXT;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "lastname";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_TEXT;
     desc.sqlite3gen_type = TYPE_TEXT;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "mi";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_TEXT;
     desc.sqlite3gen_type = TYPE_TEXT;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "SSN";
     desc.ctype = "int32_t";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_INT;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "balance";
     desc.ctype = "double";
     desc.sqlite_type = SQLITE_FLOAT;
     desc.sqlite3gen_type = TYPE_DOUBLE;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "proto";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_BLOB;
     desc.sqlite3gen_type = TYPE_BLOB;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "test2";
     desc.ctype = "bool";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_BOOL;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "test3";
     desc.ctype = "sample::library2::EnumField_t";
     desc.sqlite_type = SQLITE_INTEGER;
@@ -322,7 +322,7 @@ void SQL_TABLE_user :: get_column_descriptors(
 
 }
 
-std::string SQL_TABLE_user :: rowid_toString(void)
+std::string SQL_TABLE_User :: rowid_toString(void)
 {
     std::ostringstream out;
     out << rowid;
@@ -330,49 +330,49 @@ std::string SQL_TABLE_user :: rowid_toString(void)
 }
 
 std::string
-SQL_TABLE_user :: userid_toString(void)
+SQL_TABLE_User :: userid_toString(void)
 {
     std::ostringstream out;
     out << userid;
     return out.str();
 }
 std::string
-SQL_TABLE_user :: firstname_toString(void)
+SQL_TABLE_User :: firstname_toString(void)
 {
     std::ostringstream out;
     out << "\"" << firstname << "\"";
     return out.str();
 }
 std::string
-SQL_TABLE_user :: lastname_toString(void)
+SQL_TABLE_User :: lastname_toString(void)
 {
     std::ostringstream out;
     out << "\"" << lastname << "\"";
     return out.str();
 }
 std::string
-SQL_TABLE_user :: mi_toString(void)
+SQL_TABLE_User :: mi_toString(void)
 {
     std::ostringstream out;
     out << "\"" << mi << "\"";
     return out.str();
 }
 std::string
-SQL_TABLE_user :: SSN_toString(void)
+SQL_TABLE_User :: SSN_toString(void)
 {
     std::ostringstream out;
     out << SSN;
     return out.str();
 }
 std::string
-SQL_TABLE_user :: balance_toString(void)
+SQL_TABLE_User :: balance_toString(void)
 {
     std::ostringstream out;
     out << balance;
     return out.str();
 }
 std::string
-SQL_TABLE_user :: proto_toString(void)
+SQL_TABLE_User :: proto_toString(void)
 {
     std::ostringstream out;
     out << "BLOB:";
@@ -384,26 +384,26 @@ SQL_TABLE_user :: proto_toString(void)
     return out.str();
 }
 std::string
-SQL_TABLE_user :: test2_toString(void)
+SQL_TABLE_User :: test2_toString(void)
 {
     return test2 ? "true" : "false";
 }
 std::string
-SQL_TABLE_user :: test3_toString(void)
+SQL_TABLE_User :: test3_toString(void)
 {
     return sample::library2::EnumField_t_Name(test3);
 }
 std::string
-SQL_TABLE_user :: checkouts_toString(void)
+SQL_TABLE_User :: Checkouts_toString(void)
 {
     std::ostringstream out;
     bool first = true;
-    for (size_t ind = 0; ind < checkouts.size(); ind++)
+    for (size_t ind = 0; ind < Checkouts.size(); ind++)
     {
         if (!first)
             out << ",";
         out << "{";
-        out << checkouts[ind].toString();
+        out << Checkouts[ind].toString();
         out << "}";
         first = false;
     }
@@ -411,7 +411,7 @@ SQL_TABLE_user :: checkouts_toString(void)
 }
 
 
-std::string SQL_TABLE_user :: toString(void)
+std::string SQL_TABLE_User :: toString(void)
 {
     std::ostringstream out;
     out << "rowid:" << rowid_toString() << ";";
@@ -424,29 +424,29 @@ std::string SQL_TABLE_user :: toString(void)
     out << "proto: " << proto_toString() << "; ";
     out << "test2: " << test2_toString() << "; ";
     out << "test3: " << test3_toString() << "; ";
-    out << "checkouts: " << checkouts_toString() << "; ";
+    out << "Checkouts: " << Checkouts_toString() << "; ";
 
     return out.str();
 }
 
-void SQL_TABLE_user :: set_db(sqlite3 *_pdb)
+void SQL_TABLE_User :: set_db(sqlite3 *_pdb)
 {
     finalize();
     pdb = _pdb;
-// set_db for subtable checkouts 2
-    for (size_t ind = 0; ind < checkouts.size(); ind++)
+// set_db for subtable Checkouts 2
+    for (size_t ind = 0; ind < Checkouts.size(); ind++)
     {
-        SQL_TABLE_checkouts &row = checkouts[ind];
+        SQL_TABLE_Checkouts &row = Checkouts[ind];
         row.set_db(_pdb);
     }
 
 }
 
-bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
+bool SQL_TABLE_User :: get_columns(sqlite3_stmt * pStmt)
 {
     int got;
     if (log_row_func)
-        log_row_msg.str("user: ");
+        log_row_msg.str("User: ");
 
     rowid = sqlite3_column_int64(pStmt, 0);
     if (log_row_func)
@@ -632,7 +632,7 @@ bool SQL_TABLE_user :: get_columns(sqlite3_stmt * pStmt)
     return true;
 }
 
-bool SQL_TABLE_user :: get_by_userid(int32_t v)
+bool SQL_TABLE_User :: get_by_userid(int32_t v)
 {
     int r;
     bool ret = false;
@@ -647,7 +647,7 @@ bool SQL_TABLE_user :: get_by_userid(int32_t v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user WHERE userid = ?",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM User WHERE userid = ?",
             -1, &pStmt_by_userid, NULL);
         if (r != SQLITE_OK)
         {
@@ -682,7 +682,7 @@ bool SQL_TABLE_user :: get_by_userid(int32_t v)
 
     return ret;
 }
-bool SQL_TABLE_user :: get_by_SSN(int32_t v)
+bool SQL_TABLE_User :: get_by_SSN(int32_t v)
 {
     int r;
     bool ret = false;
@@ -697,7 +697,7 @@ bool SQL_TABLE_user :: get_by_SSN(int32_t v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user WHERE SSN = ?",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM User WHERE SSN = ?",
             -1, &pStmt_by_SSN, NULL);
         if (r != SQLITE_OK)
         {
@@ -732,7 +732,7 @@ bool SQL_TABLE_user :: get_by_SSN(int32_t v)
 
     return ret;
 }
-bool SQL_TABLE_user :: get_by_test2(bool v)
+bool SQL_TABLE_User :: get_by_test2(bool v)
 {
     int r;
     bool ret = false;
@@ -747,7 +747,7 @@ bool SQL_TABLE_user :: get_by_test2(bool v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user WHERE test2 = ?",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM User WHERE test2 = ?",
             -1, &pStmt_by_test2, NULL);
         if (r != SQLITE_OK)
         {
@@ -783,7 +783,7 @@ bool SQL_TABLE_user :: get_by_test2(bool v)
 
     return ret;
 }
-bool SQL_TABLE_user :: get_by_test3(sample::library2::EnumField_t v)
+bool SQL_TABLE_User :: get_by_test3(sample::library2::EnumField_t v)
 {
     int r;
     bool ret = false;
@@ -798,7 +798,7 @@ bool SQL_TABLE_user :: get_by_test3(sample::library2::EnumField_t v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user WHERE test3 = ?",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM User WHERE test3 = ?",
             -1, &pStmt_by_test3, NULL);
         if (r != SQLITE_OK)
         {
@@ -834,7 +834,7 @@ bool SQL_TABLE_user :: get_by_test3(sample::library2::EnumField_t v)
     return ret;
 }
 
-bool SQL_TABLE_user :: get_by_lastname_like(
+bool SQL_TABLE_User :: get_by_lastname_like(
     const std::string &patt)
 {
     int r;
@@ -850,7 +850,7 @@ bool SQL_TABLE_user :: get_by_lastname_like(
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user "
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM User "
             "WHERE lastname like ?",
             -1, &pStmt_by_lastname_like, NULL);
         if (r != SQLITE_OK)
@@ -890,7 +890,7 @@ bool SQL_TABLE_user :: get_by_lastname_like(
 }
 
 
-bool SQL_TABLE_user :: get_next(void)
+bool SQL_TABLE_User :: get_next(void)
 {
     int r;
     bool ret = false;
@@ -907,7 +907,7 @@ bool SQL_TABLE_user :: get_next(void)
     return ret;
 }
 
-bool SQL_TABLE_user :: insert(void)
+bool SQL_TABLE_User :: insert(void)
 {
     int r;
 
@@ -920,7 +920,7 @@ bool SQL_TABLE_user :: insert(void)
     if (pStmt_insert == NULL)
     {
         r = sqlite3_prepare_v2(
-            pdb, "INSERT INTO user "
+            pdb, "INSERT INTO User "
             "(firstname, lastname, mi, SSN, balance, proto, test2, test3) "
             "values (?,?,?,?,?,?,?,?)",
             -1, &pStmt_insert, NULL);
@@ -1020,7 +1020,7 @@ bool SQL_TABLE_user :: insert(void)
     return true;
 }
 
-bool SQL_TABLE_user :: insert_force(void)
+bool SQL_TABLE_User :: insert_force(void)
 {
     int r;
 
@@ -1033,7 +1033,7 @@ bool SQL_TABLE_user :: insert_force(void)
     if (pStmt_insert_force == NULL)
     {
         r = sqlite3_prepare_v2(
-            pdb, "INSERT OR REPLACE INTO user "
+            pdb, "INSERT OR REPLACE INTO User "
             "(userid, firstname, lastname, mi, SSN, balance, proto, test2, test3) "
             "values (?,?,?,?,?,?,?,?,?)",
             -1, &pStmt_insert_force, NULL);
@@ -1140,7 +1140,7 @@ bool SQL_TABLE_user :: insert_force(void)
     return true;
 }
 
-bool SQL_TABLE_user :: update(void)
+bool SQL_TABLE_User :: update(void)
 {
     int r;
 
@@ -1153,7 +1153,7 @@ bool SQL_TABLE_user :: update(void)
     if (pStmt_update == NULL)
     {
         r = sqlite3_prepare_v2(
-            pdb, "UPDATE user SET "
+            pdb, "UPDATE User SET "
             "(firstname, lastname, mi, SSN, balance, proto, test2, test3) "
             "= (?,?,?,?,?,?,?,?) WHERE rowid = ?",
             -1, &pStmt_update, NULL);
@@ -1254,7 +1254,7 @@ bool SQL_TABLE_user :: update(void)
     return true;
 }
 
-bool SQL_TABLE_user :: delete_rowid(void)
+bool SQL_TABLE_User :: delete_rowid(void)
 {
     int r;
 
@@ -1267,7 +1267,7 @@ bool SQL_TABLE_user :: delete_rowid(void)
     if (pStmt_delete_rowid == NULL)
     {
         r = sqlite3_prepare_v2(
-            pdb, "DELETE FROM user WHERE rowid = ?",
+            pdb, "DELETE FROM User WHERE rowid = ?",
             -1, &pStmt_delete_rowid, NULL);
         if (r != SQLITE_OK)
         {
@@ -1296,7 +1296,7 @@ bool SQL_TABLE_user :: delete_rowid(void)
     return true;
 }
 
-bool SQL_TABLE_user :: get_by_rowid(int64_t v1)
+bool SQL_TABLE_User :: get_by_rowid(int64_t v1)
 {
     int r;
     bool ret = false;
@@ -1311,7 +1311,7 @@ bool SQL_TABLE_user :: get_by_rowid(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user WHERE rowid = ?",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM User WHERE rowid = ?",
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
         {
@@ -1348,7 +1348,7 @@ bool SQL_TABLE_user :: get_by_rowid(int64_t v1)
     return ret;
 }
 
-bool SQL_TABLE_user :: get_all(void)
+bool SQL_TABLE_User :: get_all(void)
 {
     int r;
     bool ret = false;
@@ -1363,7 +1363,7 @@ bool SQL_TABLE_user :: get_all(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user",
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM User",
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
         {
@@ -1390,20 +1390,20 @@ bool SQL_TABLE_user :: get_all(void)
     return ret;
 }
 
-int SQL_TABLE_user :: get_subtable_checkouts(void)
+int SQL_TABLE_User :: get_subtable_Checkouts(void)
 {
-    SQL_TABLE_checkouts  row(pdb);
+    SQL_TABLE_Checkouts  row(pdb);
     bool status;
     int count = 0;
 
-    checkouts.clear();
+    Checkouts.clear();
     status = row.get_by_userid2(userid);
     while (status)
     {
         // note this uses the special table class
         // copy constructor that only copies the data,
         // not the prepared statements.
-        checkouts.push_back(row);
+        Checkouts.push_back(row);
         count++;
         status = row.get_next();
     }
@@ -1411,46 +1411,46 @@ int SQL_TABLE_user :: get_subtable_checkouts(void)
     return count;
 }
 
-bool SQL_TABLE_user :: insert_subtable_checkouts(void)
+bool SQL_TABLE_User :: insert_subtable_Checkouts(void)
 {
-    for (size_t ind = 0; ind < checkouts.size(); ind++)
+    for (size_t ind = 0; ind < Checkouts.size(); ind++)
     {
-        SQL_TABLE_checkouts &row = checkouts[ind];
+        SQL_TABLE_Checkouts &row = Checkouts[ind];
         row.insert();
     }
     return true;
 }
 
-bool SQL_TABLE_user :: insert_subtable_checkouts_force(void)
+bool SQL_TABLE_User :: insert_subtable_Checkouts_force(void)
 {
-    for (size_t ind = 0; ind < checkouts.size(); ind++)
+    for (size_t ind = 0; ind < Checkouts.size(); ind++)
     {
-        SQL_TABLE_checkouts &row = checkouts[ind];
+        SQL_TABLE_Checkouts &row = Checkouts[ind];
         row.insert_force();
     }
     return true;
 }
 
 
-void SQL_TABLE_user :: get_subtables(void)
+void SQL_TABLE_User :: get_subtables(void)
 {
-    get_subtable_checkouts();
+    get_subtable_Checkouts();
 
 }
 
-void SQL_TABLE_user :: insert_subtables(void)
+void SQL_TABLE_User :: insert_subtables(void)
 {
-    insert_subtable_checkouts();
+    insert_subtable_Checkouts();
 
 }
 
-void SQL_TABLE_user :: insert_subtables_force(void)
+void SQL_TABLE_User :: insert_subtables_force(void)
 {
-    insert_subtable_checkouts_force();
+    insert_subtable_Checkouts_force();
 
 }
 
-bool SQL_TABLE_user :: get_great_balance(double v1)
+bool SQL_TABLE_User :: get_great_balance(double v1)
 {
     int r;
     bool ret = false;
@@ -1465,7 +1465,7 @@ bool SQL_TABLE_user :: get_great_balance(double v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user "
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM User "
             "WHERE balance > ?",
             -1, &pStmt_get_great_balance, NULL);
         if (r != SQLITE_OK)
@@ -1504,7 +1504,7 @@ bool SQL_TABLE_user :: get_great_balance(double v1)
 
     return ret;
 }
-bool SQL_TABLE_user :: get_founders(void)
+bool SQL_TABLE_User :: get_founders(void)
 {
     int r;
     bool ret = false;
@@ -1519,7 +1519,7 @@ bool SQL_TABLE_user :: get_founders(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user "
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM User "
             "WHERE userid < 100",
             -1, &pStmt_get_founders, NULL);
         if (r != SQLITE_OK)
@@ -1550,7 +1550,7 @@ bool SQL_TABLE_user :: get_founders(void)
 
     return ret;
 }
-bool SQL_TABLE_user :: get_firstlast(const std::string & v1, const std::string & v2)
+bool SQL_TABLE_User :: get_firstlast(const std::string & v1, const std::string & v2)
 {
     int r;
     bool ret = false;
@@ -1565,7 +1565,7 @@ bool SQL_TABLE_user :: get_firstlast(const std::string & v1, const std::string &
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM user "
+            "SELECT rowid,userid, firstname, lastname, mi, SSN, balance, proto, test2, test3 FROM User "
             "WHERE firstname LIKE ? AND lastname LIKE ?",
             -1, &pStmt_get_firstlast, NULL);
         if (r != SQLITE_OK)
@@ -1615,7 +1615,7 @@ bool SQL_TABLE_user :: get_firstlast(const std::string & v1, const std::string &
     return ret;
 }
 
-bool SQL_TABLE_user :: update_balance(void)
+bool SQL_TABLE_User :: update_balance(void)
 {
     int r;
     bool ret = false;
@@ -1630,7 +1630,7 @@ bool SQL_TABLE_user :: update_balance(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "UPDATE user SET (balance) = "
+            "UPDATE User SET (balance) = "
             "(?) WHERE rowid = ?",
             -1, &pStmt_update_balance, NULL);
         if (r != SQLITE_OK)
@@ -1672,7 +1672,7 @@ bool SQL_TABLE_user :: update_balance(void)
 
     return ret;
 }
-bool SQL_TABLE_user :: update_firstlast(void)
+bool SQL_TABLE_User :: update_firstlast(void)
 {
     int r;
     bool ret = false;
@@ -1687,7 +1687,7 @@ bool SQL_TABLE_user :: update_firstlast(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "UPDATE user SET (firstname, lastname) = "
+            "UPDATE User SET (firstname, lastname) = "
             "(?,?) WHERE rowid = ?",
             -1, &pStmt_update_firstlast, NULL);
         if (r != SQLITE_OK)
@@ -1741,7 +1741,7 @@ bool SQL_TABLE_user :: update_firstlast(void)
 
     return ret;
 }
-bool SQL_TABLE_user :: update_by_userid_stuff(int32_t v1, const std::string & v2)
+bool SQL_TABLE_User :: update_by_userid_stuff(int32_t v1, const std::string & v2)
 {
     int r;
     bool ret = false;
@@ -1756,7 +1756,7 @@ bool SQL_TABLE_user :: update_by_userid_stuff(int32_t v1, const std::string & v2
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "UPDATE user SET (proto, test2, test3, balance) = "
+            "UPDATE User SET (proto, test2, test3, balance) = "
             "(?,?,?,?) WHERE userid = ? and lastname = ?",
             -1, &pStmt_update_by_userid_stuff, NULL);
         if (r != SQLITE_OK)
@@ -1839,7 +1839,7 @@ bool SQL_TABLE_user :: update_by_userid_stuff(int32_t v1, const std::string & v2
     return ret;
 }
 
-bool SQL_TABLE_user :: delete_SSN(int32_t v1)
+bool SQL_TABLE_User :: delete_SSN(int32_t v1)
 {
     int r;
     bool ret = false;
@@ -1854,7 +1854,7 @@ bool SQL_TABLE_user :: delete_SSN(int32_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "DELETE FROM user WHERE ssn = ?",
+            "DELETE FROM User WHERE ssn = ?",
             -1, &pStmt_del_SSN, NULL);
         if (r != SQLITE_OK)
         {
@@ -1894,8 +1894,8 @@ bool SQL_TABLE_user :: delete_SSN(int32_t v1)
 
 #ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 void
-SQL_TABLE_user :: copy_to_proto(
-              library::TABLE_user_m &msg)
+SQL_TABLE_User :: copy_to_proto(
+              library::TABLE_User_m &msg)
 {
     msg.set_schema_version(TABLE_VERSION);
     msg.set_userid(userid);
@@ -1911,14 +1911,14 @@ SQL_TABLE_user :: copy_to_proto(
 
     msg.set_test3(test3);
     msg.clear_checkouts();
-    for (size_t ind = 0; ind < checkouts.size(); ind++)
-        checkouts[ind].copy_to_proto(*msg.add_checkouts());
+    for (size_t ind = 0; ind < Checkouts.size(); ind++)
+        Checkouts[ind].copy_to_proto(*msg.add_checkouts());
 
 }
 
 void
-SQL_TABLE_user :: copy_from_proto(
-              const library::TABLE_user_m &msg)
+SQL_TABLE_User :: copy_from_proto(
+              const library::TABLE_User_m &msg)
 {
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
@@ -1927,7 +1927,7 @@ SQL_TABLE_user :: copy_from_proto(
         //        callback function which can convert a message from
         //        one schema version to another.
         std::ostringstream err;
-        err << "SQL_TABLE_user :: "
+        err << "SQL_TABLE_User :: "
             << "copy_from_proto : recvd protobuf message with "
             << "schema version " << msg.schema_version()
             << " (supported is " << TABLE_VERSION
@@ -1982,12 +1982,12 @@ SQL_TABLE_user :: copy_from_proto(
     else
         test3 = sample::library2::ENUM_TWO;
 
-    checkouts.clear();
-    checkouts.resize(msg.checkouts_size());
+    Checkouts.clear();
+    Checkouts.resize(msg.checkouts_size());
     for (int ind = 0; ind < msg.checkouts_size(); ind++)
     {
-        checkouts[ind].set_db(pdb);
-        checkouts[ind].copy_from_proto(msg.checkouts(ind));
+        Checkouts[ind].set_db(pdb);
+        Checkouts[ind].copy_from_proto(msg.checkouts(ind));
     }
 
 }
@@ -1995,9 +1995,9 @@ SQL_TABLE_user :: copy_from_proto(
 #endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 void
-SQL_TABLE_user :: copy_to_xml(tinyxml2::XMLElement *el)
+SQL_TABLE_User :: copy_to_xml(tinyxml2::XMLElement *el)
 {
-    el->SetValue("user");
+    el->SetValue("User");
     el->SetAttribute("type", "row");
     el->SetAttribute("rowid", (int64_t) rowid);
 
@@ -2090,17 +2090,17 @@ SQL_TABLE_user :: copy_to_xml(tinyxml2::XMLElement *el)
     }
     {
         tinyxml2::XMLElement * child =
-            el->GetDocument()->NewElement("checkouts");
+            el->GetDocument()->NewElement("Checkouts");
         child->SetAttribute("type", "subtable");
         el->InsertEndChild(child);
-        for (size_t ind = 0; ind < checkouts.size(); ind++)
+        for (size_t ind = 0; ind < Checkouts.size(); ind++)
         {
             tinyxml2::XMLElement * child2 =
-                el->GetDocument()->NewElement("checkouts");
+                el->GetDocument()->NewElement("Checkouts");
             child2->SetAttribute("type", "subtable_row");
             child2->SetAttribute("index", (int) ind);
             child->InsertEndChild(child2);
-            SQL_TABLE_checkouts &f = checkouts[ind];
+            SQL_TABLE_Checkouts &f = Checkouts[ind];
             f.copy_to_xml(child2);
         }
     }
@@ -2108,7 +2108,7 @@ SQL_TABLE_user :: copy_to_xml(tinyxml2::XMLElement *el)
 }
 
 bool
-SQL_TABLE_user :: xml_decoder_userid(const tinyxml2::XMLElement *el)
+SQL_TABLE_User :: xml_decoder_userid(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     if (n)
@@ -2126,7 +2126,7 @@ SQL_TABLE_user :: xml_decoder_userid(const tinyxml2::XMLElement *el)
     return false;
 }
 bool
-SQL_TABLE_user :: xml_decoder_firstname(const tinyxml2::XMLElement *el)
+SQL_TABLE_User :: xml_decoder_firstname(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     firstname = "";
@@ -2139,7 +2139,7 @@ SQL_TABLE_user :: xml_decoder_firstname(const tinyxml2::XMLElement *el)
     return true;
 }
 bool
-SQL_TABLE_user :: xml_decoder_lastname(const tinyxml2::XMLElement *el)
+SQL_TABLE_User :: xml_decoder_lastname(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     lastname = "";
@@ -2152,7 +2152,7 @@ SQL_TABLE_user :: xml_decoder_lastname(const tinyxml2::XMLElement *el)
     return true;
 }
 bool
-SQL_TABLE_user :: xml_decoder_mi(const tinyxml2::XMLElement *el)
+SQL_TABLE_User :: xml_decoder_mi(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     mi = "";
@@ -2165,7 +2165,7 @@ SQL_TABLE_user :: xml_decoder_mi(const tinyxml2::XMLElement *el)
     return true;
 }
 bool
-SQL_TABLE_user :: xml_decoder_SSN(const tinyxml2::XMLElement *el)
+SQL_TABLE_User :: xml_decoder_SSN(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     if (n)
@@ -2183,7 +2183,7 @@ SQL_TABLE_user :: xml_decoder_SSN(const tinyxml2::XMLElement *el)
     return false;
 }
 bool
-SQL_TABLE_user :: xml_decoder_balance(const tinyxml2::XMLElement *el)
+SQL_TABLE_User :: xml_decoder_balance(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     if (n)
@@ -2201,7 +2201,7 @@ SQL_TABLE_user :: xml_decoder_balance(const tinyxml2::XMLElement *el)
     return false;
 }
 bool
-SQL_TABLE_user :: xml_decoder_proto(const tinyxml2::XMLElement *el)
+SQL_TABLE_User :: xml_decoder_proto(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     if (n)
@@ -2216,7 +2216,7 @@ SQL_TABLE_user :: xml_decoder_proto(const tinyxml2::XMLElement *el)
     return false;
 }
 bool
-SQL_TABLE_user :: xml_decoder_test2(const tinyxml2::XMLElement *el)
+SQL_TABLE_User :: xml_decoder_test2(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     if (n)
@@ -2236,7 +2236,7 @@ SQL_TABLE_user :: xml_decoder_test2(const tinyxml2::XMLElement *el)
     return false;
 }
 bool
-SQL_TABLE_user :: xml_decoder_test3(const tinyxml2::XMLElement *el)
+SQL_TABLE_User :: xml_decoder_test3(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     if (n)
@@ -2249,11 +2249,11 @@ SQL_TABLE_user :: xml_decoder_test3(const tinyxml2::XMLElement *el)
     return false;
 }
 bool
-SQL_TABLE_user :: xml_decoder_checkouts(const tinyxml2::XMLElement *el)
+SQL_TABLE_User :: xml_decoder_Checkouts(const tinyxml2::XMLElement *el)
 {
-    SQL_TABLE_checkouts  row(pdb);
+    SQL_TABLE_Checkouts  row(pdb);
 
-    if (strcmp(el->Value(), "checkouts") != 0)
+    if (strcmp(el->Value(), "Checkouts") != 0)
         return false;
 
     const tinyxml2::XMLElement *child = el->FirstChildElement();
@@ -2261,7 +2261,7 @@ SQL_TABLE_user :: xml_decoder_checkouts(const tinyxml2::XMLElement *el)
     {
         if (row.copy_from_xml(child) == false)
             return false;
-        checkouts.push_back(row);
+        Checkouts.push_back(row);
         child = child->NextSiblingElement();
     }
 
@@ -2270,42 +2270,42 @@ SQL_TABLE_user :: xml_decoder_checkouts(const tinyxml2::XMLElement *el)
 
 
 bool
-SQL_TABLE_user :: copy_from_xml(const tinyxml2::XMLElement *el)
+SQL_TABLE_User :: copy_from_xml(const tinyxml2::XMLElement *el)
 {
     init();
     if (xml_decoders_initialized == false)
     {
         xml_decoders["userid"] =
-            &SQL_TABLE_user::xml_decoder_userid;
+            &SQL_TABLE_User::xml_decoder_userid;
         xml_decoders["firstname"] =
-            &SQL_TABLE_user::xml_decoder_firstname;
+            &SQL_TABLE_User::xml_decoder_firstname;
         xml_decoders["lastname"] =
-            &SQL_TABLE_user::xml_decoder_lastname;
+            &SQL_TABLE_User::xml_decoder_lastname;
         xml_decoders["mi"] =
-            &SQL_TABLE_user::xml_decoder_mi;
+            &SQL_TABLE_User::xml_decoder_mi;
         xml_decoders["SSN"] =
-            &SQL_TABLE_user::xml_decoder_SSN;
+            &SQL_TABLE_User::xml_decoder_SSN;
         xml_decoders["balance"] =
-            &SQL_TABLE_user::xml_decoder_balance;
+            &SQL_TABLE_User::xml_decoder_balance;
         xml_decoders["proto"] =
-            &SQL_TABLE_user::xml_decoder_proto;
+            &SQL_TABLE_User::xml_decoder_proto;
         xml_decoders["test2"] =
-            &SQL_TABLE_user::xml_decoder_test2;
+            &SQL_TABLE_User::xml_decoder_test2;
         xml_decoders["test3"] =
-            &SQL_TABLE_user::xml_decoder_test3;
-        xml_decoders["checkouts"] =
-            &SQL_TABLE_user::xml_decoder_checkouts;
+            &SQL_TABLE_User::xml_decoder_test3;
+        xml_decoders["Checkouts"] =
+            &SQL_TABLE_User::xml_decoder_Checkouts;
 
         xml_decoders_initialized = true;
     }
-    if (strcmp(el->Value(), "user") != 0)
+    if (strcmp(el->Value(), "User") != 0)
     {
         if (err_log_func)
         {
             std::ostringstream err;
-            err << "SQL_TABLE_user :: "
+            err << "SQL_TABLE_User :: "
                 << "copy_from_xml : node name is " << el->Value()
-                << " not 'user'!\n";
+                << " not 'User'!\n";
             err_log_func(log_arg, err.str().c_str());
         }
         return false;
@@ -2332,12 +2332,12 @@ SQL_TABLE_user :: copy_from_xml(const tinyxml2::XMLElement *el)
 #endif
 
 //static
-bool SQL_TABLE_user :: init(sqlite3 *pdb, table_version_callback cb)
+bool SQL_TABLE_User :: init(sqlite3 *pdb, table_version_callback cb)
 {
     bool ret = true;
     sqlite3_stmt * s;
     int r = sqlite3_prepare_v2(pdb,
-        "select version from tables where name = \"user\"",
+        "select version from tables where name = \"User\"",
         -1, &s, NULL);
     if (r != SQLITE_OK)
     {
@@ -2355,17 +2355,17 @@ bool SQL_TABLE_user :: init(sqlite3 *pdb, table_version_callback cb)
         sqlite3_exec(
             pdb,
             "INSERT INTO tables (name,version) "
-            "values (\"user\",19)",
+            "values (\"User\",19)",
             NULL, NULL, NULL);
     }
     else if (r == SQLITE_ROW)
     {
         int v = sqlite3_column_int(s,0);
-        cb(pdb, "user", v, 19);
+        cb(pdb, "User", v, 19);
         sqlite3_exec(
             pdb,
             "UPDATE tables SET (version) = (19) "
-            "WHERE name = \"user\"",
+            "WHERE name = \"User\"",
             NULL, NULL, NULL);
     }
     else
@@ -2379,7 +2379,7 @@ bool SQL_TABLE_user :: init(sqlite3 *pdb, table_version_callback cb)
 }
 
 //static
-bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
+bool SQL_TABLE_User :: table_create(sqlite3 *pdb)
 {
     std::ostringstream  e;
     char * errmsg = NULL;
@@ -2392,11 +2392,11 @@ bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
     }
 
     errmsg = NULL;
-    r = sqlite3_exec(pdb, "CREATE TABLE user "
+    r = sqlite3_exec(pdb, "CREATE TABLE User "
         "(userid integer PRIMARY KEY AUTOINCREMENT, firstname text, lastname text, mi text, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))",
         NULL, NULL, &errmsg);
 
-    printf("CREATE TABLE: CREATE TABLE user "
+    printf("CREATE TABLE: CREATE TABLE User "
            "(userid integer PRIMARY KEY AUTOINCREMENT, firstname text, lastname text, mi text, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))\n");
 
     if (r != SQLITE_OK)
@@ -2412,11 +2412,11 @@ bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
     }
 
     errmsg = NULL;
-    r = sqlite3_exec(pdb,"CREATE INDEX user_userid "
-                 "ON user (userid)",
+    r = sqlite3_exec(pdb,"CREATE INDEX User_userid "
+                 "ON User (userid)",
         NULL, NULL, &errmsg);
-    printf("CREATE INDEX: CREATE INDEX user_userid "
-           "ON user (userid)\n");
+    printf("CREATE INDEX: CREATE INDEX User_userid "
+           "ON User (userid)\n");
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r
@@ -2429,11 +2429,11 @@ bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
         return false;
     }
     errmsg = NULL;
-    r = sqlite3_exec(pdb,"CREATE INDEX user_SSN "
-                 "ON user (SSN)",
+    r = sqlite3_exec(pdb,"CREATE INDEX User_SSN "
+                 "ON User (SSN)",
         NULL, NULL, &errmsg);
-    printf("CREATE INDEX: CREATE INDEX user_SSN "
-           "ON user (SSN)\n");
+    printf("CREATE INDEX: CREATE INDEX User_SSN "
+           "ON User (SSN)\n");
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r
@@ -2451,7 +2451,7 @@ bool SQL_TABLE_user :: table_create(sqlite3 *pdb)
 }
 
 //static
-void SQL_TABLE_user :: table_drop(sqlite3 *pdb)
+void SQL_TABLE_User :: table_drop(sqlite3 *pdb)
 {
     if (pdb == NULL)
     {
@@ -2460,7 +2460,7 @@ void SQL_TABLE_user :: table_drop(sqlite3 *pdb)
     }
 
     char * errmsg = NULL;
-    sqlite3_exec(pdb, "DROP TABLE user",
+    sqlite3_exec(pdb, "DROP TABLE User",
          NULL, NULL, &errmsg);
     if (errmsg != NULL)
     {
@@ -2470,7 +2470,7 @@ void SQL_TABLE_user :: table_drop(sqlite3 *pdb)
         sqlite3_free(errmsg);
     }
 
-    printf("DROP: DROP TABLE user\n");
+    printf("DROP: DROP TABLE User\n");
 
     sqlite3_exec(pdb, "delete from tables "
                  "where name = \"user\"",
@@ -2479,17 +2479,17 @@ void SQL_TABLE_user :: table_drop(sqlite3 *pdb)
 
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 //static
-void SQL_TABLE_user :: export_xml(sqlite3 *pdb,
+void SQL_TABLE_User :: export_xml(sqlite3 *pdb,
                                            tinyxml2::XMLElement *el)
 {
-    SQL_TABLE_user row(pdb);
+    SQL_TABLE_User row(pdb);
 
     bool ok = row.get_all();
     while (ok)
     {
         row.get_subtables();
         tinyxml2::XMLElement * row_el =
-            el->GetDocument()->NewElement("user");
+            el->GetDocument()->NewElement("User");
         row.copy_to_xml(row_el);
         el->InsertEndChild(row_el);
         ok = row.get_next();
@@ -2497,11 +2497,11 @@ void SQL_TABLE_user :: export_xml(sqlite3 *pdb,
 }
 
 //static
-bool SQL_TABLE_user :: import_xml(sqlite3 *pdb,
+bool SQL_TABLE_User :: import_xml(sqlite3 *pdb,
                                            tinyxml2::XMLElement *el)
 {
     tinyxml2::XMLElement * row_el;
-    SQL_TABLE_user  row(pdb);
+    SQL_TABLE_User  row(pdb);
 
     for (row_el = el->FirstChildElement(); row_el;
          row_el = row_el->NextSiblingElement())
@@ -2517,7 +2517,7 @@ bool SQL_TABLE_user :: import_xml(sqlite3 *pdb,
 }
 #endif
 
-SQL_TABLE_book :: SQL_TABLE_book(sqlite3 *_pdb)
+SQL_TABLE_Book :: SQL_TABLE_Book(sqlite3 *_pdb)
     : pdb(_pdb)
 {
     init_statements();
@@ -2529,15 +2529,15 @@ SQL_TABLE_book :: SQL_TABLE_book(sqlite3 *_pdb)
 // copy constructor, duplicates all the data fields (including rowid)
 // but does not duplicate the statement pointers, because then they'd
 // get double-freed.
-SQL_TABLE_book :: SQL_TABLE_book(
-    const SQL_TABLE_book &other)
+SQL_TABLE_Book :: SQL_TABLE_Book(
+    const SQL_TABLE_Book &other)
 {
     init_statements();
     operator=(other);
 }
 
 void
-SQL_TABLE_book :: operator=(const SQL_TABLE_book &other)
+SQL_TABLE_Book :: operator=(const SQL_TABLE_Book &other)
 {
     pdb = other.pdb;
     rowid = other.rowid;
@@ -2550,7 +2550,7 @@ SQL_TABLE_book :: operator=(const SQL_TABLE_book &other)
 }
 
 void
-SQL_TABLE_book :: init_statements(void)
+SQL_TABLE_Book :: init_statements(void)
 {
     pStmt_insert = NULL;
     pStmt_insert_force = NULL;
@@ -2575,13 +2575,13 @@ SQL_TABLE_book :: init_statements(void)
     init();
 }
 
-SQL_TABLE_book :: ~SQL_TABLE_book(void)
+SQL_TABLE_Book :: ~SQL_TABLE_Book(void)
 {
     finalize();
 }
 
 void
-SQL_TABLE_book :: finalize(void)
+SQL_TABLE_Book :: finalize(void)
 {
     if (pStmt_insert)
         sqlite3_finalize(pStmt_insert);
@@ -2617,7 +2617,7 @@ SQL_TABLE_book :: finalize(void)
     init_statements();
 }
 
-void SQL_TABLE_book :: init(void)
+void SQL_TABLE_Book :: init(void)
 {
     rowid = -1;
     bookid = 0;
@@ -2630,41 +2630,41 @@ void SQL_TABLE_book :: init(void)
 }
 
 //static
-void SQL_TABLE_book :: get_column_descriptors(
+void SQL_TABLE_Book :: get_column_descriptors(
     std::vector<SQL_Column_Descriptor> &columns)
 {
     SQL_Column_Descriptor desc;
     columns.clear();
 
-    desc.tablename = "book";
+    desc.tablename = "Book";
     desc.fieldname = "bookid";
     desc.ctype = "int32_t";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_INT;
     columns.push_back(desc);
 
-    desc.tablename = "book";
+    desc.tablename = "Book";
     desc.fieldname = "title";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_TEXT;
     desc.sqlite3gen_type = TYPE_TEXT;
     columns.push_back(desc);
 
-    desc.tablename = "book";
+    desc.tablename = "Book";
     desc.fieldname = "isbn";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_TEXT;
     desc.sqlite3gen_type = TYPE_TEXT;
     columns.push_back(desc);
 
-    desc.tablename = "book";
+    desc.tablename = "Book";
     desc.fieldname = "price";
     desc.ctype = "double";
     desc.sqlite_type = SQLITE_FLOAT;
     desc.sqlite3gen_type = TYPE_DOUBLE;
     columns.push_back(desc);
 
-    desc.tablename = "book";
+    desc.tablename = "Book";
     desc.fieldname = "quantity";
     desc.ctype = "int32_t";
     desc.sqlite_type = SQLITE_INTEGER;
@@ -2673,7 +2673,7 @@ void SQL_TABLE_book :: get_column_descriptors(
 
 }
 
-std::string SQL_TABLE_book :: rowid_toString(void)
+std::string SQL_TABLE_Book :: rowid_toString(void)
 {
     std::ostringstream out;
     out << rowid;
@@ -2681,35 +2681,35 @@ std::string SQL_TABLE_book :: rowid_toString(void)
 }
 
 std::string
-SQL_TABLE_book :: bookid_toString(void)
+SQL_TABLE_Book :: bookid_toString(void)
 {
     std::ostringstream out;
     out << bookid;
     return out.str();
 }
 std::string
-SQL_TABLE_book :: title_toString(void)
+SQL_TABLE_Book :: title_toString(void)
 {
     std::ostringstream out;
     out << "\"" << title << "\"";
     return out.str();
 }
 std::string
-SQL_TABLE_book :: isbn_toString(void)
+SQL_TABLE_Book :: isbn_toString(void)
 {
     std::ostringstream out;
     out << "\"" << isbn << "\"";
     return out.str();
 }
 std::string
-SQL_TABLE_book :: price_toString(void)
+SQL_TABLE_Book :: price_toString(void)
 {
     std::ostringstream out;
     out << price;
     return out.str();
 }
 std::string
-SQL_TABLE_book :: quantity_toString(void)
+SQL_TABLE_Book :: quantity_toString(void)
 {
     std::ostringstream out;
     out << quantity;
@@ -2717,7 +2717,7 @@ SQL_TABLE_book :: quantity_toString(void)
 }
 
 
-std::string SQL_TABLE_book :: toString(void)
+std::string SQL_TABLE_Book :: toString(void)
 {
     std::ostringstream out;
     out << "rowid:" << rowid_toString() << ";";
@@ -2730,18 +2730,18 @@ std::string SQL_TABLE_book :: toString(void)
     return out.str();
 }
 
-void SQL_TABLE_book :: set_db(sqlite3 *_pdb)
+void SQL_TABLE_Book :: set_db(sqlite3 *_pdb)
 {
     finalize();
     pdb = _pdb;
 
 }
 
-bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
+bool SQL_TABLE_Book :: get_columns(sqlite3_stmt * pStmt)
 {
     int got;
     if (log_row_func)
-        log_row_msg.str("book: ");
+        log_row_msg.str("Book: ");
 
     rowid = sqlite3_column_int64(pStmt, 0);
     if (log_row_func)
@@ -2843,7 +2843,7 @@ bool SQL_TABLE_book :: get_columns(sqlite3_stmt * pStmt)
     return true;
 }
 
-bool SQL_TABLE_book :: get_by_bookid(int32_t v)
+bool SQL_TABLE_Book :: get_by_bookid(int32_t v)
 {
     int r;
     bool ret = false;
@@ -2858,7 +2858,7 @@ bool SQL_TABLE_book :: get_by_bookid(int32_t v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, title, isbn, price, quantity FROM book WHERE bookid = ?",
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM Book WHERE bookid = ?",
             -1, &pStmt_by_bookid, NULL);
         if (r != SQLITE_OK)
         {
@@ -2893,7 +2893,7 @@ bool SQL_TABLE_book :: get_by_bookid(int32_t v)
 
     return ret;
 }
-bool SQL_TABLE_book :: get_by_isbn(const std::string & v)
+bool SQL_TABLE_Book :: get_by_isbn(const std::string & v)
 {
     int r;
     bool ret = false;
@@ -2908,7 +2908,7 @@ bool SQL_TABLE_book :: get_by_isbn(const std::string & v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, title, isbn, price, quantity FROM book WHERE isbn = ?",
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM Book WHERE isbn = ?",
             -1, &pStmt_by_isbn, NULL);
         if (r != SQLITE_OK)
         {
@@ -2946,7 +2946,7 @@ bool SQL_TABLE_book :: get_by_isbn(const std::string & v)
     return ret;
 }
 
-bool SQL_TABLE_book :: get_by_title_like(
+bool SQL_TABLE_Book :: get_by_title_like(
     const std::string &patt)
 {
     int r;
@@ -2962,7 +2962,7 @@ bool SQL_TABLE_book :: get_by_title_like(
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, title, isbn, price, quantity FROM book "
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM Book "
             "WHERE title like ?",
             -1, &pStmt_by_title_like, NULL);
         if (r != SQLITE_OK)
@@ -3002,7 +3002,7 @@ bool SQL_TABLE_book :: get_by_title_like(
 }
 
 
-bool SQL_TABLE_book :: get_next(void)
+bool SQL_TABLE_Book :: get_next(void)
 {
     int r;
     bool ret = false;
@@ -3019,7 +3019,7 @@ bool SQL_TABLE_book :: get_next(void)
     return ret;
 }
 
-bool SQL_TABLE_book :: insert(void)
+bool SQL_TABLE_Book :: insert(void)
 {
     int r;
 
@@ -3032,7 +3032,7 @@ bool SQL_TABLE_book :: insert(void)
     if (pStmt_insert == NULL)
     {
         r = sqlite3_prepare_v2(
-            pdb, "INSERT INTO book "
+            pdb, "INSERT INTO Book "
             "(title, isbn, price, quantity) "
             "values (?,?,?,?)",
             -1, &pStmt_insert, NULL);
@@ -3098,7 +3098,7 @@ bool SQL_TABLE_book :: insert(void)
     return true;
 }
 
-bool SQL_TABLE_book :: insert_force(void)
+bool SQL_TABLE_Book :: insert_force(void)
 {
     int r;
 
@@ -3111,7 +3111,7 @@ bool SQL_TABLE_book :: insert_force(void)
     if (pStmt_insert_force == NULL)
     {
         r = sqlite3_prepare_v2(
-            pdb, "INSERT OR REPLACE INTO book "
+            pdb, "INSERT OR REPLACE INTO Book "
             "(bookid, title, isbn, price, quantity) "
             "values (?,?,?,?,?)",
             -1, &pStmt_insert_force, NULL);
@@ -3184,7 +3184,7 @@ bool SQL_TABLE_book :: insert_force(void)
     return true;
 }
 
-bool SQL_TABLE_book :: update(void)
+bool SQL_TABLE_Book :: update(void)
 {
     int r;
 
@@ -3197,7 +3197,7 @@ bool SQL_TABLE_book :: update(void)
     if (pStmt_update == NULL)
     {
         r = sqlite3_prepare_v2(
-            pdb, "UPDATE book SET "
+            pdb, "UPDATE Book SET "
             "(title, isbn, price, quantity) "
             "= (?,?,?,?) WHERE rowid = ?",
             -1, &pStmt_update, NULL);
@@ -3264,7 +3264,7 @@ bool SQL_TABLE_book :: update(void)
     return true;
 }
 
-bool SQL_TABLE_book :: delete_rowid(void)
+bool SQL_TABLE_Book :: delete_rowid(void)
 {
     int r;
 
@@ -3277,7 +3277,7 @@ bool SQL_TABLE_book :: delete_rowid(void)
     if (pStmt_delete_rowid == NULL)
     {
         r = sqlite3_prepare_v2(
-            pdb, "DELETE FROM book WHERE rowid = ?",
+            pdb, "DELETE FROM Book WHERE rowid = ?",
             -1, &pStmt_delete_rowid, NULL);
         if (r != SQLITE_OK)
         {
@@ -3306,7 +3306,7 @@ bool SQL_TABLE_book :: delete_rowid(void)
     return true;
 }
 
-bool SQL_TABLE_book :: get_by_rowid(int64_t v1)
+bool SQL_TABLE_Book :: get_by_rowid(int64_t v1)
 {
     int r;
     bool ret = false;
@@ -3321,7 +3321,7 @@ bool SQL_TABLE_book :: get_by_rowid(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, title, isbn, price, quantity FROM book WHERE rowid = ?",
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM Book WHERE rowid = ?",
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
         {
@@ -3358,7 +3358,7 @@ bool SQL_TABLE_book :: get_by_rowid(int64_t v1)
     return ret;
 }
 
-bool SQL_TABLE_book :: get_all(void)
+bool SQL_TABLE_Book :: get_all(void)
 {
     int r;
     bool ret = false;
@@ -3373,7 +3373,7 @@ bool SQL_TABLE_book :: get_all(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, title, isbn, price, quantity FROM book",
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM Book",
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
         {
@@ -3402,22 +3402,22 @@ bool SQL_TABLE_book :: get_all(void)
 
 
 
-void SQL_TABLE_book :: get_subtables(void)
+void SQL_TABLE_Book :: get_subtables(void)
 {
 
 }
 
-void SQL_TABLE_book :: insert_subtables(void)
+void SQL_TABLE_Book :: insert_subtables(void)
 {
 
 }
 
-void SQL_TABLE_book :: insert_subtables_force(void)
+void SQL_TABLE_Book :: insert_subtables_force(void)
 {
 
 }
 
-bool SQL_TABLE_book :: get_out_of_stock(void)
+bool SQL_TABLE_Book :: get_out_of_stock(void)
 {
     int r;
     bool ret = false;
@@ -3432,7 +3432,7 @@ bool SQL_TABLE_book :: get_out_of_stock(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid, title, isbn, price, quantity FROM book "
+            "SELECT rowid,bookid, title, isbn, price, quantity FROM Book "
             "WHERE quantity == 0",
             -1, &pStmt_get_out_of_stock, NULL);
         if (r != SQLITE_OK)
@@ -3464,7 +3464,7 @@ bool SQL_TABLE_book :: get_out_of_stock(void)
     return ret;
 }
 
-bool SQL_TABLE_book :: update_quantity(void)
+bool SQL_TABLE_Book :: update_quantity(void)
 {
     int r;
     bool ret = false;
@@ -3479,7 +3479,7 @@ bool SQL_TABLE_book :: update_quantity(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "UPDATE book SET (quantity) = "
+            "UPDATE Book SET (quantity) = "
             "(?) WHERE rowid = ?",
             -1, &pStmt_update_quantity, NULL);
         if (r != SQLITE_OK)
@@ -3521,7 +3521,7 @@ bool SQL_TABLE_book :: update_quantity(void)
 
     return ret;
 }
-bool SQL_TABLE_book :: update_price(void)
+bool SQL_TABLE_Book :: update_price(void)
 {
     int r;
     bool ret = false;
@@ -3536,7 +3536,7 @@ bool SQL_TABLE_book :: update_price(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "UPDATE book SET (price) = "
+            "UPDATE Book SET (price) = "
             "(?) WHERE rowid = ?",
             -1, &pStmt_update_price, NULL);
         if (r != SQLITE_OK)
@@ -3582,8 +3582,8 @@ bool SQL_TABLE_book :: update_price(void)
 
 #ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 void
-SQL_TABLE_book :: copy_to_proto(
-              library::TABLE_book_m &msg)
+SQL_TABLE_Book :: copy_to_proto(
+              library::TABLE_Book_m &msg)
 {
     msg.set_schema_version(TABLE_VERSION);
     msg.set_bookid(bookid);
@@ -3595,8 +3595,8 @@ SQL_TABLE_book :: copy_to_proto(
 }
 
 void
-SQL_TABLE_book :: copy_from_proto(
-              const library::TABLE_book_m &msg)
+SQL_TABLE_Book :: copy_from_proto(
+              const library::TABLE_Book_m &msg)
 {
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
@@ -3605,7 +3605,7 @@ SQL_TABLE_book :: copy_from_proto(
         //        callback function which can convert a message from
         //        one schema version to another.
         std::ostringstream err;
-        err << "SQL_TABLE_book :: "
+        err << "SQL_TABLE_Book :: "
             << "copy_from_proto : recvd protobuf message with "
             << "schema version " << msg.schema_version()
             << " (supported is " << TABLE_VERSION
@@ -3646,9 +3646,9 @@ SQL_TABLE_book :: copy_from_proto(
 #endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 void
-SQL_TABLE_book :: copy_to_xml(tinyxml2::XMLElement *el)
+SQL_TABLE_Book :: copy_to_xml(tinyxml2::XMLElement *el)
 {
-    el->SetValue("book");
+    el->SetValue("Book");
     el->SetAttribute("type", "row");
     el->SetAttribute("rowid", (int64_t) rowid);
 
@@ -3704,7 +3704,7 @@ SQL_TABLE_book :: copy_to_xml(tinyxml2::XMLElement *el)
 }
 
 bool
-SQL_TABLE_book :: xml_decoder_bookid(const tinyxml2::XMLElement *el)
+SQL_TABLE_Book :: xml_decoder_bookid(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     if (n)
@@ -3722,7 +3722,7 @@ SQL_TABLE_book :: xml_decoder_bookid(const tinyxml2::XMLElement *el)
     return false;
 }
 bool
-SQL_TABLE_book :: xml_decoder_title(const tinyxml2::XMLElement *el)
+SQL_TABLE_Book :: xml_decoder_title(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     title = "";
@@ -3735,7 +3735,7 @@ SQL_TABLE_book :: xml_decoder_title(const tinyxml2::XMLElement *el)
     return true;
 }
 bool
-SQL_TABLE_book :: xml_decoder_isbn(const tinyxml2::XMLElement *el)
+SQL_TABLE_Book :: xml_decoder_isbn(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     isbn = "";
@@ -3748,7 +3748,7 @@ SQL_TABLE_book :: xml_decoder_isbn(const tinyxml2::XMLElement *el)
     return true;
 }
 bool
-SQL_TABLE_book :: xml_decoder_price(const tinyxml2::XMLElement *el)
+SQL_TABLE_Book :: xml_decoder_price(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     if (n)
@@ -3766,7 +3766,7 @@ SQL_TABLE_book :: xml_decoder_price(const tinyxml2::XMLElement *el)
     return false;
 }
 bool
-SQL_TABLE_book :: xml_decoder_quantity(const tinyxml2::XMLElement *el)
+SQL_TABLE_Book :: xml_decoder_quantity(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     if (n)
@@ -3786,32 +3786,32 @@ SQL_TABLE_book :: xml_decoder_quantity(const tinyxml2::XMLElement *el)
 
 
 bool
-SQL_TABLE_book :: copy_from_xml(const tinyxml2::XMLElement *el)
+SQL_TABLE_Book :: copy_from_xml(const tinyxml2::XMLElement *el)
 {
     init();
     if (xml_decoders_initialized == false)
     {
         xml_decoders["bookid"] =
-            &SQL_TABLE_book::xml_decoder_bookid;
+            &SQL_TABLE_Book::xml_decoder_bookid;
         xml_decoders["title"] =
-            &SQL_TABLE_book::xml_decoder_title;
+            &SQL_TABLE_Book::xml_decoder_title;
         xml_decoders["isbn"] =
-            &SQL_TABLE_book::xml_decoder_isbn;
+            &SQL_TABLE_Book::xml_decoder_isbn;
         xml_decoders["price"] =
-            &SQL_TABLE_book::xml_decoder_price;
+            &SQL_TABLE_Book::xml_decoder_price;
         xml_decoders["quantity"] =
-            &SQL_TABLE_book::xml_decoder_quantity;
+            &SQL_TABLE_Book::xml_decoder_quantity;
 
         xml_decoders_initialized = true;
     }
-    if (strcmp(el->Value(), "book") != 0)
+    if (strcmp(el->Value(), "Book") != 0)
     {
         if (err_log_func)
         {
             std::ostringstream err;
-            err << "SQL_TABLE_book :: "
+            err << "SQL_TABLE_Book :: "
                 << "copy_from_xml : node name is " << el->Value()
-                << " not 'book'!\n";
+                << " not 'Book'!\n";
             err_log_func(log_arg, err.str().c_str());
         }
         return false;
@@ -3838,12 +3838,12 @@ SQL_TABLE_book :: copy_from_xml(const tinyxml2::XMLElement *el)
 #endif
 
 //static
-bool SQL_TABLE_book :: init(sqlite3 *pdb, table_version_callback cb)
+bool SQL_TABLE_Book :: init(sqlite3 *pdb, table_version_callback cb)
 {
     bool ret = true;
     sqlite3_stmt * s;
     int r = sqlite3_prepare_v2(pdb,
-        "select version from tables where name = \"book\"",
+        "select version from tables where name = \"Book\"",
         -1, &s, NULL);
     if (r != SQLITE_OK)
     {
@@ -3861,17 +3861,17 @@ bool SQL_TABLE_book :: init(sqlite3 *pdb, table_version_callback cb)
         sqlite3_exec(
             pdb,
             "INSERT INTO tables (name,version) "
-            "values (\"book\",1)",
+            "values (\"Book\",1)",
             NULL, NULL, NULL);
     }
     else if (r == SQLITE_ROW)
     {
         int v = sqlite3_column_int(s,0);
-        cb(pdb, "book", v, 1);
+        cb(pdb, "Book", v, 1);
         sqlite3_exec(
             pdb,
             "UPDATE tables SET (version) = (1) "
-            "WHERE name = \"book\"",
+            "WHERE name = \"Book\"",
             NULL, NULL, NULL);
     }
     else
@@ -3885,7 +3885,7 @@ bool SQL_TABLE_book :: init(sqlite3 *pdb, table_version_callback cb)
 }
 
 //static
-bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
+bool SQL_TABLE_Book :: table_create(sqlite3 *pdb)
 {
     std::ostringstream  e;
     char * errmsg = NULL;
@@ -3898,11 +3898,11 @@ bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
     }
 
     errmsg = NULL;
-    r = sqlite3_exec(pdb, "CREATE TABLE book "
+    r = sqlite3_exec(pdb, "CREATE TABLE Book "
         "(bookid integer PRIMARY KEY AUTOINCREMENT, title text, isbn text, price double, quantity integer)",
         NULL, NULL, &errmsg);
 
-    printf("CREATE TABLE: CREATE TABLE book "
+    printf("CREATE TABLE: CREATE TABLE Book "
            "(bookid integer PRIMARY KEY AUTOINCREMENT, title text, isbn text, price double, quantity integer)\n");
 
     if (r != SQLITE_OK)
@@ -3918,11 +3918,11 @@ bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
     }
 
     errmsg = NULL;
-    r = sqlite3_exec(pdb,"CREATE INDEX book_bookid "
-                 "ON book (bookid)",
+    r = sqlite3_exec(pdb,"CREATE INDEX Book_bookid "
+                 "ON Book (bookid)",
         NULL, NULL, &errmsg);
-    printf("CREATE INDEX: CREATE INDEX book_bookid "
-           "ON book (bookid)\n");
+    printf("CREATE INDEX: CREATE INDEX Book_bookid "
+           "ON Book (bookid)\n");
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r
@@ -3935,11 +3935,11 @@ bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
         return false;
     }
     errmsg = NULL;
-    r = sqlite3_exec(pdb,"CREATE INDEX book_isbn "
-                 "ON book (isbn)",
+    r = sqlite3_exec(pdb,"CREATE INDEX Book_isbn "
+                 "ON Book (isbn)",
         NULL, NULL, &errmsg);
-    printf("CREATE INDEX: CREATE INDEX book_isbn "
-           "ON book (isbn)\n");
+    printf("CREATE INDEX: CREATE INDEX Book_isbn "
+           "ON Book (isbn)\n");
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r
@@ -3957,7 +3957,7 @@ bool SQL_TABLE_book :: table_create(sqlite3 *pdb)
 }
 
 //static
-void SQL_TABLE_book :: table_drop(sqlite3 *pdb)
+void SQL_TABLE_Book :: table_drop(sqlite3 *pdb)
 {
     if (pdb == NULL)
     {
@@ -3966,7 +3966,7 @@ void SQL_TABLE_book :: table_drop(sqlite3 *pdb)
     }
 
     char * errmsg = NULL;
-    sqlite3_exec(pdb, "DROP TABLE book",
+    sqlite3_exec(pdb, "DROP TABLE Book",
          NULL, NULL, &errmsg);
     if (errmsg != NULL)
     {
@@ -3976,7 +3976,7 @@ void SQL_TABLE_book :: table_drop(sqlite3 *pdb)
         sqlite3_free(errmsg);
     }
 
-    printf("DROP: DROP TABLE book\n");
+    printf("DROP: DROP TABLE Book\n");
 
     sqlite3_exec(pdb, "delete from tables "
                  "where name = \"user\"",
@@ -3985,17 +3985,17 @@ void SQL_TABLE_book :: table_drop(sqlite3 *pdb)
 
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 //static
-void SQL_TABLE_book :: export_xml(sqlite3 *pdb,
+void SQL_TABLE_Book :: export_xml(sqlite3 *pdb,
                                            tinyxml2::XMLElement *el)
 {
-    SQL_TABLE_book row(pdb);
+    SQL_TABLE_Book row(pdb);
 
     bool ok = row.get_all();
     while (ok)
     {
         row.get_subtables();
         tinyxml2::XMLElement * row_el =
-            el->GetDocument()->NewElement("book");
+            el->GetDocument()->NewElement("Book");
         row.copy_to_xml(row_el);
         el->InsertEndChild(row_el);
         ok = row.get_next();
@@ -4003,11 +4003,11 @@ void SQL_TABLE_book :: export_xml(sqlite3 *pdb,
 }
 
 //static
-bool SQL_TABLE_book :: import_xml(sqlite3 *pdb,
+bool SQL_TABLE_Book :: import_xml(sqlite3 *pdb,
                                            tinyxml2::XMLElement *el)
 {
     tinyxml2::XMLElement * row_el;
-    SQL_TABLE_book  row(pdb);
+    SQL_TABLE_Book  row(pdb);
 
     for (row_el = el->FirstChildElement(); row_el;
          row_el = row_el->NextSiblingElement())
@@ -4023,7 +4023,7 @@ bool SQL_TABLE_book :: import_xml(sqlite3 *pdb,
 }
 #endif
 
-SQL_TABLE_checkouts :: SQL_TABLE_checkouts(sqlite3 *_pdb)
+SQL_TABLE_Checkouts :: SQL_TABLE_Checkouts(sqlite3 *_pdb)
     : pdb(_pdb)
 {
     init_statements();
@@ -4035,15 +4035,15 @@ SQL_TABLE_checkouts :: SQL_TABLE_checkouts(sqlite3 *_pdb)
 // copy constructor, duplicates all the data fields (including rowid)
 // but does not duplicate the statement pointers, because then they'd
 // get double-freed.
-SQL_TABLE_checkouts :: SQL_TABLE_checkouts(
-    const SQL_TABLE_checkouts &other)
+SQL_TABLE_Checkouts :: SQL_TABLE_Checkouts(
+    const SQL_TABLE_Checkouts &other)
 {
     init_statements();
     operator=(other);
 }
 
 void
-SQL_TABLE_checkouts :: operator=(const SQL_TABLE_checkouts &other)
+SQL_TABLE_Checkouts :: operator=(const SQL_TABLE_Checkouts &other)
 {
     pdb = other.pdb;
     rowid = other.rowid;
@@ -4054,7 +4054,7 @@ SQL_TABLE_checkouts :: operator=(const SQL_TABLE_checkouts &other)
 }
 
 void
-SQL_TABLE_checkouts :: init_statements(void)
+SQL_TABLE_Checkouts :: init_statements(void)
 {
     pStmt_insert = NULL;
     pStmt_insert_force = NULL;
@@ -4076,13 +4076,13 @@ SQL_TABLE_checkouts :: init_statements(void)
     init();
 }
 
-SQL_TABLE_checkouts :: ~SQL_TABLE_checkouts(void)
+SQL_TABLE_Checkouts :: ~SQL_TABLE_Checkouts(void)
 {
     finalize();
 }
 
 void
-SQL_TABLE_checkouts :: finalize(void)
+SQL_TABLE_Checkouts :: finalize(void)
 {
     if (pStmt_insert)
         sqlite3_finalize(pStmt_insert);
@@ -4112,7 +4112,7 @@ SQL_TABLE_checkouts :: finalize(void)
     init_statements();
 }
 
-void SQL_TABLE_checkouts :: init(void)
+void SQL_TABLE_Checkouts :: init(void)
 {
     rowid = -1;
     bookid2 = 0;
@@ -4123,27 +4123,27 @@ void SQL_TABLE_checkouts :: init(void)
 }
 
 //static
-void SQL_TABLE_checkouts :: get_column_descriptors(
+void SQL_TABLE_Checkouts :: get_column_descriptors(
     std::vector<SQL_Column_Descriptor> &columns)
 {
     SQL_Column_Descriptor desc;
     columns.clear();
 
-    desc.tablename = "checkouts";
+    desc.tablename = "Checkouts";
     desc.fieldname = "bookid2";
     desc.ctype = "int32_t";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_INT;
     columns.push_back(desc);
 
-    desc.tablename = "checkouts";
+    desc.tablename = "Checkouts";
     desc.fieldname = "userid2";
     desc.ctype = "int32_t";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_INT;
     columns.push_back(desc);
 
-    desc.tablename = "checkouts";
+    desc.tablename = "Checkouts";
     desc.fieldname = "duedate";
     desc.ctype = "int64_t";
     desc.sqlite_type = SQLITE_INTEGER;
@@ -4152,7 +4152,7 @@ void SQL_TABLE_checkouts :: get_column_descriptors(
 
 }
 
-std::string SQL_TABLE_checkouts :: rowid_toString(void)
+std::string SQL_TABLE_Checkouts :: rowid_toString(void)
 {
     std::ostringstream out;
     out << rowid;
@@ -4160,21 +4160,21 @@ std::string SQL_TABLE_checkouts :: rowid_toString(void)
 }
 
 std::string
-SQL_TABLE_checkouts :: bookid2_toString(void)
+SQL_TABLE_Checkouts :: bookid2_toString(void)
 {
     std::ostringstream out;
     out << bookid2;
     return out.str();
 }
 std::string
-SQL_TABLE_checkouts :: userid2_toString(void)
+SQL_TABLE_Checkouts :: userid2_toString(void)
 {
     std::ostringstream out;
     out << userid2;
     return out.str();
 }
 std::string
-SQL_TABLE_checkouts :: duedate_toString(void)
+SQL_TABLE_Checkouts :: duedate_toString(void)
 {
     std::ostringstream out;
     out << duedate;
@@ -4182,7 +4182,7 @@ SQL_TABLE_checkouts :: duedate_toString(void)
 }
 
 
-std::string SQL_TABLE_checkouts :: toString(void)
+std::string SQL_TABLE_Checkouts :: toString(void)
 {
     std::ostringstream out;
     out << "rowid:" << rowid_toString() << ";";
@@ -4193,18 +4193,18 @@ std::string SQL_TABLE_checkouts :: toString(void)
     return out.str();
 }
 
-void SQL_TABLE_checkouts :: set_db(sqlite3 *_pdb)
+void SQL_TABLE_Checkouts :: set_db(sqlite3 *_pdb)
 {
     finalize();
     pdb = _pdb;
 
 }
 
-bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
+bool SQL_TABLE_Checkouts :: get_columns(sqlite3_stmt * pStmt)
 {
     int got;
     if (log_row_func)
-        log_row_msg.str("checkouts: ");
+        log_row_msg.str("Checkouts: ");
 
     rowid = sqlite3_column_int64(pStmt, 0);
     if (log_row_func)
@@ -4254,7 +4254,7 @@ bool SQL_TABLE_checkouts :: get_columns(sqlite3_stmt * pStmt)
     return true;
 }
 
-bool SQL_TABLE_checkouts :: get_by_bookid2(int32_t v)
+bool SQL_TABLE_Checkouts :: get_by_bookid2(int32_t v)
 {
     int r;
     bool ret = false;
@@ -4269,7 +4269,7 @@ bool SQL_TABLE_checkouts :: get_by_bookid2(int32_t v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid2, userid2, duedate FROM checkouts WHERE bookid2 = ?",
+            "SELECT rowid,bookid2, userid2, duedate FROM Checkouts WHERE bookid2 = ?",
             -1, &pStmt_by_bookid2, NULL);
         if (r != SQLITE_OK)
         {
@@ -4304,7 +4304,7 @@ bool SQL_TABLE_checkouts :: get_by_bookid2(int32_t v)
 
     return ret;
 }
-bool SQL_TABLE_checkouts :: get_by_userid2(int32_t v)
+bool SQL_TABLE_Checkouts :: get_by_userid2(int32_t v)
 {
     int r;
     bool ret = false;
@@ -4319,7 +4319,7 @@ bool SQL_TABLE_checkouts :: get_by_userid2(int32_t v)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid2, userid2, duedate FROM checkouts WHERE userid2 = ?",
+            "SELECT rowid,bookid2, userid2, duedate FROM Checkouts WHERE userid2 = ?",
             -1, &pStmt_by_userid2, NULL);
         if (r != SQLITE_OK)
         {
@@ -4357,7 +4357,7 @@ bool SQL_TABLE_checkouts :: get_by_userid2(int32_t v)
 
 
 
-bool SQL_TABLE_checkouts :: get_next(void)
+bool SQL_TABLE_Checkouts :: get_next(void)
 {
     int r;
     bool ret = false;
@@ -4374,7 +4374,7 @@ bool SQL_TABLE_checkouts :: get_next(void)
     return ret;
 }
 
-bool SQL_TABLE_checkouts :: insert(void)
+bool SQL_TABLE_Checkouts :: insert(void)
 {
     int r;
 
@@ -4387,7 +4387,7 @@ bool SQL_TABLE_checkouts :: insert(void)
     if (pStmt_insert == NULL)
     {
         r = sqlite3_prepare_v2(
-            pdb, "INSERT INTO checkouts "
+            pdb, "INSERT INTO Checkouts "
             "(bookid2, userid2, duedate) "
             "values (?,?,?)",
             -1, &pStmt_insert, NULL);
@@ -4442,7 +4442,7 @@ bool SQL_TABLE_checkouts :: insert(void)
     return true;
 }
 
-bool SQL_TABLE_checkouts :: insert_force(void)
+bool SQL_TABLE_Checkouts :: insert_force(void)
 {
     int r;
 
@@ -4455,7 +4455,7 @@ bool SQL_TABLE_checkouts :: insert_force(void)
     if (pStmt_insert_force == NULL)
     {
         r = sqlite3_prepare_v2(
-            pdb, "INSERT OR REPLACE INTO checkouts "
+            pdb, "INSERT OR REPLACE INTO Checkouts "
             "(bookid2, userid2, duedate) "
             "values (?,?,?)",
             -1, &pStmt_insert_force, NULL);
@@ -4510,7 +4510,7 @@ bool SQL_TABLE_checkouts :: insert_force(void)
     return true;
 }
 
-bool SQL_TABLE_checkouts :: update(void)
+bool SQL_TABLE_Checkouts :: update(void)
 {
     int r;
 
@@ -4523,7 +4523,7 @@ bool SQL_TABLE_checkouts :: update(void)
     if (pStmt_update == NULL)
     {
         r = sqlite3_prepare_v2(
-            pdb, "UPDATE checkouts SET "
+            pdb, "UPDATE Checkouts SET "
             "(bookid2, userid2, duedate) "
             "= (?,?,?) WHERE rowid = ?",
             -1, &pStmt_update, NULL);
@@ -4580,7 +4580,7 @@ bool SQL_TABLE_checkouts :: update(void)
     return true;
 }
 
-bool SQL_TABLE_checkouts :: delete_rowid(void)
+bool SQL_TABLE_Checkouts :: delete_rowid(void)
 {
     int r;
 
@@ -4593,7 +4593,7 @@ bool SQL_TABLE_checkouts :: delete_rowid(void)
     if (pStmt_delete_rowid == NULL)
     {
         r = sqlite3_prepare_v2(
-            pdb, "DELETE FROM checkouts WHERE rowid = ?",
+            pdb, "DELETE FROM Checkouts WHERE rowid = ?",
             -1, &pStmt_delete_rowid, NULL);
         if (r != SQLITE_OK)
         {
@@ -4622,7 +4622,7 @@ bool SQL_TABLE_checkouts :: delete_rowid(void)
     return true;
 }
 
-bool SQL_TABLE_checkouts :: get_by_rowid(int64_t v1)
+bool SQL_TABLE_Checkouts :: get_by_rowid(int64_t v1)
 {
     int r;
     bool ret = false;
@@ -4637,7 +4637,7 @@ bool SQL_TABLE_checkouts :: get_by_rowid(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid2, userid2, duedate FROM checkouts WHERE rowid = ?",
+            "SELECT rowid,bookid2, userid2, duedate FROM Checkouts WHERE rowid = ?",
             -1, &pStmt_get_by_rowid, NULL);
         if (r != SQLITE_OK)
         {
@@ -4674,7 +4674,7 @@ bool SQL_TABLE_checkouts :: get_by_rowid(int64_t v1)
     return ret;
 }
 
-bool SQL_TABLE_checkouts :: get_all(void)
+bool SQL_TABLE_Checkouts :: get_all(void)
 {
     int r;
     bool ret = false;
@@ -4689,7 +4689,7 @@ bool SQL_TABLE_checkouts :: get_all(void)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid2, userid2, duedate FROM checkouts",
+            "SELECT rowid,bookid2, userid2, duedate FROM Checkouts",
             -1, &pStmt_get_all, NULL);
         if (r != SQLITE_OK)
         {
@@ -4718,22 +4718,22 @@ bool SQL_TABLE_checkouts :: get_all(void)
 
 
 
-void SQL_TABLE_checkouts :: get_subtables(void)
+void SQL_TABLE_Checkouts :: get_subtables(void)
 {
 
 }
 
-void SQL_TABLE_checkouts :: insert_subtables(void)
+void SQL_TABLE_Checkouts :: insert_subtables(void)
 {
 
 }
 
-void SQL_TABLE_checkouts :: insert_subtables_force(void)
+void SQL_TABLE_Checkouts :: insert_subtables_force(void)
 {
 
 }
 
-bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
+bool SQL_TABLE_Checkouts :: get_due_now(int64_t v1)
 {
     int r;
     bool ret = false;
@@ -4748,7 +4748,7 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT rowid,bookid2, userid2, duedate FROM checkouts "
+            "SELECT rowid,bookid2, userid2, duedate FROM Checkouts "
             "WHERE duedate < ?",
             -1, &pStmt_get_due_now, NULL);
         if (r != SQLITE_OK)
@@ -4792,8 +4792,8 @@ bool SQL_TABLE_checkouts :: get_due_now(int64_t v1)
 
 #ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 void
-SQL_TABLE_checkouts :: copy_to_proto(
-              library::TABLE_checkouts_m &msg)
+SQL_TABLE_Checkouts :: copy_to_proto(
+              library::TABLE_Checkouts_m &msg)
 {
     msg.set_schema_version(TABLE_VERSION);
     msg.set_bookid2(bookid2);
@@ -4803,8 +4803,8 @@ SQL_TABLE_checkouts :: copy_to_proto(
 }
 
 void
-SQL_TABLE_checkouts :: copy_from_proto(
-              const library::TABLE_checkouts_m &msg)
+SQL_TABLE_Checkouts :: copy_from_proto(
+              const library::TABLE_Checkouts_m &msg)
 {
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
@@ -4813,7 +4813,7 @@ SQL_TABLE_checkouts :: copy_from_proto(
         //        callback function which can convert a message from
         //        one schema version to another.
         std::ostringstream err;
-        err << "SQL_TABLE_checkouts :: "
+        err << "SQL_TABLE_Checkouts :: "
             << "copy_from_proto : recvd protobuf message with "
             << "schema version " << msg.schema_version()
             << " (supported is " << TABLE_VERSION
@@ -4844,9 +4844,9 @@ SQL_TABLE_checkouts :: copy_from_proto(
 #endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 void
-SQL_TABLE_checkouts :: copy_to_xml(tinyxml2::XMLElement *el)
+SQL_TABLE_Checkouts :: copy_to_xml(tinyxml2::XMLElement *el)
 {
-    el->SetValue("checkouts");
+    el->SetValue("Checkouts");
     el->SetAttribute("type", "row");
     el->SetAttribute("rowid", (int64_t) rowid);
 
@@ -4884,7 +4884,7 @@ SQL_TABLE_checkouts :: copy_to_xml(tinyxml2::XMLElement *el)
 }
 
 bool
-SQL_TABLE_checkouts :: xml_decoder_bookid2(const tinyxml2::XMLElement *el)
+SQL_TABLE_Checkouts :: xml_decoder_bookid2(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     if (n)
@@ -4902,7 +4902,7 @@ SQL_TABLE_checkouts :: xml_decoder_bookid2(const tinyxml2::XMLElement *el)
     return false;
 }
 bool
-SQL_TABLE_checkouts :: xml_decoder_userid2(const tinyxml2::XMLElement *el)
+SQL_TABLE_Checkouts :: xml_decoder_userid2(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     if (n)
@@ -4920,7 +4920,7 @@ SQL_TABLE_checkouts :: xml_decoder_userid2(const tinyxml2::XMLElement *el)
     return false;
 }
 bool
-SQL_TABLE_checkouts :: xml_decoder_duedate(const tinyxml2::XMLElement *el)
+SQL_TABLE_Checkouts :: xml_decoder_duedate(const tinyxml2::XMLElement *el)
 {
     const tinyxml2::XMLNode * n = el->FirstChild();
     if (n)
@@ -4940,28 +4940,28 @@ SQL_TABLE_checkouts :: xml_decoder_duedate(const tinyxml2::XMLElement *el)
 
 
 bool
-SQL_TABLE_checkouts :: copy_from_xml(const tinyxml2::XMLElement *el)
+SQL_TABLE_Checkouts :: copy_from_xml(const tinyxml2::XMLElement *el)
 {
     init();
     if (xml_decoders_initialized == false)
     {
         xml_decoders["bookid2"] =
-            &SQL_TABLE_checkouts::xml_decoder_bookid2;
+            &SQL_TABLE_Checkouts::xml_decoder_bookid2;
         xml_decoders["userid2"] =
-            &SQL_TABLE_checkouts::xml_decoder_userid2;
+            &SQL_TABLE_Checkouts::xml_decoder_userid2;
         xml_decoders["duedate"] =
-            &SQL_TABLE_checkouts::xml_decoder_duedate;
+            &SQL_TABLE_Checkouts::xml_decoder_duedate;
 
         xml_decoders_initialized = true;
     }
-    if (strcmp(el->Value(), "checkouts") != 0)
+    if (strcmp(el->Value(), "Checkouts") != 0)
     {
         if (err_log_func)
         {
             std::ostringstream err;
-            err << "SQL_TABLE_checkouts :: "
+            err << "SQL_TABLE_Checkouts :: "
                 << "copy_from_xml : node name is " << el->Value()
-                << " not 'checkouts'!\n";
+                << " not 'Checkouts'!\n";
             err_log_func(log_arg, err.str().c_str());
         }
         return false;
@@ -4988,12 +4988,12 @@ SQL_TABLE_checkouts :: copy_from_xml(const tinyxml2::XMLElement *el)
 #endif
 
 //static
-bool SQL_TABLE_checkouts :: init(sqlite3 *pdb, table_version_callback cb)
+bool SQL_TABLE_Checkouts :: init(sqlite3 *pdb, table_version_callback cb)
 {
     bool ret = true;
     sqlite3_stmt * s;
     int r = sqlite3_prepare_v2(pdb,
-        "select version from tables where name = \"checkouts\"",
+        "select version from tables where name = \"Checkouts\"",
         -1, &s, NULL);
     if (r != SQLITE_OK)
     {
@@ -5011,17 +5011,17 @@ bool SQL_TABLE_checkouts :: init(sqlite3 *pdb, table_version_callback cb)
         sqlite3_exec(
             pdb,
             "INSERT INTO tables (name,version) "
-            "values (\"checkouts\",1)",
+            "values (\"Checkouts\",1)",
             NULL, NULL, NULL);
     }
     else if (r == SQLITE_ROW)
     {
         int v = sqlite3_column_int(s,0);
-        cb(pdb, "checkouts", v, 1);
+        cb(pdb, "Checkouts", v, 1);
         sqlite3_exec(
             pdb,
             "UPDATE tables SET (version) = (1) "
-            "WHERE name = \"checkouts\"",
+            "WHERE name = \"Checkouts\"",
             NULL, NULL, NULL);
     }
     else
@@ -5035,7 +5035,7 @@ bool SQL_TABLE_checkouts :: init(sqlite3 *pdb, table_version_callback cb)
 }
 
 //static
-bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
+bool SQL_TABLE_Checkouts :: table_create(sqlite3 *pdb)
 {
     std::ostringstream  e;
     char * errmsg = NULL;
@@ -5048,12 +5048,12 @@ bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
     }
 
     errmsg = NULL;
-    r = sqlite3_exec(pdb, "CREATE TABLE checkouts "
-        "(bookid2 integer, userid2 integer, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))",
+    r = sqlite3_exec(pdb, "CREATE TABLE Checkouts "
+        "(bookid2 integer, userid2 integer, duedate int64, FOREIGN KEY(bookid2) REFERENCES Book(bookid), FOREIGN KEY(userid2) REFERENCES User(userid))",
         NULL, NULL, &errmsg);
 
-    printf("CREATE TABLE: CREATE TABLE checkouts "
-           "(bookid2 integer, userid2 integer, duedate int64, FOREIGN KEY(bookid2) REFERENCES book(bookid), FOREIGN KEY(userid2) REFERENCES user(userid))\n");
+    printf("CREATE TABLE: CREATE TABLE Checkouts "
+           "(bookid2 integer, userid2 integer, duedate int64, FOREIGN KEY(bookid2) REFERENCES Book(bookid), FOREIGN KEY(userid2) REFERENCES User(userid))\n");
 
     if (r != SQLITE_OK)
     {
@@ -5068,11 +5068,11 @@ bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
     }
 
     errmsg = NULL;
-    r = sqlite3_exec(pdb,"CREATE INDEX checkouts_bookid2 "
-                 "ON checkouts (bookid2)",
+    r = sqlite3_exec(pdb,"CREATE INDEX Checkouts_bookid2 "
+                 "ON Checkouts (bookid2)",
         NULL, NULL, &errmsg);
-    printf("CREATE INDEX: CREATE INDEX checkouts_bookid2 "
-           "ON checkouts (bookid2)\n");
+    printf("CREATE INDEX: CREATE INDEX Checkouts_bookid2 "
+           "ON Checkouts (bookid2)\n");
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r
@@ -5085,11 +5085,11 @@ bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
         return false;
     }
     errmsg = NULL;
-    r = sqlite3_exec(pdb,"CREATE INDEX checkouts_userid2 "
-                 "ON checkouts (userid2)",
+    r = sqlite3_exec(pdb,"CREATE INDEX Checkouts_userid2 "
+                 "ON Checkouts (userid2)",
         NULL, NULL, &errmsg);
-    printf("CREATE INDEX: CREATE INDEX checkouts_userid2 "
-           "ON checkouts (userid2)\n");
+    printf("CREATE INDEX: CREATE INDEX Checkouts_userid2 "
+           "ON Checkouts (userid2)\n");
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r
@@ -5107,7 +5107,7 @@ bool SQL_TABLE_checkouts :: table_create(sqlite3 *pdb)
 }
 
 //static
-void SQL_TABLE_checkouts :: table_drop(sqlite3 *pdb)
+void SQL_TABLE_Checkouts :: table_drop(sqlite3 *pdb)
 {
     if (pdb == NULL)
     {
@@ -5116,7 +5116,7 @@ void SQL_TABLE_checkouts :: table_drop(sqlite3 *pdb)
     }
 
     char * errmsg = NULL;
-    sqlite3_exec(pdb, "DROP TABLE checkouts",
+    sqlite3_exec(pdb, "DROP TABLE Checkouts",
          NULL, NULL, &errmsg);
     if (errmsg != NULL)
     {
@@ -5126,7 +5126,7 @@ void SQL_TABLE_checkouts :: table_drop(sqlite3 *pdb)
         sqlite3_free(errmsg);
     }
 
-    printf("DROP: DROP TABLE checkouts\n");
+    printf("DROP: DROP TABLE Checkouts\n");
 
     sqlite3_exec(pdb, "delete from tables "
                  "where name = \"user\"",
@@ -5135,17 +5135,17 @@ void SQL_TABLE_checkouts :: table_drop(sqlite3 *pdb)
 
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
 //static
-void SQL_TABLE_checkouts :: export_xml(sqlite3 *pdb,
+void SQL_TABLE_Checkouts :: export_xml(sqlite3 *pdb,
                                            tinyxml2::XMLElement *el)
 {
-    SQL_TABLE_checkouts row(pdb);
+    SQL_TABLE_Checkouts row(pdb);
 
     bool ok = row.get_all();
     while (ok)
     {
         row.get_subtables();
         tinyxml2::XMLElement * row_el =
-            el->GetDocument()->NewElement("checkouts");
+            el->GetDocument()->NewElement("Checkouts");
         row.copy_to_xml(row_el);
         el->InsertEndChild(row_el);
         ok = row.get_next();
@@ -5153,11 +5153,11 @@ void SQL_TABLE_checkouts :: export_xml(sqlite3 *pdb,
 }
 
 //static
-bool SQL_TABLE_checkouts :: import_xml(sqlite3 *pdb,
+bool SQL_TABLE_Checkouts :: import_xml(sqlite3 *pdb,
                                            tinyxml2::XMLElement *el)
 {
     tinyxml2::XMLElement * row_el;
-    SQL_TABLE_checkouts  row(pdb);
+    SQL_TABLE_Checkouts  row(pdb);
 
     for (row_el = el->FirstChildElement(); row_el;
          row_el = row_el->NextSiblingElement())
@@ -5192,70 +5192,70 @@ void SQL_SELECT_due_books :: get_column_descriptors(
     SQL_Column_Descriptor desc;
     columns.clear();
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "rowid";
     desc.ctype = "sqlite3_int64";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_INT64;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "firstname";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_TEXT;
     desc.sqlite3gen_type = TYPE_TEXT;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "lastname";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_TEXT;
     desc.sqlite3gen_type = TYPE_TEXT;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "test2";
     desc.ctype = "bool";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_BOOL;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "test3";
     desc.ctype = "sample::library2::EnumField_t";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_ENUM;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "proto";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_BLOB;
     desc.sqlite3gen_type = TYPE_BLOB;
     columns.push_back(desc);
 
-    desc.tablename = "book";
+    desc.tablename = "Book";
     desc.fieldname = "rowid";
     desc.ctype = "sqlite3_int64";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_INT64;
     columns.push_back(desc);
 
-    desc.tablename = "book";
+    desc.tablename = "Book";
     desc.fieldname = "title";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_TEXT;
     desc.sqlite3gen_type = TYPE_TEXT;
     columns.push_back(desc);
 
-    desc.tablename = "checkouts";
+    desc.tablename = "Checkouts";
     desc.fieldname = "rowid";
     desc.ctype = "sqlite3_int64";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_INT64;
     columns.push_back(desc);
 
-    desc.tablename = "checkouts";
+    desc.tablename = "Checkouts";
     desc.fieldname = "duedate";
     desc.ctype = "int64_t";
     desc.sqlite_type = SQLITE_INTEGER;
@@ -5284,19 +5284,19 @@ SQL_SELECT_due_books :: get_columns(void)
     got = sqlite3_column_type(pStmt, 0);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (user_rowid) : "
+        PRINT_ERR("get_columns (User_rowid) : "
                 "column 0 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    user_rowid = sqlite3_column_int64(pStmt, 0);
+    User_rowid = sqlite3_column_int64(pStmt, 0);
     if (log_row_func)
-        log_row_msg << "user_rowid:" << user_rowid << "; ";
+        log_row_msg << "User_rowid:" << User_rowid << "; ";
     got = sqlite3_column_type(pStmt, 1);
     if (got != SQLITE_TEXT)
     {
 #if 0 // coerce everything to string.
-        PRINT_ERR("get_columns (user_firstname) : "
+        PRINT_ERR("get_columns (User_firstname) : "
                 "column 1 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
@@ -5306,23 +5306,23 @@ SQL_SELECT_due_books :: get_columns(void)
         const void * ptr = sqlite3_column_text(
             pStmt, 1);
         int len = sqlite3_column_bytes(pStmt, 1);
-        user_firstname.clear();
-        user_firstname.resize(len);
-        memcpy((void*)user_firstname.c_str(), ptr, len);
+        User_firstname.clear();
+        User_firstname.resize(len);
+        memcpy((void*)User_firstname.c_str(), ptr, len);
     }
     if (log_row_func)
     {
         if (got == SQLITE_TEXT)
-            log_row_msg << "user_firstname:\"" << user_firstname << "\"; ";
+            log_row_msg << "User_firstname:\"" << User_firstname << "\"; ";
         else // can't print a blob! just print length
-            log_row_msg << "user_firstname:(" << user_firstname.size()
+            log_row_msg << "User_firstname:(" << User_firstname.size()
                         << " bytes); ";
     }
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_TEXT)
     {
 #if 0 // coerce everything to string.
-        PRINT_ERR("get_columns (user_lastname) : "
+        PRINT_ERR("get_columns (User_lastname) : "
                 "column 2 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
@@ -5332,55 +5332,55 @@ SQL_SELECT_due_books :: get_columns(void)
         const void * ptr = sqlite3_column_text(
             pStmt, 2);
         int len = sqlite3_column_bytes(pStmt, 2);
-        user_lastname.clear();
-        user_lastname.resize(len);
-        memcpy((void*)user_lastname.c_str(), ptr, len);
+        User_lastname.clear();
+        User_lastname.resize(len);
+        memcpy((void*)User_lastname.c_str(), ptr, len);
     }
     if (log_row_func)
     {
         if (got == SQLITE_TEXT)
-            log_row_msg << "user_lastname:\"" << user_lastname << "\"; ";
+            log_row_msg << "User_lastname:\"" << User_lastname << "\"; ";
         else // can't print a blob! just print length
-            log_row_msg << "user_lastname:(" << user_lastname.size()
+            log_row_msg << "User_lastname:(" << User_lastname.size()
                         << " bytes); ";
     }
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (user_test2) : "
+        PRINT_ERR("get_columns (User_test2) : "
                 "column 3 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
     if (sqlite3_column_int(pStmt, 3))
-        user_test2 = true;
+        User_test2 = true;
     else
-        user_test2 = false;
+        User_test2 = false;
     if (log_row_func)
-        log_row_msg << "user_test2:"
-                    << (user_test2 ? "true" : "false") << "; ";
+        log_row_msg << "User_test2:"
+                    << (User_test2 ? "true" : "false") << "; ";
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (user_test3) : "
+        PRINT_ERR("get_columns (User_test3) : "
                 "column 4 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    if (sample::library2::EnumField_t_IsValid(user_test3))
-        user_test3 = (sample::library2::EnumField_t) sqlite3_column_int(
+    if (sample::library2::EnumField_t_IsValid(User_test3))
+        User_test3 = (sample::library2::EnumField_t) sqlite3_column_int(
             pStmt, 4);
     else
-        user_test3 = sample::library2::ENUM_TWO;
+        User_test3 = sample::library2::ENUM_TWO;
 
     if (log_row_func)
-        log_row_msg << "user_test3:"
-                    << sample::library2::EnumField_t_Name(user_test3) << "; ";
+        log_row_msg << "User_test3:"
+                    << sample::library2::EnumField_t_Name(User_test3) << "; ";
     got = sqlite3_column_type(pStmt, 5);
     if (got != SQLITE_BLOB)
     {
 #if 0 // coerce everything to string.
-        PRINT_ERR("get_columns (user_proto) : "
+        PRINT_ERR("get_columns (User_proto) : "
                 "column 5 wrong type (%d %d)",
                 got, SQLITE_BLOB);
         return false;
@@ -5390,34 +5390,34 @@ SQL_SELECT_due_books :: get_columns(void)
         const void * ptr = sqlite3_column_blob(
             pStmt, 5);
         int len = sqlite3_column_bytes(pStmt, 5);
-        user_proto.clear();
-        user_proto.resize(len);
-        memcpy((void*)user_proto.c_str(), ptr, len);
+        User_proto.clear();
+        User_proto.resize(len);
+        memcpy((void*)User_proto.c_str(), ptr, len);
     }
     if (log_row_func)
     {
         if (got == SQLITE_TEXT)
-            log_row_msg << "user_proto:\"" << user_proto << "\"; ";
+            log_row_msg << "User_proto:\"" << User_proto << "\"; ";
         else // can't print a blob! just print length
-            log_row_msg << "user_proto:(" << user_proto.size()
+            log_row_msg << "User_proto:(" << User_proto.size()
                         << " bytes); ";
     }
     got = sqlite3_column_type(pStmt, 6);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (book_rowid) : "
+        PRINT_ERR("get_columns (Book_rowid) : "
                 "column 6 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    book_rowid = sqlite3_column_int64(pStmt, 6);
+    Book_rowid = sqlite3_column_int64(pStmt, 6);
     if (log_row_func)
-        log_row_msg << "book_rowid:" << book_rowid << "; ";
+        log_row_msg << "Book_rowid:" << Book_rowid << "; ";
     got = sqlite3_column_type(pStmt, 7);
     if (got != SQLITE_TEXT)
     {
 #if 0 // coerce everything to string.
-        PRINT_ERR("get_columns (book_title) : "
+        PRINT_ERR("get_columns (Book_title) : "
                 "column 7 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
@@ -5427,40 +5427,40 @@ SQL_SELECT_due_books :: get_columns(void)
         const void * ptr = sqlite3_column_text(
             pStmt, 7);
         int len = sqlite3_column_bytes(pStmt, 7);
-        book_title.clear();
-        book_title.resize(len);
-        memcpy((void*)book_title.c_str(), ptr, len);
+        Book_title.clear();
+        Book_title.resize(len);
+        memcpy((void*)Book_title.c_str(), ptr, len);
     }
     if (log_row_func)
     {
         if (got == SQLITE_TEXT)
-            log_row_msg << "book_title:\"" << book_title << "\"; ";
+            log_row_msg << "Book_title:\"" << Book_title << "\"; ";
         else // can't print a blob! just print length
-            log_row_msg << "book_title:(" << book_title.size()
+            log_row_msg << "Book_title:(" << Book_title.size()
                         << " bytes); ";
     }
     got = sqlite3_column_type(pStmt, 8);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (checkouts_rowid) : "
+        PRINT_ERR("get_columns (Checkouts_rowid) : "
                 "column 8 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    checkouts_rowid = sqlite3_column_int64(pStmt, 8);
+    Checkouts_rowid = sqlite3_column_int64(pStmt, 8);
     if (log_row_func)
-        log_row_msg << "checkouts_rowid:" << checkouts_rowid << "; ";
+        log_row_msg << "Checkouts_rowid:" << Checkouts_rowid << "; ";
     got = sqlite3_column_type(pStmt, 9);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (checkouts_duedate) : "
+        PRINT_ERR("get_columns (Checkouts_duedate) : "
                 "column 9 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    checkouts_duedate = sqlite3_column_int64(pStmt, 9);
+    Checkouts_duedate = sqlite3_column_int64(pStmt, 9);
     if (log_row_func)
-        log_row_msg << "checkouts_duedate:" << checkouts_duedate << "; ";
+        log_row_msg << "Checkouts_duedate:" << Checkouts_duedate << "; ";
 
 
     if (log_row_func)
@@ -5473,74 +5473,74 @@ SQL_SELECT_due_books :: get_columns(void)
 }
 
 std::string
-SQL_SELECT_due_books :: user_rowid_toString(void)
+SQL_SELECT_due_books :: User_rowid_toString(void)
 {
     std::ostringstream out;
-    out << user_rowid;
+    out << User_rowid;
     return out.str();
 }
 std::string
-SQL_SELECT_due_books :: user_firstname_toString(void)
+SQL_SELECT_due_books :: User_firstname_toString(void)
 {
     std::ostringstream out;
-    out << "\"" << user_firstname << "\"";
+    out << "\"" << User_firstname << "\"";
     return out.str();
 }
 std::string
-SQL_SELECT_due_books :: user_lastname_toString(void)
+SQL_SELECT_due_books :: User_lastname_toString(void)
 {
     std::ostringstream out;
-    out << "\"" << user_lastname << "\"";
+    out << "\"" << User_lastname << "\"";
     return out.str();
 }
 std::string
-SQL_SELECT_due_books :: user_test2_toString(void)
+SQL_SELECT_due_books :: User_test2_toString(void)
 {
-    return user_test2 ? "true" : "false";
+    return User_test2 ? "true" : "false";
 }
 std::string
-SQL_SELECT_due_books :: user_test3_toString(void)
+SQL_SELECT_due_books :: User_test3_toString(void)
 {
-    return sample::library2::EnumField_t_Name(user_test3);
+    return sample::library2::EnumField_t_Name(User_test3);
 }
 std::string
-SQL_SELECT_due_books :: user_proto_toString(void)
+SQL_SELECT_due_books :: User_proto_toString(void)
 {
     std::ostringstream out;
     out << "BLOB:";
-    for (size_t ind = 0; ind < user_proto.size(); ind++)
+    for (size_t ind = 0; ind < User_proto.size(); ind++)
     {
-        uint8_t b = (uint8_t) user_proto[ind];
+        uint8_t b = (uint8_t) User_proto[ind];
         out << std::hex << std::setw(2) << (int) b;
     }
     return out.str();
 }
 std::string
-SQL_SELECT_due_books :: book_rowid_toString(void)
+SQL_SELECT_due_books :: Book_rowid_toString(void)
 {
     std::ostringstream out;
-    out << book_rowid;
+    out << Book_rowid;
     return out.str();
 }
 std::string
-SQL_SELECT_due_books :: book_title_toString(void)
+SQL_SELECT_due_books :: Book_title_toString(void)
 {
     std::ostringstream out;
-    out << "\"" << book_title << "\"";
+    out << "\"" << Book_title << "\"";
     return out.str();
 }
 std::string
-SQL_SELECT_due_books :: checkouts_rowid_toString(void)
+SQL_SELECT_due_books :: Checkouts_rowid_toString(void)
 {
     std::ostringstream out;
-    out << checkouts_rowid;
+    out << Checkouts_rowid;
     return out.str();
 }
 std::string
-SQL_SELECT_due_books :: checkouts_duedate_toString(void)
+SQL_SELECT_due_books :: Checkouts_duedate_toString(void)
 {
     std::ostringstream out;
-    out << checkouts_duedate;
+    out << Checkouts_duedate;
     return out.str();
 }
 
@@ -5549,26 +5549,26 @@ std::string
 SQL_SELECT_due_books :: toString(void)
 {
     std::ostringstream out;
-    out << "user_rowid: "
-        << user_rowid_toString() << "; ";
-    out << "user_firstname: "
-        << user_firstname_toString() << "; ";
-    out << "user_lastname: "
-        << user_lastname_toString() << "; ";
-    out << "user_test2: "
-        << user_test2_toString() << "; ";
-    out << "user_test3: "
-        << user_test3_toString() << "; ";
-    out << "user_proto: "
-        << user_proto_toString() << "; ";
-    out << "book_rowid: "
-        << book_rowid_toString() << "; ";
-    out << "book_title: "
-        << book_title_toString() << "; ";
-    out << "checkouts_rowid: "
-        << checkouts_rowid_toString() << "; ";
-    out << "checkouts_duedate: "
-        << checkouts_duedate_toString() << "; ";
+    out << "User_rowid: "
+        << User_rowid_toString() << "; ";
+    out << "User_firstname: "
+        << User_firstname_toString() << "; ";
+    out << "User_lastname: "
+        << User_lastname_toString() << "; ";
+    out << "User_test2: "
+        << User_test2_toString() << "; ";
+    out << "User_test3: "
+        << User_test3_toString() << "; ";
+    out << "User_proto: "
+        << User_proto_toString() << "; ";
+    out << "Book_rowid: "
+        << Book_rowid_toString() << "; ";
+    out << "Book_title: "
+        << Book_title_toString() << "; ";
+    out << "Checkouts_rowid: "
+        << Checkouts_rowid_toString() << "; ";
+    out << "Checkouts_duedate: "
+        << Checkouts_duedate_toString() << "; ";
 
     return out.str();
 }
@@ -5586,8 +5586,8 @@ SQL_SELECT_due_books :: get(int32_t v1, int32_t v2)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT user.rowid, user.firstname, user.lastname, user.test2, user.test3, user.proto, book.rowid, book.title, checkouts.rowid, checkouts.duedate "
-            "FROM user, checkouts, book WHERE checkouts.bookid2 = book.bookid AND checkouts.userid2 = user.userid AND book.bookid > ? AND book.bookid < ? ORDER BY duedate ASC",
+            "SELECT User.rowid, User.firstname, User.lastname, User.test2, User.test3, User.proto, Book.rowid, Book.title, Checkouts.rowid, Checkouts.duedate "
+            "FROM User, Checkouts, Book WHERE Checkouts.bookid2 = Book.bookid AND Checkouts.userid2 = User.userid AND Book.bookid > ? AND Book.bookid < ? ORDER BY duedate ASC",
             -1, &pStmt_get_query, NULL);
         if (r != SQLITE_OK)
         {
@@ -5662,70 +5662,70 @@ void SQL_SELECT_due_books2 :: get_column_descriptors(
     SQL_Column_Descriptor desc;
     columns.clear();
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "rowid";
     desc.ctype = "sqlite3_int64";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_INT64;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "firstname";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_TEXT;
     desc.sqlite3gen_type = TYPE_TEXT;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "lastname";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_TEXT;
     desc.sqlite3gen_type = TYPE_TEXT;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "test2";
     desc.ctype = "bool";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_BOOL;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "test3";
     desc.ctype = "sample::library2::EnumField_t";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_ENUM;
     columns.push_back(desc);
 
-    desc.tablename = "user";
+    desc.tablename = "User";
     desc.fieldname = "proto";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_BLOB;
     desc.sqlite3gen_type = TYPE_BLOB;
     columns.push_back(desc);
 
-    desc.tablename = "book";
+    desc.tablename = "Book";
     desc.fieldname = "rowid";
     desc.ctype = "sqlite3_int64";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_INT64;
     columns.push_back(desc);
 
-    desc.tablename = "book";
+    desc.tablename = "Book";
     desc.fieldname = "title";
     desc.ctype = "std::string";
     desc.sqlite_type = SQLITE_TEXT;
     desc.sqlite3gen_type = TYPE_TEXT;
     columns.push_back(desc);
 
-    desc.tablename = "checkouts";
+    desc.tablename = "Checkouts";
     desc.fieldname = "rowid";
     desc.ctype = "sqlite3_int64";
     desc.sqlite_type = SQLITE_INTEGER;
     desc.sqlite3gen_type = TYPE_INT64;
     columns.push_back(desc);
 
-    desc.tablename = "checkouts";
+    desc.tablename = "Checkouts";
     desc.fieldname = "duedate";
     desc.ctype = "int64_t";
     desc.sqlite_type = SQLITE_INTEGER;
@@ -5754,19 +5754,19 @@ SQL_SELECT_due_books2 :: get_columns(void)
     got = sqlite3_column_type(pStmt, 0);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (user_rowid) : "
+        PRINT_ERR("get_columns (User_rowid) : "
                 "column 0 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    user_rowid = sqlite3_column_int64(pStmt, 0);
+    User_rowid = sqlite3_column_int64(pStmt, 0);
     if (log_row_func)
-        log_row_msg << "user_rowid:" << user_rowid << "; ";
+        log_row_msg << "User_rowid:" << User_rowid << "; ";
     got = sqlite3_column_type(pStmt, 1);
     if (got != SQLITE_TEXT)
     {
 #if 0 // coerce everything to string.
-        PRINT_ERR("get_columns (user_firstname) : "
+        PRINT_ERR("get_columns (User_firstname) : "
                 "column 1 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
@@ -5776,23 +5776,23 @@ SQL_SELECT_due_books2 :: get_columns(void)
         const void * ptr = sqlite3_column_text(
             pStmt, 1);
         int len = sqlite3_column_bytes(pStmt, 1);
-        user_firstname.clear();
-        user_firstname.resize(len);
-        memcpy((void*)user_firstname.c_str(), ptr, len);
+        User_firstname.clear();
+        User_firstname.resize(len);
+        memcpy((void*)User_firstname.c_str(), ptr, len);
     }
     if (log_row_func)
     {
         if (got == SQLITE_TEXT)
-            log_row_msg << "user_firstname:\"" << user_firstname << "\"; ";
+            log_row_msg << "User_firstname:\"" << User_firstname << "\"; ";
         else // can't print a blob! just print length
-            log_row_msg << "user_firstname:(" << user_firstname.size()
+            log_row_msg << "User_firstname:(" << User_firstname.size()
                         << " bytes); ";
     }
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_TEXT)
     {
 #if 0 // coerce everything to string.
-        PRINT_ERR("get_columns (user_lastname) : "
+        PRINT_ERR("get_columns (User_lastname) : "
                 "column 2 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
@@ -5802,55 +5802,55 @@ SQL_SELECT_due_books2 :: get_columns(void)
         const void * ptr = sqlite3_column_text(
             pStmt, 2);
         int len = sqlite3_column_bytes(pStmt, 2);
-        user_lastname.clear();
-        user_lastname.resize(len);
-        memcpy((void*)user_lastname.c_str(), ptr, len);
+        User_lastname.clear();
+        User_lastname.resize(len);
+        memcpy((void*)User_lastname.c_str(), ptr, len);
     }
     if (log_row_func)
     {
         if (got == SQLITE_TEXT)
-            log_row_msg << "user_lastname:\"" << user_lastname << "\"; ";
+            log_row_msg << "User_lastname:\"" << User_lastname << "\"; ";
         else // can't print a blob! just print length
-            log_row_msg << "user_lastname:(" << user_lastname.size()
+            log_row_msg << "User_lastname:(" << User_lastname.size()
                         << " bytes); ";
     }
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (user_test2) : "
+        PRINT_ERR("get_columns (User_test2) : "
                 "column 3 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
     if (sqlite3_column_int(pStmt, 3))
-        user_test2 = true;
+        User_test2 = true;
     else
-        user_test2 = false;
+        User_test2 = false;
     if (log_row_func)
-        log_row_msg << "user_test2:"
-                    << (user_test2 ? "true" : "false") << "; ";
+        log_row_msg << "User_test2:"
+                    << (User_test2 ? "true" : "false") << "; ";
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (user_test3) : "
+        PRINT_ERR("get_columns (User_test3) : "
                 "column 4 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    if (sample::library2::EnumField_t_IsValid(user_test3))
-        user_test3 = (sample::library2::EnumField_t) sqlite3_column_int(
+    if (sample::library2::EnumField_t_IsValid(User_test3))
+        User_test3 = (sample::library2::EnumField_t) sqlite3_column_int(
             pStmt, 4);
     else
-        user_test3 = sample::library2::ENUM_TWO;
+        User_test3 = sample::library2::ENUM_TWO;
 
     if (log_row_func)
-        log_row_msg << "user_test3:"
-                    << sample::library2::EnumField_t_Name(user_test3) << "; ";
+        log_row_msg << "User_test3:"
+                    << sample::library2::EnumField_t_Name(User_test3) << "; ";
     got = sqlite3_column_type(pStmt, 5);
     if (got != SQLITE_BLOB)
     {
 #if 0 // coerce everything to string.
-        PRINT_ERR("get_columns (user_proto) : "
+        PRINT_ERR("get_columns (User_proto) : "
                 "column 5 wrong type (%d %d)",
                 got, SQLITE_BLOB);
         return false;
@@ -5860,34 +5860,34 @@ SQL_SELECT_due_books2 :: get_columns(void)
         const void * ptr = sqlite3_column_blob(
             pStmt, 5);
         int len = sqlite3_column_bytes(pStmt, 5);
-        user_proto.clear();
-        user_proto.resize(len);
-        memcpy((void*)user_proto.c_str(), ptr, len);
+        User_proto.clear();
+        User_proto.resize(len);
+        memcpy((void*)User_proto.c_str(), ptr, len);
     }
     if (log_row_func)
     {
         if (got == SQLITE_TEXT)
-            log_row_msg << "user_proto:\"" << user_proto << "\"; ";
+            log_row_msg << "User_proto:\"" << User_proto << "\"; ";
         else // can't print a blob! just print length
-            log_row_msg << "user_proto:(" << user_proto.size()
+            log_row_msg << "User_proto:(" << User_proto.size()
                         << " bytes); ";
     }
     got = sqlite3_column_type(pStmt, 6);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (book_rowid) : "
+        PRINT_ERR("get_columns (Book_rowid) : "
                 "column 6 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    book_rowid = sqlite3_column_int64(pStmt, 6);
+    Book_rowid = sqlite3_column_int64(pStmt, 6);
     if (log_row_func)
-        log_row_msg << "book_rowid:" << book_rowid << "; ";
+        log_row_msg << "Book_rowid:" << Book_rowid << "; ";
     got = sqlite3_column_type(pStmt, 7);
     if (got != SQLITE_TEXT)
     {
 #if 0 // coerce everything to string.
-        PRINT_ERR("get_columns (book_title) : "
+        PRINT_ERR("get_columns (Book_title) : "
                 "column 7 wrong type (%d %d)",
                 got, SQLITE_TEXT);
         return false;
@@ -5897,40 +5897,40 @@ SQL_SELECT_due_books2 :: get_columns(void)
         const void * ptr = sqlite3_column_text(
             pStmt, 7);
         int len = sqlite3_column_bytes(pStmt, 7);
-        book_title.clear();
-        book_title.resize(len);
-        memcpy((void*)book_title.c_str(), ptr, len);
+        Book_title.clear();
+        Book_title.resize(len);
+        memcpy((void*)Book_title.c_str(), ptr, len);
     }
     if (log_row_func)
     {
         if (got == SQLITE_TEXT)
-            log_row_msg << "book_title:\"" << book_title << "\"; ";
+            log_row_msg << "Book_title:\"" << Book_title << "\"; ";
         else // can't print a blob! just print length
-            log_row_msg << "book_title:(" << book_title.size()
+            log_row_msg << "Book_title:(" << Book_title.size()
                         << " bytes); ";
     }
     got = sqlite3_column_type(pStmt, 8);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (checkouts_rowid) : "
+        PRINT_ERR("get_columns (Checkouts_rowid) : "
                 "column 8 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    checkouts_rowid = sqlite3_column_int64(pStmt, 8);
+    Checkouts_rowid = sqlite3_column_int64(pStmt, 8);
     if (log_row_func)
-        log_row_msg << "checkouts_rowid:" << checkouts_rowid << "; ";
+        log_row_msg << "Checkouts_rowid:" << Checkouts_rowid << "; ";
     got = sqlite3_column_type(pStmt, 9);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (checkouts_duedate) : "
+        PRINT_ERR("get_columns (Checkouts_duedate) : "
                 "column 9 wrong type (%d %d)",
                 got, SQLITE_INTEGER);
         return false;
     }
-    checkouts_duedate = sqlite3_column_int64(pStmt, 9);
+    Checkouts_duedate = sqlite3_column_int64(pStmt, 9);
     if (log_row_func)
-        log_row_msg << "checkouts_duedate:" << checkouts_duedate << "; ";
+        log_row_msg << "Checkouts_duedate:" << Checkouts_duedate << "; ";
 
 
     if (log_row_func)
@@ -5943,74 +5943,74 @@ SQL_SELECT_due_books2 :: get_columns(void)
 }
 
 std::string
-SQL_SELECT_due_books2 :: user_rowid_toString(void)
+SQL_SELECT_due_books2 :: User_rowid_toString(void)
 {
     std::ostringstream out;
-    out << user_rowid;
+    out << User_rowid;
     return out.str();
 }
 std::string
-SQL_SELECT_due_books2 :: user_firstname_toString(void)
+SQL_SELECT_due_books2 :: User_firstname_toString(void)
 {
     std::ostringstream out;
-    out << "\"" << user_firstname << "\"";
+    out << "\"" << User_firstname << "\"";
     return out.str();
 }
 std::string
-SQL_SELECT_due_books2 :: user_lastname_toString(void)
+SQL_SELECT_due_books2 :: User_lastname_toString(void)
 {
     std::ostringstream out;
-    out << "\"" << user_lastname << "\"";
+    out << "\"" << User_lastname << "\"";
     return out.str();
 }
 std::string
-SQL_SELECT_due_books2 :: user_test2_toString(void)
+SQL_SELECT_due_books2 :: User_test2_toString(void)
 {
-    return user_test2 ? "true" : "false";
+    return User_test2 ? "true" : "false";
 }
 std::string
-SQL_SELECT_due_books2 :: user_test3_toString(void)
+SQL_SELECT_due_books2 :: User_test3_toString(void)
 {
-    return sample::library2::EnumField_t_Name(user_test3);
+    return sample::library2::EnumField_t_Name(User_test3);
 }
 std::string
-SQL_SELECT_due_books2 :: user_proto_toString(void)
+SQL_SELECT_due_books2 :: User_proto_toString(void)
 {
     std::ostringstream out;
     out << "BLOB:";
-    for (size_t ind = 0; ind < user_proto.size(); ind++)
+    for (size_t ind = 0; ind < User_proto.size(); ind++)
     {
-        uint8_t b = (uint8_t) user_proto[ind];
+        uint8_t b = (uint8_t) User_proto[ind];
         out << std::hex << std::setw(2) << (int) b;
     }
     return out.str();
 }
 std::string
-SQL_SELECT_due_books2 :: book_rowid_toString(void)
+SQL_SELECT_due_books2 :: Book_rowid_toString(void)
 {
     std::ostringstream out;
-    out << book_rowid;
+    out << Book_rowid;
     return out.str();
 }
 std::string
-SQL_SELECT_due_books2 :: book_title_toString(void)
+SQL_SELECT_due_books2 :: Book_title_toString(void)
 {
     std::ostringstream out;
-    out << "\"" << book_title << "\"";
+    out << "\"" << Book_title << "\"";
     return out.str();
 }
 std::string
-SQL_SELECT_due_books2 :: checkouts_rowid_toString(void)
+SQL_SELECT_due_books2 :: Checkouts_rowid_toString(void)
 {
     std::ostringstream out;
-    out << checkouts_rowid;
+    out << Checkouts_rowid;
     return out.str();
 }
 std::string
-SQL_SELECT_due_books2 :: checkouts_duedate_toString(void)
+SQL_SELECT_due_books2 :: Checkouts_duedate_toString(void)
 {
     std::ostringstream out;
-    out << checkouts_duedate;
+    out << Checkouts_duedate;
     return out.str();
 }
 
@@ -6019,26 +6019,26 @@ std::string
 SQL_SELECT_due_books2 :: toString(void)
 {
     std::ostringstream out;
-    out << "user_rowid: "
-        << user_rowid_toString() << "; ";
-    out << "user_firstname: "
-        << user_firstname_toString() << "; ";
-    out << "user_lastname: "
-        << user_lastname_toString() << "; ";
-    out << "user_test2: "
-        << user_test2_toString() << "; ";
-    out << "user_test3: "
-        << user_test3_toString() << "; ";
-    out << "user_proto: "
-        << user_proto_toString() << "; ";
-    out << "book_rowid: "
-        << book_rowid_toString() << "; ";
-    out << "book_title: "
-        << book_title_toString() << "; ";
-    out << "checkouts_rowid: "
-        << checkouts_rowid_toString() << "; ";
-    out << "checkouts_duedate: "
-        << checkouts_duedate_toString() << "; ";
+    out << "User_rowid: "
+        << User_rowid_toString() << "; ";
+    out << "User_firstname: "
+        << User_firstname_toString() << "; ";
+    out << "User_lastname: "
+        << User_lastname_toString() << "; ";
+    out << "User_test2: "
+        << User_test2_toString() << "; ";
+    out << "User_test3: "
+        << User_test3_toString() << "; ";
+    out << "User_proto: "
+        << User_proto_toString() << "; ";
+    out << "Book_rowid: "
+        << Book_rowid_toString() << "; ";
+    out << "Book_title: "
+        << Book_title_toString() << "; ";
+    out << "Checkouts_rowid: "
+        << Checkouts_rowid_toString() << "; ";
+    out << "Checkouts_duedate: "
+        << Checkouts_duedate_toString() << "; ";
 
     return out.str();
 }
@@ -6056,8 +6056,8 @@ SQL_SELECT_due_books2 :: get(int32_t v1, int32_t v2)
     {
         r = sqlite3_prepare_v2(
             pdb,
-            "SELECT user.rowid, user.firstname, user.lastname, user.test2, user.test3, user.proto, book.rowid, book.title, checkouts.rowid, checkouts.duedate "
-            "FROM user JOIN checkouts, book ON checkouts.bookid2 = book.bookid                     AND checkouts.userid2 = user.userid WHERE book.bookid > ?   AND book.bookid < ? ORDER BY duedate ASC ",
+            "SELECT User.rowid, User.firstname, User.lastname, User.test2, User.test3, User.proto, Book.rowid, Book.title, Checkouts.rowid, Checkouts.duedate "
+            "FROM User JOIN Checkouts, Book ON Checkouts.bookid2 = Book.bookid                     AND Checkouts.userid2 = User.userid WHERE Book.bookid > ?   AND Book.bookid < ? ORDER BY duedate ASC ",
             -1, &pStmt_get_query, NULL);
         if (r != SQLITE_OK)
         {
@@ -6131,11 +6131,11 @@ bool SQL_TABLE_ALL_TABLES :: init_all(sqlite3 *pdb, table_version_callback cb)
     }
     sqlite3_finalize(s);
 
-    if (!SQL_TABLE_user::init(pdb, cb))
+    if (!SQL_TABLE_User::init(pdb, cb))
         return false;
-    if (!SQL_TABLE_book::init(pdb, cb))
+    if (!SQL_TABLE_Book::init(pdb, cb))
         return false;
-    if (!SQL_TABLE_checkouts::init(pdb, cb))
+    if (!SQL_TABLE_Checkouts::init(pdb, cb))
         return false;
 
 
@@ -6150,9 +6150,9 @@ void SQL_TABLE_ALL_TABLES :: table_drop_all(sqlite3 *pdb)
         return;
     }
 
-    SQL_TABLE_user::table_drop(pdb);
-    SQL_TABLE_book::table_drop(pdb);
-    SQL_TABLE_checkouts::table_drop(pdb);
+    SQL_TABLE_User::table_drop(pdb);
+    SQL_TABLE_Book::table_drop(pdb);
+    SQL_TABLE_Checkouts::table_drop(pdb);
 
 
     sqlite3_exec(pdb,
@@ -6226,43 +6226,43 @@ void SQL_TABLE_ALL_TABLES :: export_xml_all(sqlite3 *pdb,
     if (/*is_subtable*/ false)
     {
         tinyxml2::XMLComment * c = doc.NewComment(
-            "table user is a subtable of another table");
+            "table User is a subtable of another table");
         root->InsertEndChild(c);
     }
     else
     {
-        tab = doc.NewElement("user");
+        tab = doc.NewElement("User");
         tab->SetAttribute("type", "table");
         tab->SetAttribute("version", 19);
-        SQL_TABLE_user :: export_xml(pdb, tab);
+        SQL_TABLE_User :: export_xml(pdb, tab);
         root->InsertEndChild(tab);
     }
     if (/*is_subtable*/ false)
     {
         tinyxml2::XMLComment * c = doc.NewComment(
-            "table book is a subtable of another table");
+            "table Book is a subtable of another table");
         root->InsertEndChild(c);
     }
     else
     {
-        tab = doc.NewElement("book");
+        tab = doc.NewElement("Book");
         tab->SetAttribute("type", "table");
         tab->SetAttribute("version", 1);
-        SQL_TABLE_book :: export_xml(pdb, tab);
+        SQL_TABLE_Book :: export_xml(pdb, tab);
         root->InsertEndChild(tab);
     }
     if (/*is_subtable*/ true)
     {
         tinyxml2::XMLComment * c = doc.NewComment(
-            "table checkouts is a subtable of another table");
+            "table Checkouts is a subtable of another table");
         root->InsertEndChild(c);
     }
     else
     {
-        tab = doc.NewElement("checkouts");
+        tab = doc.NewElement("Checkouts");
         tab->SetAttribute("type", "table");
         tab->SetAttribute("version", 1);
-        SQL_TABLE_checkouts :: export_xml(pdb, tab);
+        SQL_TABLE_Checkouts :: export_xml(pdb, tab);
         root->InsertEndChild(tab);
     }
 
@@ -6285,14 +6285,14 @@ bool SQL_TABLE_ALL_TABLES :: import_xml_all(sqlite3 *pdb,
          table = table->NextSiblingElement())
     {
         const char * table_name = table->Value();
-    if (strcmp(table_name, "user") == 0)
+    if (strcmp(table_name, "User") == 0)
     {
-        if (SQL_TABLE_user::import_xml(pdb,table) == false)
+        if (SQL_TABLE_User::import_xml(pdb,table) == false)
             return false;
     }
-    if (strcmp(table_name, "book") == 0)
+    if (strcmp(table_name, "Book") == 0)
     {
-        if (SQL_TABLE_book::import_xml(pdb,table) == false)
+        if (SQL_TABLE_Book::import_xml(pdb,table) == false)
             return false;
     }
 
