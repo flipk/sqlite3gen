@@ -723,7 +723,8 @@ validate_table(TableDef *tb)
         }
         if (fd->attrs.auto_increment)
         {
-            if (fd->type.type != TYPE_INT)
+            if (fd->type.type != TYPE_INT   &&
+                fd->type.type != TYPE_INT64 )
             {
                 fprintf(stderr, "ERROR: AUTOINCR is only allowed "
                         "on INT type\n");
