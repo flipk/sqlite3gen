@@ -254,6 +254,7 @@ ________ END
 
 ________ QUERY_CLASS_DEFN
 class SQL_SELECT_@@queryname@@ {
+protected:
     sqlite3_stmt * pStmt_get_query;
     sqlite3 *pdb;
     bool get_columns(void);
