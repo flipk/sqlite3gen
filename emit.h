@@ -145,16 +145,16 @@ TypeDef_to_sqlite_column(TypeDef t)
 }
 
 static inline std::string
-make_custom_get_arglist(const CustomGetUpdList * cust)
+make_custom_get_arglist(const TypeDefValue *typelist)
 {
     std::ostringstream arglist;
-    if (cust->typelist == NULL)
+    if (typelist == NULL)
         arglist << "void";
     else
     {
-        TypeDefValue *type;
+        const TypeDefValue *type;
         int count = 1;
-        for (type = cust->typelist;
+        for (type = typelist;
              type;
              type = type->next, count++)
         {

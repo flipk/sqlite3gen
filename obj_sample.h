@@ -484,6 +484,7 @@ public:
 };
 
 class SQL_SELECT_due_books {
+protected:
     sqlite3_stmt * pStmt_get_query;
     sqlite3 *pdb;
     bool get_columns(void);
@@ -524,6 +525,7 @@ public:
     std::string toString(void);
 };
 class SQL_SELECT_due_books2 {
+protected:
     sqlite3_stmt * pStmt_get_query;
     sqlite3 *pdb;
     bool get_columns(void);

@@ -23,7 +23,9 @@ endif
 
 OBJDIR = build_$(TARGET)
 
-CXXFLAGS = -Wall -Werror $(PROTOINC)
+INCS = $(PROTOINC)
+# NOTE protoc 3.6.1 on gcc 9.2.1 won't compile with -Wall -Werror
+CXXFLAGS = # -Wall -Werror
 
 template_to_c_TARGET = $(OBJDIR)/template_to_c
 template_to_c_CXXSRCS = template_to_c.cc
