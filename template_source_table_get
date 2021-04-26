@@ -23,11 +23,14 @@ ________ TABLE_get_column_enum
                 got, SQLITE_@@sqlite_type@@);
         return false;
     }
-    if (@@fieldtype@@_IsValid(@@fieldname@@))
-        @@fieldname@@ = (@@fieldtype@@) @@sqlite_column_func@@(
-            pStmt, @@select_column_index@@);
     else
-    @@initial_value@@
+    {
+        int v = (int) @@sqlite_column_func@@(pStmt, @@select_column_index@@);
+        if (@@fieldtype@@_IsValid(v))
+            @@fieldname@@ = (@@fieldtype@@) v;
+        else
+        @@initial_value@@
+    }
     if (log_row_func)
         log_row_msg << "@@fieldname@@:"
                     << @@fieldtype@@_Name(@@fieldname@@) << "; ";

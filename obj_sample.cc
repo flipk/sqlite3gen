@@ -612,12 +612,15 @@ bool SQL_TABLE_User :: get_columns(sqlite3_stmt * pStmt)
                 got, SQLITE_INTEGER);
         return false;
     }
-    if (sample::library2::EnumField_t_IsValid(test3))
-        test3 = (sample::library2::EnumField_t) sqlite3_column_int(
-            pStmt, 9);
     else
-        test3 = sample::library2::ENUM_TWO;
+    {
+        int v = (int) sqlite3_column_int(pStmt, 9);
+        if (sample::library2::EnumField_t_IsValid(v))
+            test3 = (sample::library2::EnumField_t) v;
+        else
+            test3 = sample::library2::ENUM_TWO;
 
+    }
     if (log_row_func)
         log_row_msg << "test3:"
                     << sample::library2::EnumField_t_Name(test3) << "; ";
@@ -5367,12 +5370,15 @@ SQL_SELECT_due_books :: get_columns(void)
                 got, SQLITE_INTEGER);
         return false;
     }
-    if (sample::library2::EnumField_t_IsValid(User_test3))
-        User_test3 = (sample::library2::EnumField_t) sqlite3_column_int(
-            pStmt, 4);
     else
-        User_test3 = sample::library2::ENUM_TWO;
+    {
+        int v = (int) sqlite3_column_int(pStmt, 4);
+        if (sample::library2::EnumField_t_IsValid(v))
+            User_test3 = (sample::library2::EnumField_t) v;
+        else
+            User_test3 = sample::library2::ENUM_TWO;
 
+    }
     if (log_row_func)
         log_row_msg << "User_test3:"
                     << sample::library2::EnumField_t_Name(User_test3) << "; ";
@@ -5837,12 +5843,15 @@ SQL_SELECT_due_books2 :: get_columns(void)
                 got, SQLITE_INTEGER);
         return false;
     }
-    if (sample::library2::EnumField_t_IsValid(User_test3))
-        User_test3 = (sample::library2::EnumField_t) sqlite3_column_int(
-            pStmt, 4);
     else
-        User_test3 = sample::library2::ENUM_TWO;
+    {
+        int v = (int) sqlite3_column_int(pStmt, 4);
+        if (sample::library2::EnumField_t_IsValid(v))
+            User_test3 = (sample::library2::EnumField_t) v;
+        else
+            User_test3 = sample::library2::ENUM_TWO;
 
+    }
     if (log_row_func)
         log_row_msg << "User_test3:"
                     << sample::library2::EnumField_t_Name(User_test3) << "; ";
