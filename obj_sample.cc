@@ -236,14 +236,14 @@ SQL_TABLE_User :: finalize(void)
 void SQL_TABLE_User :: init(void)
 {
     rowid = -1;
-    userid = -1;
+    userid = DEFAULT_USERID_VALUE;
     firstname = "";
     lastname = "";
     mi = "";
     SSN = 0;
-    balance = 0;
+    balance = DEFAULT_BALANCE_VALUE;
     proto.clear();
-    test2 = false;
+    test2 = DEFAULT_TEST2_VALUE;
     test3 = sample::library2::ENUM_TWO;
     Checkouts.clear();
 
@@ -457,7 +457,7 @@ bool SQL_TABLE_User :: get_columns(sqlite3_stmt * pStmt)
     {
         if (true  && got == SQLITE_NULL)
         {
-                userid = -1;
+                userid = DEFAULT_USERID_VALUE;
 
         }
         else
@@ -573,7 +573,7 @@ bool SQL_TABLE_User :: get_columns(sqlite3_stmt * pStmt)
     {
         if (true  && got == SQLITE_NULL)
         {
-                balance = 0;
+                balance = DEFAULT_BALANCE_VALUE;
 
         }
         else
@@ -618,7 +618,7 @@ bool SQL_TABLE_User :: get_columns(sqlite3_stmt * pStmt)
     {
         if (true  && got == SQLITE_NULL)
         {
-                test2 = false;
+                test2 = DEFAULT_TEST2_VALUE;
 
         }
         else
@@ -1983,7 +1983,7 @@ SQL_TABLE_User :: copy_from_proto(
     if (msg.has_userid())
         userid = msg.userid();
     else
-        userid = -1;
+        userid = DEFAULT_USERID_VALUE;
 
     if (msg.has_firstname())
         firstname = msg.firstname();
@@ -2008,7 +2008,7 @@ SQL_TABLE_User :: copy_from_proto(
     if (msg.has_balance())
         balance = msg.balance();
     else
-        balance = 0;
+        balance = DEFAULT_BALANCE_VALUE;
 
     if (msg.has_proto())
         proto = msg.proto();
@@ -2018,7 +2018,7 @@ SQL_TABLE_User :: copy_from_proto(
     if (msg.has_test2())
         test2 = msg.test2() ? true : false;
     else
-        test2 = false;
+        test2 = DEFAULT_TEST2_VALUE;
 
     if (msg.has_test3())
         test3 = msg.test3();

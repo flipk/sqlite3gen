@@ -32,6 +32,11 @@
 /* header top line 1 */
 /* header top line 2 */
 
+#define DEFAULT_USERID_VALUE -1
+#define DEFAULT_BALANCE_VALUE -100
+#define DEFAULT_TEST2_VALUE false
+
+
 
 namespace library {
 

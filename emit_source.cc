@@ -177,12 +177,24 @@ void emit_source(const std::string &fname,
             case TYPE_INT:
             case TYPE_INT64:
                 initial_value
-                    << " = " << fd->attrs.init_int << ";\n";
+                    << " = ";
+                if (fd->attrs.init_string.length() != 0)
+                    // the user used a macro here.
+                    initial_value << fd->attrs.init_string << ";\n";
+                else
+                    // try the integer.
+                    initial_value << fd->attrs.init_int << ";\n";
                 output_TABLE_copy_pod_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_DOUBLE:
                 initial_value
-                    << " = " << fd->attrs.init_double << ";\n";
+                    << " = ";
+                if (fd->attrs.init_string.length() != 0)
+                    // the user used a macro here.
+                    initial_value << fd->attrs.init_string << ";\n";
+                else
+                    // try the integer.
+                    initial_value << fd->attrs.init_double << ";\n";
                 output_TABLE_copy_pod_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_TEXT:
@@ -196,9 +208,14 @@ void emit_source(const std::string &fname,
                 break;
             case TYPE_BOOL:
                 initial_value
-                    << " = "
-                    << (fd->attrs.init_int ? "true" : "false")
-                    << ";\n";
+                    << " = ";
+                if (fd->attrs.init_string.length() != 0)
+                    // the user used a macro here.
+                    initial_value << fd->attrs.init_string;
+                else
+                    // try the integer.
+                    initial_value << (fd->attrs.init_int ? "true" : "false");
+                initial_value << ";\n";
                 output_TABLE_copy_bool_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_ENUM:
