@@ -4,10 +4,17 @@ ________ TABLE_get_column_pod
     got = sqlite3_column_type(pStmt, @@select_column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
-        PRINT_ERR("get_columns (@@fieldname@@) : "
-                "column @@select_column_index@@ wrong type (%d %d)",
-                got, SQLITE_@@sqlite_type@@);
-        return false;
+        if (@@null_sets_initial_value@@  && got == SQLITE_NULL)
+        {
+            @@initial_value@@
+        }
+        else
+        {
+            PRINT_ERR("get_columns (@@fieldname@@) : "
+                      "column @@select_column_index@@ wrong type (%d %d)",
+                      got, SQLITE_@@sqlite_type@@);
+            return false;
+        }
     }
     @@fieldname@@ = @@sqlite_column_func@@(pStmt, @@select_column_index@@);
     if (log_row_func)
@@ -18,10 +25,17 @@ ________ TABLE_get_column_enum
     got = sqlite3_column_type(pStmt, @@select_column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
-        PRINT_ERR("get_columns (@@fieldname@@) : "
-                "column @@select_column_index@@ wrong type (%d %d)",
-                got, SQLITE_@@sqlite_type@@);
-        return false;
+        if (@@null_sets_initial_value@@  && got == SQLITE_NULL)
+        {
+            @@initial_value@@
+        }
+        else
+        {
+            PRINT_ERR("get_columns (@@fieldname@@) : "
+                      "column @@select_column_index@@ wrong type (%d %d)",
+                      got, SQLITE_@@sqlite_type@@);
+            return false;
+        }
     }
     else
     {
@@ -40,10 +54,17 @@ ________ TABLE_get_column_bool
     got = sqlite3_column_type(pStmt, @@select_column_index@@);
     if (got != SQLITE_@@sqlite_type@@)
     {
-        PRINT_ERR("get_columns (@@fieldname@@) : "
-                "column @@select_column_index@@ wrong type (%d %d)",
-                got, SQLITE_@@sqlite_type@@);
-        return false;
+        if (@@null_sets_initial_value@@  && got == SQLITE_NULL)
+        {
+            @@initial_value@@
+        }
+        else
+        {
+            PRINT_ERR("get_columns (@@fieldname@@) : "
+                      "column @@select_column_index@@ wrong type (%d %d)",
+                      got, SQLITE_@@sqlite_type@@);
+            return false;
+        }
     }
     if (@@sqlite_column_func@@(pStmt, @@select_column_index@@))
         @@fieldname@@ = true;

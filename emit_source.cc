@@ -221,6 +221,7 @@ void emit_source(const std::string &fname,
                 break;
             }
             initial_values << initial_value.str();
+            patterns["null_sets_initial_value"] = "true";
             SET_PATTERN(initial_value);
 
             switch (t)
@@ -993,6 +994,8 @@ void emit_source(const std::string &fname,
             patterns["sqlite_type"] = TypeDef_to_sqlite_macro(t);
             patterns["fieldname"] = td->name + "_" + fieldname;
             patterns["sqlite_column_func"] = TypeDef_to_sqlite_column(t);
+            patterns["null_sets_initial_value"] = "false";
+            patterns["initial_value"] = "/* not reached: not allowed to be null */";
 
             switch (t)
             {
