@@ -186,6 +186,10 @@ ________ TABLE_CLASS_table_field_type_name_decls
     @@fieldtype@@ @@fieldname@@;
 ________ END
 
+________ TABLE_CLASS_table_field_default_const_decls
+    static const @@fieldtype@@ @@fieldname@@_DEFAULT @@initial_value@@;
+________ END
+
 ________ TABLE_CLASS_table_field_type_name_tostring_decls
     std::string @@fieldname@@_toString(void);
 ________ END

@@ -119,6 +119,20 @@ SQL_TABLE_User :: SQL_TABLE_User(sqlite3 *_pdb)
 #endif
 }
 
+//static
+const std::string SQL_TABLE_User :: firstname_DEFAULT
+       = "";
+//static
+const std::string SQL_TABLE_User :: lastname_DEFAULT
+       = "";
+//static
+const std::string SQL_TABLE_User :: mi_DEFAULT
+       = "";
+//static
+const double SQL_TABLE_User :: balance_DEFAULT
+       = DEFAULT_BALANCE_VALUE;
+
+
 // copy constructor, duplicates all the data fields (including rowid)
 // but does not duplicate the statement pointers, because then they'd
 // get double-freed.
@@ -2569,6 +2583,17 @@ SQL_TABLE_Book :: SQL_TABLE_Book(sqlite3 *_pdb)
 #endif
 }
 
+//static
+const std::string SQL_TABLE_Book :: title_DEFAULT
+       = "";
+//static
+const std::string SQL_TABLE_Book :: isbn_DEFAULT
+       = "";
+//static
+const double SQL_TABLE_Book :: price_DEFAULT
+       = 0;
+
+
 // copy constructor, duplicates all the data fields (including rowid)
 // but does not duplicate the statement pointers, because then they'd
 // get double-freed.
@@ -4098,6 +4123,8 @@ SQL_TABLE_Checkouts :: SQL_TABLE_Checkouts(sqlite3 *_pdb)
     xml_decoders_initialized = false;
 #endif
 }
+
+
 
 // copy constructor, duplicates all the data fields (including rowid)
 // but does not duplicate the statement pointers, because then they'd

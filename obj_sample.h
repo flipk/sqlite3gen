@@ -149,14 +149,22 @@ public:
     sqlite3_int64 rowid;
 
     int32_t userid;
+    static const int32_t userid_DEFAULT = DEFAULT_USERID_VALUE;
     std::string firstname;
+    static const std::string firstname_DEFAULT /* value is in the cc file */;
     std::string lastname;
+    static const std::string lastname_DEFAULT /* value is in the cc file */;
     std::string mi;
+    static const std::string mi_DEFAULT /* value is in the cc file */;
     int32_t SSN;
+    static const int32_t SSN_DEFAULT = 0;
     double balance;
+    static const double balance_DEFAULT /* value is in the cc file */;
     std::string proto;
     bool test2;
+    static const bool test2_DEFAULT = DEFAULT_TEST2_VALUE;
     sample::library2::EnumField_t test3;
+    static const sample::library2::EnumField_t test3_DEFAULT = sample::library2::ENUM_TWO;
     // NOTE this is only populated by get_subtable_Checkouts()
     std::vector<SQL_TABLE_Checkouts> Checkouts;
 
@@ -305,10 +313,15 @@ public:
     sqlite3_int64 rowid;
 
     int32_t bookid;
+    static const int32_t bookid_DEFAULT = 0;
     std::string title;
+    static const std::string title_DEFAULT /* value is in the cc file */;
     std::string isbn;
+    static const std::string isbn_DEFAULT /* value is in the cc file */;
     double price;
+    static const double price_DEFAULT /* value is in the cc file */;
     int32_t quantity;
+    static const int32_t quantity_DEFAULT = 0;
 
     std::string rowid_toString(void);
     std::string bookid_toString(void);
@@ -429,8 +442,11 @@ public:
     sqlite3_int64 rowid;
 
     int32_t bookid2;
+    static const int32_t bookid2_DEFAULT = 0;
     int32_t userid2;
+    static const int32_t userid2_DEFAULT = 0;
     int64_t duedate;
+    static const int64_t duedate_DEFAULT = 0;
 
     std::string rowid_toString(void);
     std::string bookid2_toString(void);
