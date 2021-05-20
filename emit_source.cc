@@ -90,7 +90,8 @@ void emit_source(const std::string &fname,
         ostringstream custom_del_implementations;
         ostringstream table_proto_copy_funcs;
         ostringstream proto_copy_to;
-        ostringstream proto_copy_from;
+        ostringstream proto_copy_init_subtables;
+        ostringstream proto_merge_from;
         ostringstream table_xml_copy_funcs;
         ostringstream xml_copy_to;
         ostringstream xml_decoder_functions;
@@ -298,8 +299,10 @@ void emit_source(const std::string &fname,
                     get_subtable_implementations, patterns);
                 output_TABLE_proto_copy_to_subtable(
                     proto_copy_to, patterns);
+                output_TABLE_proto_copy_init_subtable(
+                    proto_copy_init_subtables, patterns);
                 output_TABLE_proto_copy_from_subtable(
-                    proto_copy_from, patterns);
+                    proto_merge_from, patterns);
                 output_TABLE_field_subtable_tostring_func(
                     field_tostring_funcs, patterns);
                 output_TABLE_tostring_field(
@@ -444,11 +447,11 @@ void emit_source(const std::string &fname,
                 case TYPE_DOUBLE:
                 case TYPE_ENUM:
                     output_TABLE_proto_copy_from_field(
-                        proto_copy_from, patterns);
+                        proto_merge_from, patterns);
                     break;
                 case TYPE_BOOL:
                     output_TABLE_proto_copy_from_field_bool(
-                        proto_copy_from, patterns);
+                        proto_merge_from, patterns);
                     break;
                 case TYPE_SUBTABLE:
                     // handled above, this is a NOTREACHED
@@ -866,7 +869,8 @@ void emit_source(const std::string &fname,
         if (do_protobuf && schema->package != "")
         {
             SET_PATTERN(proto_copy_to);
-            SET_PATTERN(proto_copy_from);
+            SET_PATTERN(proto_merge_from);
+            SET_PATTERN(proto_copy_init_subtables);
 
             output_TABLE_proto_copy_funcs(
                 table_proto_copy_funcs, patterns);

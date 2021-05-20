@@ -13,6 +13,15 @@ void
 SQL_TABLE_@@tablename@@ :: copy_from_proto(
               const @@package@@::TABLE_@@tablename@@_m &msg)
 {
+    init();
+@@proto_copy_init_subtables@@
+    merge_from_proto(msg);
+}
+
+void
+SQL_TABLE_@@tablename@@ :: merge_from_proto(
+              const @@package@@::TABLE_@@tablename@@_m &msg)
+{
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
         // NOTE : if this becomes a problem in the future, we could
@@ -30,7 +39,7 @@ SQL_TABLE_@@tablename@@ :: copy_from_proto(
         else
             std::cerr << err.str();
     }
-@@proto_copy_from@@
+@@proto_merge_from@@
 }
 ________ END
 
@@ -51,15 +60,11 @@ ________ END
 ________ TABLE_proto_copy_from_field
     if (msg.has_@@fieldname_lower@@())
         @@fieldname@@ = msg.@@fieldname_lower@@();
-    else
-    @@initial_value@@
 ________ END
 
 ________ TABLE_proto_copy_from_field_bool
     if (msg.has_@@fieldname_lower@@())
         @@fieldname@@ = msg.@@fieldname_lower@@() ? true : false;
-    else
-    @@initial_value@@
 ________ END
 
 ________ TABLE_proto_copy_to_subtable
@@ -68,12 +73,15 @@ ________ TABLE_proto_copy_to_subtable
         @@fieldname@@[ind].copy_to_proto(*msg.add_@@fieldname_lower@@());
 ________ END
 
-________ TABLE_proto_copy_from_subtable
+________ TABLE_proto_copy_init_subtable
     @@fieldname@@.clear();
+________ END
+
+________ TABLE_proto_copy_from_subtable
     @@fieldname@@.resize(msg.@@fieldname_lower@@_size());
     for (int ind = 0; ind < msg.@@fieldname_lower@@_size(); ind++)
     {
         @@fieldname@@[ind].set_db(pdb);
-        @@fieldname@@[ind].copy_from_proto(msg.@@fieldname_lower@@(ind));
+        @@fieldname@@[ind].merge_from_proto(msg.@@fieldname_lower@@(ind));
     }
 ________ END

@@ -1977,6 +1977,16 @@ void
 SQL_TABLE_User :: copy_from_proto(
               const library::TABLE_User_m &msg)
 {
+    init();
+    Checkouts.clear();
+
+    merge_from_proto(msg);
+}
+
+void
+SQL_TABLE_User :: merge_from_proto(
+              const library::TABLE_User_m &msg)
+{
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
         // NOTE : if this becomes a problem in the future, we could
@@ -1996,55 +2006,27 @@ SQL_TABLE_User :: copy_from_proto(
     }
     if (msg.has_userid())
         userid = msg.userid();
-    else
-        userid = DEFAULT_USERID_VALUE;
-
     if (msg.has_firstname())
         firstname = msg.firstname();
-    else
-        firstname = "";
-
     if (msg.has_lastname())
         lastname = msg.lastname();
-    else
-        lastname = "";
-
     if (msg.has_mi())
         mi = msg.mi();
-    else
-        mi = "";
-
     if (msg.has_ssn())
         SSN = msg.ssn();
-    else
-        SSN = 0;
-
     if (msg.has_balance())
         balance = msg.balance();
-    else
-        balance = DEFAULT_BALANCE_VALUE;
-
     if (msg.has_proto())
         proto = msg.proto();
-    else
-        proto.clear();
-
     if (msg.has_test2())
         test2 = msg.test2() ? true : false;
-    else
-        test2 = DEFAULT_TEST2_VALUE;
-
     if (msg.has_test3())
         test3 = msg.test3();
-    else
-        test3 = sample::library2::ENUM_TWO;
-
-    Checkouts.clear();
     Checkouts.resize(msg.checkouts_size());
     for (int ind = 0; ind < msg.checkouts_size(); ind++)
     {
         Checkouts[ind].set_db(pdb);
-        Checkouts[ind].copy_from_proto(msg.checkouts(ind));
+        Checkouts[ind].merge_from_proto(msg.checkouts(ind));
     }
 
 }
@@ -3690,6 +3672,15 @@ void
 SQL_TABLE_Book :: copy_from_proto(
               const library::TABLE_Book_m &msg)
 {
+    init();
+
+    merge_from_proto(msg);
+}
+
+void
+SQL_TABLE_Book :: merge_from_proto(
+              const library::TABLE_Book_m &msg)
+{
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
         // NOTE : if this becomes a problem in the future, we could
@@ -3709,29 +3700,14 @@ SQL_TABLE_Book :: copy_from_proto(
     }
     if (msg.has_bookid())
         bookid = msg.bookid();
-    else
-        bookid = 0;
-
     if (msg.has_title())
         title = msg.title();
-    else
-        title = "";
-
     if (msg.has_isbn())
         isbn = msg.isbn();
-    else
-        isbn = "";
-
     if (msg.has_price())
         price = msg.price();
-    else
-        price = 0;
-
     if (msg.has_quantity())
         quantity = msg.quantity();
-    else
-        quantity = 0;
-
 
 }
 
@@ -4924,6 +4900,15 @@ void
 SQL_TABLE_Checkouts :: copy_from_proto(
               const library::TABLE_Checkouts_m &msg)
 {
+    init();
+
+    merge_from_proto(msg);
+}
+
+void
+SQL_TABLE_Checkouts :: merge_from_proto(
+              const library::TABLE_Checkouts_m &msg)
+{
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
         // NOTE : if this becomes a problem in the future, we could
@@ -4943,19 +4928,10 @@ SQL_TABLE_Checkouts :: copy_from_proto(
     }
     if (msg.has_bookid2())
         bookid2 = msg.bookid2();
-    else
-        bookid2 = 0;
-
     if (msg.has_userid2())
         userid2 = msg.userid2();
-    else
-        userid2 = 0;
-
     if (msg.has_duedate())
         duedate = msg.duedate();
-    else
-        duedate = 0;
-
 
 }
 

@@ -232,6 +232,7 @@ public:
 //      get_subtable_* methods to populate them.
     void copy_to_proto(library::TABLE_User_m &msg);
     void copy_from_proto(const library::TABLE_User_m &msg);
+    void merge_from_proto(const library::TABLE_User_m &msg);
 
 #endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
@@ -366,6 +367,7 @@ public:
 //      get_subtable_* methods to populate them.
     void copy_to_proto(library::TABLE_Book_m &msg);
     void copy_from_proto(const library::TABLE_Book_m &msg);
+    void merge_from_proto(const library::TABLE_Book_m &msg);
 
 #endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
@@ -486,6 +488,7 @@ public:
 //      get_subtable_* methods to populate them.
     void copy_to_proto(library::TABLE_Checkouts_m &msg);
     void copy_from_proto(const library::TABLE_Checkouts_m &msg);
+    void merge_from_proto(const library::TABLE_Checkouts_m &msg);
 
 #endif
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
