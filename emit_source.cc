@@ -24,6 +24,74 @@
 
 using namespace std;
 
+// in C++ classes you can do "static const int var = value" right in
+// the header for "int" and "enum" types, but not for float/double or
+// string.
+// "do_default_const_decl" determines whether to put it in the header,
+// or whether to just declare the existence of a global in the header
+// and then define the contents of the global in the CC file.
+
+static std::string get_initial_value(const TableDef *td,
+                                     const FieldDef *fd,
+                                     bool &do_default_const_decl)
+{
+    ostringstream initial_value;
+    TypeDef t = fd->type.type;
+
+    do_default_const_decl = false;
+
+    switch (t)
+    {
+    case TYPE_INT:
+    case TYPE_INT64:
+        initial_value << " = ";
+        if (fd->attrs.init_string.length() != 0)
+            // the user used a macro here.
+            initial_value << fd->attrs.init_string;
+        else
+            // try the integer.
+            initial_value << fd->attrs.init_int;
+        break;
+    case TYPE_DOUBLE:
+        do_default_const_decl = true;
+        initial_value << " = ";
+        if (fd->attrs.init_string.length() != 0)
+            // the user used a macro here.
+            initial_value << fd->attrs.init_string;
+        else
+            // try the integer.
+            initial_value << fd->attrs.init_double;
+        break;
+    case TYPE_TEXT:
+        do_default_const_decl = true;
+        initial_value
+            << " = \"" << fd->attrs.init_string << "\"";
+        break;
+    case TYPE_BLOB:
+        initial_value << ".clear()";
+        break;
+    case TYPE_BOOL:
+        initial_value << " = ";
+        if (fd->attrs.init_string.length() != 0)
+            // the user used a macro here.
+            initial_value << fd->attrs.init_string;
+        else
+            // try the integer.
+            initial_value << (fd->attrs.init_int ? "true" : "false");
+        break;
+    case TYPE_ENUM:
+        initial_value
+            << " = "
+            << Dots_to_Colons(fd->attrs.init_string);
+        break;
+    case TYPE_SUBTABLE:
+        initial_value << ".clear()";
+        break;
+    }
+
+    return initial_value.str();
+}
+
 void emit_source(const std::string &fname,
                  const std::string &header_fname,
                  const SchemaDef *schema)
@@ -172,60 +240,28 @@ void emit_source(const std::string &fname,
             patterns["fieldtype"]          =
                 TypeDef_to_Ctype(&fd->type, true, fd->name);
 
-            bool do_default_const_decl = false;
-            ostringstream initial_value;
             switch (t)
             {
             case TYPE_INT:
             case TYPE_INT64:
-                initial_value << " = ";
-                if (fd->attrs.init_string.length() != 0)
-                    // the user used a macro here.
-                    initial_value << fd->attrs.init_string;
-                else
-                    // try the integer.
-                    initial_value << fd->attrs.init_int;
                 output_TABLE_copy_pod_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_DOUBLE:
-                do_default_const_decl = true;
-                initial_value << " = ";
-                if (fd->attrs.init_string.length() != 0)
-                    // the user used a macro here.
-                    initial_value << fd->attrs.init_string;
-                else
-                    // try the integer.
-                    initial_value << fd->attrs.init_double;
                 output_TABLE_copy_pod_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_TEXT:
-                do_default_const_decl = true;
-                initial_value
-                    << " = \"" << fd->attrs.init_string << "\"";
                 output_TABLE_copy_string_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_BLOB:
-                initial_value << ".clear()";
                 output_TABLE_copy_blob_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_BOOL:
-                initial_value << " = ";
-                if (fd->attrs.init_string.length() != 0)
-                    // the user used a macro here.
-                    initial_value << fd->attrs.init_string;
-                else
-                    // try the integer.
-                    initial_value << (fd->attrs.init_int ? "true" : "false");
                 output_TABLE_copy_bool_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_ENUM:
-                initial_value
-                    << " = "
-                    << Dots_to_Colons(fd->attrs.init_string);
                 output_TABLE_copy_enum_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_SUBTABLE:
-                initial_value << ".clear()";
                 output_TABLE_copy_subtable_to_xml(xml_copy_to, patterns);
                 output_TABLE_CLASS_get_all_subtables_one(
                     get_all_subtables, patterns);
@@ -236,17 +272,22 @@ void emit_source(const std::string &fname,
                 output_TABLE_set_subtable(set_db_subtables, patterns);
                 break;
             }
+
+            bool do_default_const_decl = false;
+            std::string initial_value =
+                get_initial_value(td, fd, do_default_const_decl);
+
             if (do_default_const_decl)
             {
                 patterns["fieldtypeconst"] =
                     TypeDef_to_Ctype(&fd->type, false, fd->name);
-                SET_PATTERN(initial_value);
+                patterns["initial_value"] = initial_value;
                 output_TABLE_CLASS_const_field_default_decl(
                     const_field_default_decls, patterns);
             }
             ostringstream name_plus_initial_value;
             name_plus_initial_value
-                << "    " << fd->name << initial_value.str() << ";\n";
+                << "    " << fd->name << initial_value << ";\n";
             initial_values << name_plus_initial_value.str();
             patterns["null_sets_initial_value"] = "true";
             patterns["initial_value"] = name_plus_initial_value.str();
@@ -1025,8 +1066,23 @@ void emit_source(const std::string &fname,
             patterns["sqlite_type"] = TypeDef_to_sqlite_macro(t);
             patterns["fieldname"] = td->name + "_" + fieldname;
             patterns["sqlite_column_func"] = TypeDef_to_sqlite_column(t);
-            patterns["null_sets_initial_value"] = "false";
-            patterns["initial_value"] = "/* not reached: not allowed to be null */";
+            if (fd != NULL)
+            {
+                bool do_default_const_decl = false;
+                std::string initial_value =
+                    get_initial_value(td, fd, do_default_const_decl);
+                ostringstream name_plus_initial_value;
+                name_plus_initial_value
+                    << "    " << td->name << "_" << fieldname
+                    << initial_value << ";\n";
+                patterns["null_sets_initial_value"] = "true";
+                patterns["initial_value"] = name_plus_initial_value.str();
+            }
+            else
+            {
+                patterns["null_sets_initial_value"] = "false";
+                patterns["initial_value"] = "/* not reached: not allowed to be null */";
+            }
 
             switch (t)
             {

@@ -5448,9 +5448,10 @@ SQL_SELECT_due_books :: get_columns(void)
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_INTEGER)
     {
-        if (false  && got == SQLITE_NULL)
+        if (true  && got == SQLITE_NULL)
         {
-            /* not reached: not allowed to be null */
+                User_test2 = DEFAULT_TEST2_VALUE;
+
         }
         else
         {
@@ -5470,7 +5471,7 @@ SQL_SELECT_due_books :: get_columns(void)
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_INTEGER)
     {
-        if (false  && got == SQLITE_NULL)
+        if (true  && got == SQLITE_NULL)
         {
                 User_test3 = sample::library2::ENUM_TWO;
 
@@ -5586,9 +5587,10 @@ SQL_SELECT_due_books :: get_columns(void)
     got = sqlite3_column_type(pStmt, 9);
     if (got != SQLITE_INTEGER)
     {
-        if (false  && got == SQLITE_NULL)
+        if (true  && got == SQLITE_NULL)
         {
-            /* not reached: not allowed to be null */
+                Checkouts_duedate = 0;
+
         }
         else
         {
@@ -5964,9 +5966,10 @@ SQL_SELECT_due_books2 :: get_columns(void)
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_INTEGER)
     {
-        if (false  && got == SQLITE_NULL)
+        if (true  && got == SQLITE_NULL)
         {
-            /* not reached: not allowed to be null */
+                User_test2 = DEFAULT_TEST2_VALUE;
+
         }
         else
         {
@@ -5986,7 +5989,7 @@ SQL_SELECT_due_books2 :: get_columns(void)
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_INTEGER)
     {
-        if (false  && got == SQLITE_NULL)
+        if (true  && got == SQLITE_NULL)
         {
                 User_test3 = sample::library2::ENUM_TWO;
 
@@ -6102,9 +6105,10 @@ SQL_SELECT_due_books2 :: get_columns(void)
     got = sqlite3_column_type(pStmt, 9);
     if (got != SQLITE_INTEGER)
     {
-        if (false  && got == SQLITE_NULL)
+        if (true  && got == SQLITE_NULL)
         {
-            /* not reached: not allowed to be null */
+                Checkouts_duedate = 0;
+
         }
         else
         {
