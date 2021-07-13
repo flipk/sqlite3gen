@@ -186,6 +186,10 @@ ________ TABLE_CLASS_table_field_type_name_decls
     @@fieldtype@@ @@fieldname@@;
 ________ END
 
+________ TABLE_CLASS_table_field_default_const_decls
+    static const @@fieldtype@@ @@fieldname@@_DEFAULT @@initial_value@@;
+________ END
+
 ________ TABLE_CLASS_table_field_type_name_tostring_decls
     std::string @@fieldname@@_toString(void);
 ________ END
@@ -236,6 +240,7 @@ ________ TABLE_CLASS_proto_copy_proto
 //      get_subtable_* methods to populate them.
     void copy_to_proto(@@package@@::TABLE_@@tablename@@_m &msg);
     void copy_from_proto(const @@package@@::TABLE_@@tablename@@_m &msg);
+    void merge_from_proto(const @@package@@::TABLE_@@tablename@@_m &msg);
 ________ END
 
 ________ TABLE_CLASS_xml_decoder_proto

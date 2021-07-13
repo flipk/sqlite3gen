@@ -126,6 +126,51 @@ void emit_header(const std::string &fname,
             output_TABLE_CLASS_table_field_type_name_decls(
                 table_field_type_name_decls, patterns);
 
+            bool do_initial_value = true;
+            ostringstream initial_value;
+            switch (fd->type.type)
+            {
+            case TYPE_INT:
+            case TYPE_INT64:
+                initial_value << "= ";
+                if (fd->attrs.init_string.length() != 0)
+                    // the user used a macro here.
+                    initial_value << fd->attrs.init_string;
+                else
+                    // try the integer.
+                    initial_value << fd->attrs.init_int;
+                break;
+            case TYPE_DOUBLE:
+                initial_value << "/* value is in the cc file */";
+                break;
+            case TYPE_TEXT:
+                initial_value << "/* value is in the cc file */";
+                break;
+            case TYPE_BOOL:
+                initial_value << "= ";
+                if (fd->attrs.init_string.length() != 0)
+                    // the user used a macro here.
+                    initial_value << fd->attrs.init_string;
+                else
+                    // try the integer.
+                    initial_value << (fd->attrs.init_int ? "true" : "false");
+                break;
+            case TYPE_ENUM:
+                initial_value << "= ";
+                initial_value << Dots_to_Colons(fd->attrs.init_string);
+                break;
+            case TYPE_SUBTABLE:
+            case TYPE_BLOB:
+                do_initial_value = false;
+                break;
+            }
+            if (do_initial_value)
+            {
+                SET_PATTERN(initial_value);
+                output_TABLE_CLASS_table_field_default_const_decls(
+                    table_field_type_name_decls, patterns);
+            }
+
             output_TABLE_CLASS_table_field_type_name_tostring_decls(
                 table_field_type_name_tostring_decls, patterns);
 

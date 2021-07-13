@@ -90,7 +90,8 @@ void emit_source(const std::string &fname,
         ostringstream custom_del_implementations;
         ostringstream table_proto_copy_funcs;
         ostringstream proto_copy_to;
-        ostringstream proto_copy_from;
+        ostringstream proto_copy_init_subtables;
+        ostringstream proto_merge_from;
         ostringstream table_xml_copy_funcs;
         ostringstream xml_copy_to;
         ostringstream xml_decoder_functions;
@@ -108,6 +109,7 @@ void emit_source(const std::string &fname,
         ostringstream column_descriptors;
         ostringstream field_tostring_funcs;
         ostringstream tostring_fields;
+        ostringstream const_field_default_decls;
 
         const FieldDef * fd;
         const CustomGetUpdList * cust;
@@ -170,46 +172,60 @@ void emit_source(const std::string &fname,
             patterns["fieldtype"]          =
                 TypeDef_to_Ctype(&fd->type, true, fd->name);
 
+            bool do_default_const_decl = false;
             ostringstream initial_value;
-            initial_value << "    " << fd->name;
             switch (t)
             {
             case TYPE_INT:
             case TYPE_INT64:
-                initial_value
-                    << " = " << fd->attrs.init_int << ";\n";
+                initial_value << " = ";
+                if (fd->attrs.init_string.length() != 0)
+                    // the user used a macro here.
+                    initial_value << fd->attrs.init_string;
+                else
+                    // try the integer.
+                    initial_value << fd->attrs.init_int;
                 output_TABLE_copy_pod_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_DOUBLE:
-                initial_value
-                    << " = " << fd->attrs.init_double << ";\n";
+                do_default_const_decl = true;
+                initial_value << " = ";
+                if (fd->attrs.init_string.length() != 0)
+                    // the user used a macro here.
+                    initial_value << fd->attrs.init_string;
+                else
+                    // try the integer.
+                    initial_value << fd->attrs.init_double;
                 output_TABLE_copy_pod_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_TEXT:
+                do_default_const_decl = true;
                 initial_value
-                    << " = \"" << fd->attrs.init_string << "\";\n";
+                    << " = \"" << fd->attrs.init_string << "\"";
                 output_TABLE_copy_string_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_BLOB:
-                initial_value << ".clear();\n";
+                initial_value << ".clear()";
                 output_TABLE_copy_blob_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_BOOL:
-                initial_value
-                    << " = "
-                    << (fd->attrs.init_int ? "true" : "false")
-                    << ";\n";
+                initial_value << " = ";
+                if (fd->attrs.init_string.length() != 0)
+                    // the user used a macro here.
+                    initial_value << fd->attrs.init_string;
+                else
+                    // try the integer.
+                    initial_value << (fd->attrs.init_int ? "true" : "false");
                 output_TABLE_copy_bool_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_ENUM:
                 initial_value
                     << " = "
-                    << Dots_to_Colons(fd->attrs.init_string)
-                    << ";\n";
+                    << Dots_to_Colons(fd->attrs.init_string);
                 output_TABLE_copy_enum_to_xml(xml_copy_to, patterns);
                 break;
             case TYPE_SUBTABLE:
-                initial_value << ".clear();\n";
+                initial_value << ".clear()";
                 output_TABLE_copy_subtable_to_xml(xml_copy_to, patterns);
                 output_TABLE_CLASS_get_all_subtables_one(
                     get_all_subtables, patterns);
@@ -220,8 +236,20 @@ void emit_source(const std::string &fname,
                 output_TABLE_set_subtable(set_db_subtables, patterns);
                 break;
             }
-            initial_values << initial_value.str();
-            SET_PATTERN(initial_value);
+            if (do_default_const_decl)
+            {
+                patterns["fieldtypeconst"] =
+                    TypeDef_to_Ctype(&fd->type, false, fd->name);
+                SET_PATTERN(initial_value);
+                output_TABLE_CLASS_const_field_default_decl(
+                    const_field_default_decls, patterns);
+            }
+            ostringstream name_plus_initial_value;
+            name_plus_initial_value
+                << "    " << fd->name << initial_value.str() << ";\n";
+            initial_values << name_plus_initial_value.str();
+            patterns["null_sets_initial_value"] = "true";
+            patterns["initial_value"] = name_plus_initial_value.str();
 
             switch (t)
             {
@@ -271,8 +299,10 @@ void emit_source(const std::string &fname,
                     get_subtable_implementations, patterns);
                 output_TABLE_proto_copy_to_subtable(
                     proto_copy_to, patterns);
+                output_TABLE_proto_copy_init_subtable(
+                    proto_copy_init_subtables, patterns);
                 output_TABLE_proto_copy_from_subtable(
-                    proto_copy_from, patterns);
+                    proto_merge_from, patterns);
                 output_TABLE_field_subtable_tostring_func(
                     field_tostring_funcs, patterns);
                 output_TABLE_tostring_field(
@@ -417,11 +447,11 @@ void emit_source(const std::string &fname,
                 case TYPE_DOUBLE:
                 case TYPE_ENUM:
                     output_TABLE_proto_copy_from_field(
-                        proto_copy_from, patterns);
+                        proto_merge_from, patterns);
                     break;
                 case TYPE_BOOL:
                     output_TABLE_proto_copy_from_field_bool(
-                        proto_copy_from, patterns);
+                        proto_merge_from, patterns);
                     break;
                 case TYPE_SUBTABLE:
                     // handled above, this is a NOTREACHED
@@ -839,7 +869,8 @@ void emit_source(const std::string &fname,
         if (do_protobuf && schema->package != "")
         {
             SET_PATTERN(proto_copy_to);
-            SET_PATTERN(proto_copy_from);
+            SET_PATTERN(proto_merge_from);
+            SET_PATTERN(proto_copy_init_subtables);
 
             output_TABLE_proto_copy_funcs(
                 table_proto_copy_funcs, patterns);
@@ -891,6 +922,7 @@ void emit_source(const std::string &fname,
         SET_PATTERN(column_descriptors);
         SET_PATTERN(field_tostring_funcs);
         SET_PATTERN(tostring_fields);
+        SET_PATTERN(const_field_default_decls);
 
         patterns["is_subtable"] = td->is_subtable ? "true" : "false";
 
@@ -993,6 +1025,8 @@ void emit_source(const std::string &fname,
             patterns["sqlite_type"] = TypeDef_to_sqlite_macro(t);
             patterns["fieldname"] = td->name + "_" + fieldname;
             patterns["sqlite_column_func"] = TypeDef_to_sqlite_column(t);
+            patterns["null_sets_initial_value"] = "false";
+            patterns["initial_value"] = "/* not reached: not allowed to be null */";
 
             switch (t)
             {

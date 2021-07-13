@@ -11,6 +11,8 @@ SQL_TABLE_@@tablename@@ :: SQL_TABLE_@@tablename@@(sqlite3 *_pdb)
 #endif
 }
 
+@@const_field_default_decls@@
+
 // copy constructor, duplicates all the data fields (including rowid)
 // but does not duplicate the statement pointers, because then they'd
 // get double-freed.
@@ -608,6 +610,12 @@ bool SQL_TABLE_@@tablename@@ :: import_xml(sqlite3 *pdb,
     return true;
 }
 #endif
+________ END
+
+________ TABLE_CLASS_const_field_default_decl
+//static
+const @@fieldtypeconst@@ SQL_TABLE_@@tablename@@ :: @@fieldname@@_DEFAULT
+      @@initial_value@@;
 ________ END
 
 ________ TABLE_prepare_query

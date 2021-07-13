@@ -13,6 +13,11 @@ import "sample2.proto";
 %HEADERTOP{
 /* header top line 1 */
 /* header top line 2 */
+
+#define DEFAULT_USERID_VALUE -1
+#define DEFAULT_BALANCE_VALUE -100
+#define DEFAULT_TEST2_VALUE false
+
 %}
 
 %SOURCETOP{
@@ -23,14 +28,14 @@ import "sample2.proto";
 TABLE User VERSION 19
 {
     # NOTE PROTOID 1 is reserved for schema_version
-    userid    INT   INDEX QUERY AUTOINCR "PRIMARY KEY" PROTOID 2 DEFAULT -1
+    userid    INT   INDEX QUERY AUTOINCR "PRIMARY KEY" PROTOID 2 DEFAULT DEFAULT_USERID_VALUE
     firstname TEXT                                     PROTOID 3 DEFAULT ""
     lastname  TEXT    LIKEQUERY                        PROTOID 4 DEFAULT ""
     mi        TEXT                                     PROTOID 5 DEFAULT ""
     SSN       INT     INDEX QUERY                      PROTOID 6 DEFAULT 0
-    balance   DOUBLE                                   PROTOID 7 DEFAULT 0
+    balance   DOUBLE                                   PROTOID 7 DEFAULT DEFAULT_BALANCE_VALUE
     proto     BLOB                                     PROTOID 8
-    test2     BOOL          QUERY                      PROTOID 9 DEFAULT 0
+    test2     BOOL          QUERY                      PROTOID 9 DEFAULT DEFAULT_TEST2_VALUE
 # NOTE: in order to test INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT,
 #       you need to comment out all test3 stuff in this file.
     test3     ENUM sample.library2.EnumField_t QUERY   PROTOID 10

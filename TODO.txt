@@ -1,3 +1,5 @@
+- a get method where you just pass a string of a custom where clause
+  built by software.
 - still want to consider csv import/export, but with the caveat
   that it only supports subtables[0]
 - add type="" validation in xml decoder

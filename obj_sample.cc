@@ -119,6 +119,20 @@ SQL_TABLE_User :: SQL_TABLE_User(sqlite3 *_pdb)
 #endif
 }
 
+//static
+const std::string SQL_TABLE_User :: firstname_DEFAULT
+       = "";
+//static
+const std::string SQL_TABLE_User :: lastname_DEFAULT
+       = "";
+//static
+const std::string SQL_TABLE_User :: mi_DEFAULT
+       = "";
+//static
+const double SQL_TABLE_User :: balance_DEFAULT
+       = DEFAULT_BALANCE_VALUE;
+
+
 // copy constructor, duplicates all the data fields (including rowid)
 // but does not duplicate the statement pointers, because then they'd
 // get double-freed.
@@ -236,14 +250,14 @@ SQL_TABLE_User :: finalize(void)
 void SQL_TABLE_User :: init(void)
 {
     rowid = -1;
-    userid = -1;
+    userid = DEFAULT_USERID_VALUE;
     firstname = "";
     lastname = "";
     mi = "";
     SSN = 0;
-    balance = 0;
+    balance = DEFAULT_BALANCE_VALUE;
     proto.clear();
-    test2 = false;
+    test2 = DEFAULT_TEST2_VALUE;
     test3 = sample::library2::ENUM_TWO;
     Checkouts.clear();
 
@@ -455,10 +469,18 @@ bool SQL_TABLE_User :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 1);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (userid) : "
-                "column 1 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (true  && got == SQLITE_NULL)
+        {
+                userid = DEFAULT_USERID_VALUE;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (userid) : "
+                      "column 1 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     userid = sqlite3_column_int(pStmt, 1);
     if (log_row_func)
@@ -544,10 +566,18 @@ bool SQL_TABLE_User :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 5);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (SSN) : "
-                "column 5 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (true  && got == SQLITE_NULL)
+        {
+                SSN = 0;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (SSN) : "
+                      "column 5 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     SSN = sqlite3_column_int(pStmt, 5);
     if (log_row_func)
@@ -555,10 +585,18 @@ bool SQL_TABLE_User :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 6);
     if (got != SQLITE_FLOAT)
     {
-        PRINT_ERR("get_columns (balance) : "
-                "column 6 wrong type (%d %d)",
-                got, SQLITE_FLOAT);
-        return false;
+        if (true  && got == SQLITE_NULL)
+        {
+                balance = DEFAULT_BALANCE_VALUE;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (balance) : "
+                      "column 6 wrong type (%d %d)",
+                      got, SQLITE_FLOAT);
+            return false;
+        }
     }
     balance = sqlite3_column_double(pStmt, 6);
     if (log_row_func)
@@ -592,10 +630,18 @@ bool SQL_TABLE_User :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 8);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (test2) : "
-                "column 8 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (true  && got == SQLITE_NULL)
+        {
+                test2 = DEFAULT_TEST2_VALUE;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (test2) : "
+                      "column 8 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     if (sqlite3_column_int(pStmt, 8))
         test2 = true;
@@ -607,10 +653,18 @@ bool SQL_TABLE_User :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 9);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (test3) : "
-                "column 9 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (true  && got == SQLITE_NULL)
+        {
+                test3 = sample::library2::ENUM_TWO;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (test3) : "
+                      "column 9 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     else
     {
@@ -1923,6 +1977,16 @@ void
 SQL_TABLE_User :: copy_from_proto(
               const library::TABLE_User_m &msg)
 {
+    init();
+    Checkouts.clear();
+
+    merge_from_proto(msg);
+}
+
+void
+SQL_TABLE_User :: merge_from_proto(
+              const library::TABLE_User_m &msg)
+{
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
         // NOTE : if this becomes a problem in the future, we could
@@ -1942,55 +2006,27 @@ SQL_TABLE_User :: copy_from_proto(
     }
     if (msg.has_userid())
         userid = msg.userid();
-    else
-        userid = -1;
-
     if (msg.has_firstname())
         firstname = msg.firstname();
-    else
-        firstname = "";
-
     if (msg.has_lastname())
         lastname = msg.lastname();
-    else
-        lastname = "";
-
     if (msg.has_mi())
         mi = msg.mi();
-    else
-        mi = "";
-
     if (msg.has_ssn())
         SSN = msg.ssn();
-    else
-        SSN = 0;
-
     if (msg.has_balance())
         balance = msg.balance();
-    else
-        balance = 0;
-
     if (msg.has_proto())
         proto = msg.proto();
-    else
-        proto.clear();
-
     if (msg.has_test2())
         test2 = msg.test2() ? true : false;
-    else
-        test2 = false;
-
     if (msg.has_test3())
         test3 = msg.test3();
-    else
-        test3 = sample::library2::ENUM_TWO;
-
-    Checkouts.clear();
     Checkouts.resize(msg.checkouts_size());
     for (int ind = 0; ind < msg.checkouts_size(); ind++)
     {
         Checkouts[ind].set_db(pdb);
-        Checkouts[ind].copy_from_proto(msg.checkouts(ind));
+        Checkouts[ind].merge_from_proto(msg.checkouts(ind));
     }
 
 }
@@ -2529,6 +2565,17 @@ SQL_TABLE_Book :: SQL_TABLE_Book(sqlite3 *_pdb)
 #endif
 }
 
+//static
+const std::string SQL_TABLE_Book :: title_DEFAULT
+       = "";
+//static
+const std::string SQL_TABLE_Book :: isbn_DEFAULT
+       = "";
+//static
+const double SQL_TABLE_Book :: price_DEFAULT
+       = 0;
+
+
 // copy constructor, duplicates all the data fields (including rowid)
 // but does not duplicate the statement pointers, because then they'd
 // get double-freed.
@@ -2753,10 +2800,18 @@ bool SQL_TABLE_Book :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 1);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (bookid) : "
-                "column 1 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (true  && got == SQLITE_NULL)
+        {
+                bookid = 0;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (bookid) : "
+                      "column 1 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     bookid = sqlite3_column_int(pStmt, 1);
     if (log_row_func)
@@ -2816,10 +2871,18 @@ bool SQL_TABLE_Book :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_FLOAT)
     {
-        PRINT_ERR("get_columns (price) : "
-                "column 4 wrong type (%d %d)",
-                got, SQLITE_FLOAT);
-        return false;
+        if (true  && got == SQLITE_NULL)
+        {
+                price = 0;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (price) : "
+                      "column 4 wrong type (%d %d)",
+                      got, SQLITE_FLOAT);
+            return false;
+        }
     }
     price = sqlite3_column_double(pStmt, 4);
     if (log_row_func)
@@ -2827,10 +2890,18 @@ bool SQL_TABLE_Book :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 5);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (quantity) : "
-                "column 5 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (true  && got == SQLITE_NULL)
+        {
+                quantity = 0;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (quantity) : "
+                      "column 5 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     quantity = sqlite3_column_int(pStmt, 5);
     if (log_row_func)
@@ -3601,6 +3672,15 @@ void
 SQL_TABLE_Book :: copy_from_proto(
               const library::TABLE_Book_m &msg)
 {
+    init();
+
+    merge_from_proto(msg);
+}
+
+void
+SQL_TABLE_Book :: merge_from_proto(
+              const library::TABLE_Book_m &msg)
+{
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
         // NOTE : if this becomes a problem in the future, we could
@@ -3620,29 +3700,14 @@ SQL_TABLE_Book :: copy_from_proto(
     }
     if (msg.has_bookid())
         bookid = msg.bookid();
-    else
-        bookid = 0;
-
     if (msg.has_title())
         title = msg.title();
-    else
-        title = "";
-
     if (msg.has_isbn())
         isbn = msg.isbn();
-    else
-        isbn = "";
-
     if (msg.has_price())
         price = msg.price();
-    else
-        price = 0;
-
     if (msg.has_quantity())
         quantity = msg.quantity();
-    else
-        quantity = 0;
-
 
 }
 
@@ -4035,6 +4100,8 @@ SQL_TABLE_Checkouts :: SQL_TABLE_Checkouts(sqlite3 *_pdb)
 #endif
 }
 
+
+
 // copy constructor, duplicates all the data fields (including rowid)
 // but does not duplicate the statement pointers, because then they'd
 // get double-freed.
@@ -4216,10 +4283,18 @@ bool SQL_TABLE_Checkouts :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 1);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (bookid2) : "
-                "column 1 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (true  && got == SQLITE_NULL)
+        {
+                bookid2 = 0;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (bookid2) : "
+                      "column 1 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     bookid2 = sqlite3_column_int(pStmt, 1);
     if (log_row_func)
@@ -4227,10 +4302,18 @@ bool SQL_TABLE_Checkouts :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 2);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (userid2) : "
-                "column 2 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (true  && got == SQLITE_NULL)
+        {
+                userid2 = 0;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (userid2) : "
+                      "column 2 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     userid2 = sqlite3_column_int(pStmt, 2);
     if (log_row_func)
@@ -4238,10 +4321,18 @@ bool SQL_TABLE_Checkouts :: get_columns(sqlite3_stmt * pStmt)
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (duedate) : "
-                "column 3 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (true  && got == SQLITE_NULL)
+        {
+                duedate = 0;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (duedate) : "
+                      "column 3 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     duedate = sqlite3_column_int64(pStmt, 3);
     if (log_row_func)
@@ -4809,6 +4900,15 @@ void
 SQL_TABLE_Checkouts :: copy_from_proto(
               const library::TABLE_Checkouts_m &msg)
 {
+    init();
+
+    merge_from_proto(msg);
+}
+
+void
+SQL_TABLE_Checkouts :: merge_from_proto(
+              const library::TABLE_Checkouts_m &msg)
+{
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
         // NOTE : if this becomes a problem in the future, we could
@@ -4828,19 +4928,10 @@ SQL_TABLE_Checkouts :: copy_from_proto(
     }
     if (msg.has_bookid2())
         bookid2 = msg.bookid2();
-    else
-        bookid2 = 0;
-
     if (msg.has_userid2())
         userid2 = msg.userid2();
-    else
-        userid2 = 0;
-
     if (msg.has_duedate())
         duedate = msg.duedate();
-    else
-        duedate = 0;
-
 
 }
 
@@ -5287,10 +5378,17 @@ SQL_SELECT_due_books :: get_columns(void)
     got = sqlite3_column_type(pStmt, 0);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (User_rowid) : "
-                "column 0 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (false  && got == SQLITE_NULL)
+        {
+            /* not reached: not allowed to be null */
+        }
+        else
+        {
+            PRINT_ERR("get_columns (User_rowid) : "
+                      "column 0 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     User_rowid = sqlite3_column_int64(pStmt, 0);
     if (log_row_func)
@@ -5350,10 +5448,17 @@ SQL_SELECT_due_books :: get_columns(void)
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (User_test2) : "
-                "column 3 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (false  && got == SQLITE_NULL)
+        {
+            /* not reached: not allowed to be null */
+        }
+        else
+        {
+            PRINT_ERR("get_columns (User_test2) : "
+                      "column 3 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     if (sqlite3_column_int(pStmt, 3))
         User_test2 = true;
@@ -5365,10 +5470,18 @@ SQL_SELECT_due_books :: get_columns(void)
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (User_test3) : "
-                "column 4 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (false  && got == SQLITE_NULL)
+        {
+                User_test3 = sample::library2::ENUM_TWO;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (User_test3) : "
+                      "column 4 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     else
     {
@@ -5411,10 +5524,17 @@ SQL_SELECT_due_books :: get_columns(void)
     got = sqlite3_column_type(pStmt, 6);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (Book_rowid) : "
-                "column 6 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (false  && got == SQLITE_NULL)
+        {
+            /* not reached: not allowed to be null */
+        }
+        else
+        {
+            PRINT_ERR("get_columns (Book_rowid) : "
+                      "column 6 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     Book_rowid = sqlite3_column_int64(pStmt, 6);
     if (log_row_func)
@@ -5448,10 +5568,17 @@ SQL_SELECT_due_books :: get_columns(void)
     got = sqlite3_column_type(pStmt, 8);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (Checkouts_rowid) : "
-                "column 8 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (false  && got == SQLITE_NULL)
+        {
+            /* not reached: not allowed to be null */
+        }
+        else
+        {
+            PRINT_ERR("get_columns (Checkouts_rowid) : "
+                      "column 8 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     Checkouts_rowid = sqlite3_column_int64(pStmt, 8);
     if (log_row_func)
@@ -5459,10 +5586,17 @@ SQL_SELECT_due_books :: get_columns(void)
     got = sqlite3_column_type(pStmt, 9);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (Checkouts_duedate) : "
-                "column 9 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (false  && got == SQLITE_NULL)
+        {
+            /* not reached: not allowed to be null */
+        }
+        else
+        {
+            PRINT_ERR("get_columns (Checkouts_duedate) : "
+                      "column 9 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     Checkouts_duedate = sqlite3_column_int64(pStmt, 9);
     if (log_row_func)
@@ -5760,10 +5894,17 @@ SQL_SELECT_due_books2 :: get_columns(void)
     got = sqlite3_column_type(pStmt, 0);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (User_rowid) : "
-                "column 0 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (false  && got == SQLITE_NULL)
+        {
+            /* not reached: not allowed to be null */
+        }
+        else
+        {
+            PRINT_ERR("get_columns (User_rowid) : "
+                      "column 0 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     User_rowid = sqlite3_column_int64(pStmt, 0);
     if (log_row_func)
@@ -5823,10 +5964,17 @@ SQL_SELECT_due_books2 :: get_columns(void)
     got = sqlite3_column_type(pStmt, 3);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (User_test2) : "
-                "column 3 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (false  && got == SQLITE_NULL)
+        {
+            /* not reached: not allowed to be null */
+        }
+        else
+        {
+            PRINT_ERR("get_columns (User_test2) : "
+                      "column 3 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     if (sqlite3_column_int(pStmt, 3))
         User_test2 = true;
@@ -5838,10 +5986,18 @@ SQL_SELECT_due_books2 :: get_columns(void)
     got = sqlite3_column_type(pStmt, 4);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (User_test3) : "
-                "column 4 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (false  && got == SQLITE_NULL)
+        {
+                User_test3 = sample::library2::ENUM_TWO;
+
+        }
+        else
+        {
+            PRINT_ERR("get_columns (User_test3) : "
+                      "column 4 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     else
     {
@@ -5884,10 +6040,17 @@ SQL_SELECT_due_books2 :: get_columns(void)
     got = sqlite3_column_type(pStmt, 6);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (Book_rowid) : "
-                "column 6 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (false  && got == SQLITE_NULL)
+        {
+            /* not reached: not allowed to be null */
+        }
+        else
+        {
+            PRINT_ERR("get_columns (Book_rowid) : "
+                      "column 6 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     Book_rowid = sqlite3_column_int64(pStmt, 6);
     if (log_row_func)
@@ -5921,10 +6084,17 @@ SQL_SELECT_due_books2 :: get_columns(void)
     got = sqlite3_column_type(pStmt, 8);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (Checkouts_rowid) : "
-                "column 8 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (false  && got == SQLITE_NULL)
+        {
+            /* not reached: not allowed to be null */
+        }
+        else
+        {
+            PRINT_ERR("get_columns (Checkouts_rowid) : "
+                      "column 8 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     Checkouts_rowid = sqlite3_column_int64(pStmt, 8);
     if (log_row_func)
@@ -5932,10 +6102,17 @@ SQL_SELECT_due_books2 :: get_columns(void)
     got = sqlite3_column_type(pStmt, 9);
     if (got != SQLITE_INTEGER)
     {
-        PRINT_ERR("get_columns (Checkouts_duedate) : "
-                "column 9 wrong type (%d %d)",
-                got, SQLITE_INTEGER);
-        return false;
+        if (false  && got == SQLITE_NULL)
+        {
+            /* not reached: not allowed to be null */
+        }
+        else
+        {
+            PRINT_ERR("get_columns (Checkouts_duedate) : "
+                      "column 9 wrong type (%d %d)",
+                      got, SQLITE_INTEGER);
+            return false;
+        }
     }
     Checkouts_duedate = sqlite3_column_int64(pStmt, 9);
     if (log_row_func)
