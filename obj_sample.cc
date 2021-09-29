@@ -1983,10 +1983,13 @@ SQL_TABLE_User :: copy_from_proto(
     merge_from_proto(msg);
 }
 
-void
+// returns true if something changed requiring an update;
+// returns false if nothing changed during the merge.
+bool
 SQL_TABLE_User :: merge_from_proto(
               const library::TABLE_User_m &msg)
 {
+    bool modified = false;
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
         // NOTE : if this becomes a problem in the future, we could
@@ -2005,30 +2008,70 @@ SQL_TABLE_User :: merge_from_proto(
             std::cerr << err.str();
     }
     if (msg.has_userid())
+    {
+        if (userid != msg.userid())
+            modified = true;
         userid = msg.userid();
+    }
     if (msg.has_firstname())
+    {
+        if (firstname != msg.firstname())
+            modified = true;
         firstname = msg.firstname();
+    }
     if (msg.has_lastname())
+    {
+        if (lastname != msg.lastname())
+            modified = true;
         lastname = msg.lastname();
+    }
     if (msg.has_mi())
+    {
+        if (mi != msg.mi())
+            modified = true;
         mi = msg.mi();
+    }
     if (msg.has_ssn())
+    {
+        if (SSN != msg.ssn())
+            modified = true;
         SSN = msg.ssn();
+    }
     if (msg.has_balance())
+    {
+        if (balance != msg.balance())
+            modified = true;
         balance = msg.balance();
+    }
     if (msg.has_proto())
+    {
+        if (proto != msg.proto())
+            modified = true;
         proto = msg.proto();
+    }
     if (msg.has_test2())
-        test2 = msg.test2() ? true : false;
+    {
+        bool newval = msg.test2() ? true : false;
+        if (test2 != newval)
+            modified = true;
+        test2 = newval;
+    }
     if (msg.has_test3())
+    {
+        if (test3 != msg.test3())
+            modified = true;
         test3 = msg.test3();
+    }
     Checkouts.resize(msg.checkouts_size());
     for (int ind = 0; ind < msg.checkouts_size(); ind++)
     {
         Checkouts[ind].set_db(pdb);
-        Checkouts[ind].merge_from_proto(msg.checkouts(ind));
+        if (Checkouts[ind].merge_from_proto(
+                msg.checkouts(ind)))
+            modified = true;
     }
 
+    return modified;
 }
 
 #endif
@@ -3677,10 +3720,13 @@ SQL_TABLE_Book :: copy_from_proto(
     merge_from_proto(msg);
 }
 
-void
+// returns true if something changed requiring an update;
+// returns false if nothing changed during the merge.
+bool
 SQL_TABLE_Book :: merge_from_proto(
               const library::TABLE_Book_m &msg)
 {
+    bool modified = false;
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
         // NOTE : if this becomes a problem in the future, we could
@@ -3699,16 +3745,37 @@ SQL_TABLE_Book :: merge_from_proto(
             std::cerr << err.str();
     }
     if (msg.has_bookid())
+    {
+        if (bookid != msg.bookid())
+            modified = true;
         bookid = msg.bookid();
+    }
     if (msg.has_title())
+    {
+        if (title != msg.title())
+            modified = true;
         title = msg.title();
+    }
     if (msg.has_isbn())
+    {
+        if (isbn != msg.isbn())
+            modified = true;
         isbn = msg.isbn();
+    }
     if (msg.has_price())
+    {
+        if (price != msg.price())
+            modified = true;
         price = msg.price();
+    }
     if (msg.has_quantity())
+    {
+        if (quantity != msg.quantity())
+            modified = true;
         quantity = msg.quantity();
+    }
 
+    return modified;
 }
 
 #endif
@@ -4905,10 +4972,13 @@ SQL_TABLE_Checkouts :: copy_from_proto(
     merge_from_proto(msg);
 }
 
-void
+// returns true if something changed requiring an update;
+// returns false if nothing changed during the merge.
+bool
 SQL_TABLE_Checkouts :: merge_from_proto(
               const library::TABLE_Checkouts_m &msg)
 {
+    bool modified = false;
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
         // NOTE : if this becomes a problem in the future, we could
@@ -4927,12 +4997,25 @@ SQL_TABLE_Checkouts :: merge_from_proto(
             std::cerr << err.str();
     }
     if (msg.has_bookid2())
+    {
+        if (bookid2 != msg.bookid2())
+            modified = true;
         bookid2 = msg.bookid2();
+    }
     if (msg.has_userid2())
+    {
+        if (userid2 != msg.userid2())
+            modified = true;
         userid2 = msg.userid2();
+    }
     if (msg.has_duedate())
+    {
+        if (duedate != msg.duedate())
+            modified = true;
         duedate = msg.duedate();
+    }
 
+    return modified;
 }
 
 #endif

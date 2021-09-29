@@ -18,10 +18,13 @@ SQL_TABLE_@@tablename@@ :: copy_from_proto(
     merge_from_proto(msg);
 }
 
-void
+// returns true if something changed requiring an update;
+// returns false if nothing changed during the merge.
+bool
 SQL_TABLE_@@tablename@@ :: merge_from_proto(
               const @@package@@::TABLE_@@tablename@@_m &msg)
 {
+    bool modified = false;
     if (msg.has_schema_version() && msg.schema_version() != TABLE_VERSION)
     {
         // NOTE : if this becomes a problem in the future, we could
@@ -40,6 +43,7 @@ SQL_TABLE_@@tablename@@ :: merge_from_proto(
             std::cerr << err.str();
     }
 @@proto_merge_from@@
+    return modified;
 }
 ________ END
 
@@ -59,12 +63,21 @@ ________ END
 
 ________ TABLE_proto_copy_from_field
     if (msg.has_@@fieldname_lower@@())
+    {
+        if (@@fieldname@@ != msg.@@fieldname_lower@@())
+            modified = true;
         @@fieldname@@ = msg.@@fieldname_lower@@();
+    }
 ________ END
 
 ________ TABLE_proto_copy_from_field_bool
     if (msg.has_@@fieldname_lower@@())
-        @@fieldname@@ = msg.@@fieldname_lower@@() ? true : false;
+    {
+        bool newval = msg.@@fieldname_lower@@() ? true : false;
+        if (@@fieldname@@ != newval)
+            modified = true;
+        @@fieldname@@ = newval;
+    }
 ________ END
 
 ________ TABLE_proto_copy_to_subtable
@@ -82,6 +95,8 @@ ________ TABLE_proto_copy_from_subtable
     for (int ind = 0; ind < msg.@@fieldname_lower@@_size(); ind++)
     {
         @@fieldname@@[ind].set_db(pdb);
-        @@fieldname@@[ind].merge_from_proto(msg.@@fieldname_lower@@(ind));
+        if (@@fieldname@@[ind].merge_from_proto(
+                msg.@@fieldname_lower@@(ind)))
+            modified = true;
     }
 ________ END

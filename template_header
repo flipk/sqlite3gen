@@ -240,7 +240,9 @@ ________ TABLE_CLASS_proto_copy_proto
 //      get_subtable_* methods to populate them.
     void copy_to_proto(@@package@@::TABLE_@@tablename@@_m &msg);
     void copy_from_proto(const @@package@@::TABLE_@@tablename@@_m &msg);
-    void merge_from_proto(const @@package@@::TABLE_@@tablename@@_m &msg);
+// returns true if something changed requiring an update;
+// returns false if nothing changed during the merge.
+    bool merge_from_proto(const @@package@@::TABLE_@@tablename@@_m &msg);
 ________ END
 
 ________ TABLE_CLASS_xml_decoder_proto
