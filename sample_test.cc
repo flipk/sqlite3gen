@@ -495,6 +495,27 @@ test_subtables(sqlite3 * pdb)
 #endif
 
     {
+        SQL_TABLE_user_custom    u(pdb);
+
+        if (u.get_by_userid(u2))
+        {
+            printf("ABOUT TO TRY A MERGE, before:\n");
+            u.print();
+
+            library::TABLE_User_m msg;
+            msg.set_mi("x");
+
+            if (u.merge_from_proto(msg))
+                printf("MERGE RETURNS TRUE\n");
+            else
+                printf("MERGE RETURNS FALSE\n");
+
+            printf("ABOUT TO TRY A MERGE, after:\n");
+            u.print();
+        }
+    }
+
+    {
         library::SQL_SELECT_due_books  due(pdb);
 
         printf(" *** testing SQL_SELECT_due_books:\n");
