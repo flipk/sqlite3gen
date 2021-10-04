@@ -42,3 +42,4 @@
 
 *.bundle
 /tinyxml2
+/gtest.config

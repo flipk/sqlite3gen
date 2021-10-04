@@ -1,7 +1,11 @@
 
 VERSION := $(shell git describe --match 'SQLITE3GEN_v*' --dirty)
 
-PROG_TARGETS = template_to_c sql3gen sample
+ifeq ($(wildcard gtest.config),gtest.config)
+include gtest.config
+else
+$(info gtest.config not found, skipping)
+endif
 
 export TARGET=native
 
@@ -27,6 +31,7 @@ INCS = $(PROTOINC)
 # NOTE protoc 3.6.1 on gcc 9.2.1 won't compile with -Wall -Werror
 CXXFLAGS = # -Wall -Werror
 
+PROG_TARGETS += template_to_c
 template_to_c_TARGET = $(OBJDIR)/template_to_c
 template_to_c_CXXSRCS = template_to_c.cc
 ifneq ($(TRUE_LINE_NUMBERS),)
@@ -48,6 +53,7 @@ TEMPLATES = \
 
 TEMPLATE_OBJS = $(foreach t,$(TEMPLATES),$(OBJDIR)/template_$(t).o)
 
+PROG_TARGETS += sql3gen
 sql3gen_TARGET = $(OBJDIR)/sql3gen
 sql3gen_LLSRCS = tokenizer.ll
 sql3gen_YYSRCS = parser.yy
@@ -58,16 +64,32 @@ sql3gen_DEFS = -DPARSER_YY_HDR=\"$(sql3gen_parser.yy_HDR)\" \
 sql3gen_LIBS = $(TEMPLATE_OBJS)
 sql3gen_PREMAKE = $(template_to_c_TARGET) $(TEMPLATE_OBJS)
 
-sample_TARGET = $(OBJDIR)/sample
-sample_CXXSRCS = sample_test.cc
-sample_PROTOSRCS = sample2.proto
-sample_DEFS = -DSAMPLE_H_HDR=\"sample.h\" -DSAMPLE_PB_HDR=\"sample.pb.h\"
-sample_LIBS = $(OBJDIR)/tinyxml2.o $(OBJDIR)/sample.pb.o \
-		sqlite3/sqlite3.o $(OBJDIR)/sample.o \
-		$(PROTOLIB) -lpthread -ldl
-sample_INCS = -Isqlite3 -I. -Itinyxml2 $(PROTOINC)
+LIB_TARGETS += sample
 
-sample_PREMAKE = $(OBJDIR)/tinyxml2.o $(OBJDIR)/sample.o
+sample_TARGET = $(OBJDIR)/libsample.a
+sample_INCS = -Isqlite3 -I. -Itinyxml2 $(PROTOINC) $(GTEST_INCS)
+sample_PROTOSRCS = sample2.proto
+sample_PREMAKE = $(OBJDIR)/sample.o
+sample_EXTRAOBJS = $(OBJDIR)/sample.o $(OBJDIR)/sample.pb.o
+
+ifeq ($(BUILD_SAMPLETEST),1)
+
+PROG_TARGETS += sampletest
+sampletest_TARGET = $(OBJDIR)/sample
+sampletest_CXXSRCS = sample_test.cc
+sampletest_DEFS = -DSAMPLE_H_HDR=\"sample.h\"
+sampletest_DEPLIBS = $(sample_TARGET)
+sampletest_LIBS = $(OBJDIR)/tinyxml2.o sqlite3/sqlite3.o \
+		$(PROTOLIB) $(GTEST_LIBS) -lpthread -ldl
+sampletest_INCS = -Isqlite3 -I. -Itinyxml2 $(PROTOINC) $(GTEST_INCS)
+sampletest_PREMAKE = $(OBJDIR)/tinyxml2.o
+
+ifeq ($(RUN_SAMPLETEST),1)
+SAMPLE_TEST_LOG = $(OBJDIR)/sample-test-log.txt
+sampletest_POSTMAKE = $(SAMPLE_TEST_LOG)
+endif
+
+endif
 
 include Makefile.inc
 
@@ -123,6 +145,11 @@ $(OBJDIR)/sample.cc: $(sql3gen_TARGET) sample.schema
 	grep -v '^#line' $(OBJDIR)/sample.cc  >  obj_sample.cc
 	grep -v '^#line' $(OBJDIR)/sample.h   >  obj_sample.h
 	cp $(OBJDIR)/sample.proto obj_sample.proto
+
+$(SAMPLE_TEST_LOG): $(sampletest_TARGET)
+	rm -f $(SAMPLE_TEST_LOG)
+	script $(SAMPLE_TEST_LOG).new -c $(sampletest_TARGET)
+	mv $(SAMPLE_TEST_LOG).new $(SAMPLE_TEST_LOG)
 
 tokenize:
 	cd $(OBJDIR) ; DEBUG_TOKENIZER=1 ./sql3gen ../sample.schema \

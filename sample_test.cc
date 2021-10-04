@@ -9,327 +9,409 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <gtest/gtest.h>
 
-class SQL_TABLE_user_custom : public library::SQL_TABLE_User {
-    sqlite3_stmt * pStmt_by_great_balance;
-public:
-    SQL_TABLE_user_custom(sqlite3 *_pdb = NULL)
-        : SQL_TABLE_User(_pdb)
+#include "sample_test.h"
+
+int
+main(int argc, char ** argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    int ret = RUN_ALL_TESTS();
+    unlink(TEST_DATABASE);
+    return ret;
+}
+
+
+
+//////////////////////////// SQL_TABLE_user_custom ////////////////////////////
+
+
+SQL_TABLE_user_custom :: SQL_TABLE_user_custom(sqlite3 *_pdb /*= NULL*/)
+    : SQL_TABLE_User(_pdb)
+{
+    pStmt_by_great_balance = NULL;
+}
+
+SQL_TABLE_user_custom :: ~SQL_TABLE_user_custom(void)
+{
+    sqlite3_finalize(pStmt_by_great_balance);
+}
+
+
+// note this is intended to demonstrate extended queries
+// even though it duplicates the get_great_balance CUSTOM-GET
+// in the base class.
+bool
+SQL_TABLE_user_custom :: get_by_great_balance(double threshold)
+{
+    int r;
+    bool ret = false;
+
+    if (pStmt_by_great_balance == NULL)
     {
-        pStmt_by_great_balance = NULL;
-    }
-    ~SQL_TABLE_user_custom(void)
-    {
-        sqlite3_finalize(pStmt_by_great_balance);
-    }
-    // note this is intended to demonstrate extended queries
-    // even though it duplicates the get_great_balance CUSTOM-GET
-    // in the base class.
-    bool get_by_great_balance(double threshold) {
-        int r;
-        bool ret = false;
-
-        if (pStmt_by_great_balance == NULL)
-        {
-            r = sqlite3_prepare_v2(
-                pdb,
-                "SELECT rowid,* FROM user WHERE balance > ?",
-                -1, &pStmt_by_great_balance, NULL);
-            if (r != SQLITE_OK)
-                printf("ERROR building SELECT for balance at line %d\n",
-                       __LINE__);
-        }
-
-        sqlite3_reset(pStmt_by_great_balance);
-
-        r = sqlite3_bind_double(pStmt_by_great_balance, 1, threshold);
+        r = sqlite3_prepare_v2(
+            pdb,
+            "SELECT rowid,* FROM user WHERE balance > ?",
+            -1, &pStmt_by_great_balance, NULL);
         if (r != SQLITE_OK)
-        {
-            fprintf(stderr, "SQL_TABLE_user :: get_by_great_balance : "
-                    "bind: r = %d\n", r);
-            return false;
-        }
-
-        if (library::SQL_TABLE_ALL_TABLES::log_get_func)
-            library::SQL_TABLE_ALL_TABLES::log_get_func(
-                library::SQL_TABLE_ALL_TABLES::log_arg,
-                pStmt_by_great_balance);
-
-        r = sqlite3_step(pStmt_by_great_balance);
-        if (r == SQLITE_ROW)
-        {
-            ret = get_columns(pStmt_by_great_balance);
-            previous_get = pStmt_by_great_balance;
-        }
-        else if (r == SQLITE_DONE)
-            previous_get = NULL;
-
-        return ret;
+            printf("ERROR building SELECT for balance at line %d\n",
+                   __LINE__);
     }
-    void print(void) {
-        // we can print a blob as a string only because
-        // this test program always sets 'blob' objects to
-        // strings.
-        printf("row %" PRId64 " userid %d"
-               " %s %s %s SSN %d %f proto (%d) '%s'\n",
-               (int64_t) rowid, userid,
-               firstname.c_str(), mi.c_str(), lastname.c_str(),
-               SSN, balance, (int) proto.length(), proto.c_str());
-        printf("%d checkouts:\n", (int) Checkouts.size());
-        for (size_t ind = 0; ind < Checkouts.size(); ind++)
-        {
-            printf("   row %" PRId64 " userid2 %d"
-                   " bookid %d duedate %" PRId64 "\n",
-                   (int64_t) Checkouts[ind].rowid,   Checkouts[ind].userid2,
-                   Checkouts[ind].bookid2, Checkouts[ind].duedate);
-        }
-        printf("TOSTRING: %s\n", toString().c_str());
-    }
-};
 
-SQL_TABLE_user_custom u;
+    sqlite3_reset(pStmt_by_great_balance);
+
+    r = sqlite3_bind_double(pStmt_by_great_balance, 1, threshold);
+    if (r != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL_TABLE_user :: get_by_great_balance : "
+                "bind: r = %d\n", r);
+        return false;
+    }
+
+    if (library::SQL_TABLE_ALL_TABLES::log_get_func)
+        library::SQL_TABLE_ALL_TABLES::log_get_func(
+            library::SQL_TABLE_ALL_TABLES::log_arg,
+            pStmt_by_great_balance);
+
+    r = sqlite3_step(pStmt_by_great_balance);
+    if (r == SQLITE_ROW)
+    {
+        ret = get_columns(pStmt_by_great_balance);
+        previous_get = pStmt_by_great_balance;
+    }
+    else if (r == SQLITE_DONE)
+        previous_get = NULL;
+
+    return ret;
+}
 
 void
-get_all(sqlite3 *pdb)
+SQL_TABLE_user_custom :: print(void)
 {
-    u.init();
-    if (u.get_all() == false)
+    // we can print a blob as a string only because
+    // this test program always sets 'blob' objects to
+    // strings.
+    printf("row %" PRId64 " userid %d"
+           " %s %s %s SSN %d %f proto (%d) '%s'\n",
+           (int64_t) rowid, userid,
+           firstname.c_str(), mi.c_str(), lastname.c_str(),
+           SSN, balance, (int) proto.length(), proto.c_str());
+    printf("%d checkouts:\n", (int) Checkouts.size());
+    for (size_t ind = 0; ind < Checkouts.size(); ind++)
+    {
+        printf("   row %" PRId64 " userid2 %d"
+               " bookid %d duedate %" PRId64 "\n",
+               (int64_t) Checkouts[ind].rowid,   Checkouts[ind].userid2,
+               Checkouts[ind].bookid2, Checkouts[ind].duedate);
+    }
+    printf("TOSTRING: %s\n", toString().c_str());
+}
+
+////////////////////////////// SampleTextFixture //////////////////////////////
+
+int
+SampleTextFixture :: get_all(void)
+{
+    int count = 0;
+    ucust.init();
+    if (ucust.get_all() == false)
+    {
+        printf("get failed\n");
+        return -1;
+    }
+    do {
+        ucust.print();
+        count++;
+    } while (ucust.get_next());
+    return count;
+}
+
+void
+SampleTextFixture :: get_row(int64_t row)
+{
+    ucust.init();
+    if (ucust.get_by_rowid(row) == false)
     {
         printf("get failed\n");
         return;
     }
     do {
-        u.print();
-    } while (u.get_next());
+        ucust.print();
+    } while (ucust.get_next());
 }
 
-void
-get_row(sqlite3 *pdb, int64_t row)
+int
+SampleTextFixture :: get_like(const std::string &patt)
 {
-    u.init();
-    if (u.get_by_rowid(row) == false)
-    {
-        printf("get failed\n");
-        return;
-    }
-    do {
-        u.print();
-    } while (u.get_next());
-}
-
-void
-get_like(sqlite3 *pdb, const std::string &patt)
-{
-    u.init();
-    if (u.get_by_lastname_like(patt) == false)
+    int count = 0;
+    ucust.init();
+    if (ucust.get_by_lastname_like(patt) == false)
     {
         printf("get like failed\n");
-        return;
+        return -1;
     }
     do {
-        u.print();
-    } while (u.get_next());
+        ucust.print();
+        count++;
+    } while (ucust.get_next());
+    return count;
 }
 
-void
-get_custom1(sqlite3 *pdb, double thresh)
+int
+SampleTextFixture :: get_custom1(double thresh)
 {
-    u.init();
-    if (u.get_great_balance(thresh) == false)
+    int count = 0;
+    ucust.init();
+    if (ucust.get_great_balance(thresh) == false)
     {
         printf("get by great threshold returned no users\n");
-        return;
+        return -1;
     }
     do {
-        u.print();
-    } while (u.get_next());
+        ucust.print();
+        count++;
+    } while (ucust.get_next());
+    return count;
 }
 
-void
-get_custom2(sqlite3 *pdb,
-            const std::string &first,
-            const std::string &last)
+int
+SampleTextFixture :: get_custom2(const std::string &first,
+                                 const std::string &last)
 {
-    u.init();
-    if (u.get_firstlast(first, last) == false)
+    int count = 0;
+    ucust.init();
+    if (ucust.get_firstlast(first, last) == false)
     {
         printf("get by firstlast returned no users\n");
-        return;
+        return -1;
     }
     do {
-        u.print();
-    } while (u.get_next());
+        ucust.print();
+        count++;
+    } while (ucust.get_next());
+    return count;
 }
 
-#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
 void
-test_protobuf(sqlite3 *pdb, int32_t userid)
+SampleTextFixture :: log_sql_upd(void *arg, sqlite3_stmt *stmt)
 {
-    u.init();
-    if (u.get_by_userid(userid) == false)
-    {
-        printf("cannot get by userid\n");
-        return;
-    }
-    SQL_TABLE_user_custom  t(pdb);
-    do {
-        library::TABLE_User_m  msg;
-        std::string binary;
-        u.copy_to_proto(msg);
-        msg.SerializeToString(&binary);
-        printf("encoded user to protobuf %d bytes long\n",
-               (int) binary.size());
-        msg.Clear();
-        msg.ParseFromString(binary);
-        t.copy_from_proto(msg);
-        t.print();
-    } while (u.get_next());
-}
-#endif
-
-void log_sql_upd(void *arg, sqlite3_stmt *stmt)
-{
+    SampleTextFixture * stf = (SampleTextFixture*) arg;
     char * sql = sqlite3_expanded_sql(stmt);
     printf("** SQL UPDATE LOG: %s\n", sql);
     sqlite3_free(sql);
 }
 
-void log_sql_get(void *arg, sqlite3_stmt *stmt)
+// static
+void
+SampleTextFixture :: log_sql_get(void *arg, sqlite3_stmt *stmt)
 {
+    SampleTextFixture * stf = (SampleTextFixture*) arg;
     char * sql = sqlite3_expanded_sql(stmt);
     printf("** SQL GET LOG: %s\n", sql);
     sqlite3_free(sql);
 }
 
-void log_sql_row(void *arg, const std::string &msg)
+// static
+void
+SampleTextFixture :: log_sql_row(void *arg, const std::string &msg)
 {
+    SampleTextFixture * stf = (SampleTextFixture*) arg;
     fprintf(stderr, "** SQL ROW: %s\n", msg.c_str());
 }
 
-void log_sql_err(void *arg, const std::string &msg)
+// static
+void
+SampleTextFixture :: log_sql_err(void *arg, const std::string &msg)
 {
+    SampleTextFixture * stf = (SampleTextFixture*) arg;
     fprintf(stderr, "** SQL ERROR: %s\n", msg.c_str());
 }
 
-void table_callback(sqlite3 *pdb, const std::string &table_name,
-                    int before, int after)
+// static
+void
+SampleTextFixture :: table_callback(sqlite3 *pdb, const std::string &table_name,
+                                    int before, int after)
 {
     printf("table '%s' goes from version %d to %d\n",
            table_name.c_str(), before, after);
 }
 
-void test_subtables(sqlite3 * pdb);
-
-int
-main()
+void
+SampleTextFixture :: SetUp()
 {
-    sqlite3 * pdb;
-    library::SQL_TABLE_User  user;
-
-    printf("UPDATE_BALANCE = '%s'\n",  getenv("UPDATE_BALANCE"));
-    printf("DELETE_BY_ROWID = '%s'\n", getenv("DELETE_BY_ROWID"));
-    printf("RETAIN_TABLES = '%s'\n",   getenv("RETAIN_TABLES"));
-
-    sqlite3_open("build_native/sample_test.db", &pdb);
+    int sqlret = sqlite3_open(TEST_DATABASE, &pdb);
+    ASSERT_EQ(sqlret,SQLITE_OK);
     user.set_db(pdb);
-    u.set_db(pdb);
-
+    ucust.set_db(pdb);
     library::SQL_TABLE_ALL_TABLES::register_log_funcs(
-        &log_sql_upd, &log_sql_get, &log_sql_row, &log_sql_err, NULL);
-    if (!library::SQL_TABLE_ALL_TABLES::init_all(pdb, &table_callback))
-        goto bail;
-
-    {
-        std::vector<library::SQL_Column_Descriptor>  cols;
-
-        library::SQL_TABLE_User::get_column_descriptors(cols);
-
-        printf("USER table column descriptors:\n");
-        for (size_t ind = 0; ind < cols.size(); ind++)
-        {
-            library::SQL_Column_Descriptor &c = cols[ind];
-
-            printf("tab '%s' field '%s' ctype '%s' sqty %d genty %d\n",
-                   c.tablename.c_str(), c.fieldname.c_str(),
-                   c.ctype.c_str(), c.sqlite_type, c.sqlite3gen_type);
-        }
-    }
-
-    {
-
-        user.firstname = "flippy";
-        user.lastname = "kadoodle";
-        user.mi = "f";
-        user.SSN = 456789012;
-        user.balance = 14.92;
-        user.proto = "PROTOBUFS BABY";
-
-        user.insert();
-        printf("inserted rowid %" PRId64 " userid %d\n",
-               (int64_t) user.rowid, user.userid);
-
-        get_all(pdb);
-
-        user.balance = 15.44;
-
-        if (getenv("UPDATE_BALANCE") == NULL)
-            user.update(); // test both
-        else
-            user.update_balance();
-
-        printf("updated row %" PRId64 "\n", (int64_t) user.rowid);
-
-#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
-        test_protobuf(pdb, 1);
-#endif
-
-        get_row(pdb, user.rowid);
-
-        get_all(pdb);
-
-        get_like(pdb, "%dood%");
-
-        get_custom1(pdb, 15.00);
-        get_custom2(pdb, "flip%", "kad%");
-
-        if (getenv("DELETE_BY_ROWID") == NULL)
-            user.delete_SSN(456789012);
-        else
-            user.delete_rowid();
-    }
-
-    test_subtables(pdb);
-
-bail:
-
-    // if every query completes until SQLITE_DONE,
-    // these aren't needed.
-//    user.finalize();
-//    u.finalize();
-//    library::SQL_TABLE_user::table_drop(pdb);
-    if (getenv("RETAIN_TABLES") == NULL)
-        library::SQL_TABLE_ALL_TABLES::table_drop_all(pdb);
-
-    // release user and u to release locks.
-    user.set_db(NULL);
-    u.set_db(NULL);
-
-    int r = sqlite3_close(pdb);
-    if (r != SQLITE_OK)
-        printf("ERR!  close returns %d\n", r);
-    sqlite3_shutdown();
-    return 0;
+        &log_sql_upd, &log_sql_get, &log_sql_row, &log_sql_err,
+        (void*) this);
+    bool init_ok =
+        library::SQL_TABLE_ALL_TABLES::init_all(pdb, &table_callback);
+    ASSERT_EQ(init_ok,true);
 }
 
 void
-test_subtables(sqlite3 * pdb)
+SampleTextFixture :: TearDown()
 {
-    int32_t u1, u2, u3, b1, b2, b3;
+    // this finalizes any open stmts and releases
+    // reference counts/locks.
+    user.set_db(NULL);
+    ucust.set_db(NULL);
+    ASSERT_EQ(ucust.was_properly_done(),true);
 
+    int r = sqlite3_close(pdb);
+    ASSERT_EQ(r,SQLITE_OK);
+    sqlite3_shutdown();
+}
+
+///////////////////////////////// test cases /////////////////////////////////
+
+TEST_F(SampleTextFixture, 1_descriptors)
+{
+    std::vector<library::SQL_Column_Descriptor>  cols;
+    library::SQL_TABLE_User::get_column_descriptors(cols);
+    printf("USER table column descriptors:\n");
+    for (size_t ind = 0; ind < cols.size(); ind++)
+    {
+        library::SQL_Column_Descriptor &c = cols[ind];
+        printf("tab '%s' field '%s' ctype '%s' sqty %d genty %d\n",
+               c.tablename.c_str(), c.fieldname.c_str(),
+               c.ctype.c_str(), c.sqlite_type, c.sqlite3gen_type);
+    }
+}
+
+static int32_t userid_2to3 = -1;
+
+TEST_F(SampleTextFixture, 2_insert)
+{
+    user.firstname = "flippy";
+    user.lastname = "kadoodle";
+    user.mi = "f";
+    user.SSN = 456789012;
+    user.balance = 14.92;
+    user.proto = "PROTOBUFS BABY";
+    ASSERT_EQ(user.insert(),true);
+
+    userid_2to3 = user.userid;
+
+    printf("inserted rowid %" PRId64 " userid %d\n",
+           (int64_t) user.rowid, user.userid);
+
+    ASSERT_EQ(get_all(),1);
+}
+
+TEST_F(SampleTextFixture, 3_getuserid)
+{
+    if (userid_2to3 == -1)
+    {
+        printf("ERROR : test 2 must be run before test 3....\n");
+        ASSERT_NE(userid_2to3,-1);
+    }
+
+    ASSERT_EQ(ucust.get_by_userid(userid_2to3),true);
+    ucust.print();
+
+    ASSERT_EQ(ucust.lastname,"kadoodle");
+    ASSERT_EQ(ucust.SSN,456789012);
+}
+
+TEST_F(SampleTextFixture, 4_getSSN)
+{
+    ASSERT_EQ(user.get_by_SSN(456789012),true);
+    user.balance = 15.44;
+    ASSERT_EQ(user.update_balance(),true);
+    printf("updated balance in row %" PRId64 "\n", (int64_t) user.rowid);
+}
+
+#ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
+
+TEST_F(SampleTextFixture, 5_protobuf)
+{
+    ASSERT_EQ(user.get_by_SSN(456789012),true);
+
+    printf("encoding to protobuf!\n");
+
+    library::TABLE_User_m  msg;
+    std::string binary;
+    user.copy_to_proto(msg);
+    msg.SerializeToString(&binary);
+    printf("encoded user to protobuf %d bytes long\n",
+           (int) binary.size());
+
+    ASSERT_EQ((int) binary.size(),60);
+
+    printf("decoding back from protobuf!\n");
+
+    msg.Clear();
+    ASSERT_EQ(msg.ParseFromString(binary),true);
+
+    SQL_TABLE_user_custom t;
+    t.copy_from_proto(msg);
+    t.print();
+
+    ASSERT_EQ(t.SSN,456789012);
+    ASSERT_EQ(t.lastname,"kadoodle");
+
+#endif
+
+}
+
+TEST_F(SampleTextFixture,6_like)
+{
+    ASSERT_EQ(get_like("%dood%"),1);
+}
+
+TEST_F(SampleTextFixture,7_custom1)
+{
+    ASSERT_EQ(get_custom1(15.00),1);
+}
+
+TEST_F(SampleTextFixture,8_custom2)
+{
+    ASSERT_EQ(get_custom2("flip%", "kad%"),1);
+}
+
+static int64_t rowid_9to10 = -1;
+
+TEST_F(SampleTextFixture,9_delete_SSN)
+{
+    ASSERT_EQ(user.delete_SSN(456789012),true);
+
+    // put it back again
+
+    user.firstname = "flippy";
+    user.lastname = "kadoodle";
+    user.mi = "f";
+    user.SSN = 456789012;
+    user.balance = 14.92;
+    user.proto = "PROTOBUFS BABY";
+    ASSERT_EQ(user.insert(),true);
+
+    rowid_9to10 = user.rowid;
+}
+
+TEST_F(SampleTextFixture,10_delete_rowid)
+{
+    if (rowid_9to10 == -1)
+    {
+        printf("ERROR test 9 must be run before test 10\n");
+        ASSERT_NE(rowid_9to10,-1);
+    }
+
+    user.rowid = rowid_9to10;
+    ASSERT_EQ(user.delete_rowid(),true);
+}
+
+static int32_t u1, u2, u3, b1, b2, b3;
+static bool test11run = false;;
+
+TEST_F(SampleTextFixture,11_insert_books)
+{
     library::SQL_TRANSACTION t(pdb);
 
-    if (!t.begin())
-        exit(1);
+    ASSERT_EQ(t.begin(),true);
 
     {
         library::SQL_TABLE_User      u(pdb);
@@ -344,7 +426,7 @@ test_subtables(sqlite3 * pdb)
 #ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
         u.test3 = sample::library2::ENUM_TWO;
 #endif
-        u.insert();
+        ASSERT_EQ(u.insert(),true);
         u1 = u.userid;
 
         u.firstname = "fir2";
@@ -355,7 +437,7 @@ test_subtables(sqlite3 * pdb)
 #ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
         u.test3 = sample::library2::ENUM_ONE;
 #endif
-        u.insert();
+        ASSERT_EQ(u.insert(),true);
         u2 = u.userid;
 
         u.firstname = "fir3";
@@ -366,7 +448,7 @@ test_subtables(sqlite3 * pdb)
 #ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
         u.test3 = sample::library2::ENUM_TWO;
 #endif
-        u.insert();
+        ASSERT_EQ(u.insert(),true);
         u3 = u.userid;
 
         printf("inserted userids %d, %d, and %d\n", u1, u2, u3);
@@ -375,21 +457,21 @@ test_subtables(sqlite3 * pdb)
         b.isbn = "111222";
         b.price = 4.55;
         b.quantity = 6;
-        b.insert();
+        ASSERT_EQ(b.insert(),true);
         b1 = b.bookid;
 
         b.title = "book 2 title";
         b.isbn = "444555";
         b.price = 8.15;
         b.quantity = 1;
-        b.insert();
+        ASSERT_EQ(b.insert(),true);
         b2 = b.bookid;
 
         b.title = "book 3 title";
         b.isbn = "12345";
         b.price = 12.35;
         b.quantity = 2;
-        b.insert();
+        ASSERT_EQ(b.insert(),true);
         b3 = b.bookid;
 
         printf("inserted bookids %d, %d, and %d\n", b1, b2, b3);
@@ -397,50 +479,71 @@ test_subtables(sqlite3 * pdb)
         c.bookid2 = b2;
         c.userid2 = u1;
         c.duedate = 5;
-        c.insert();
+        ASSERT_EQ(c.insert(),true);
 
         c.bookid2 = b3;
         c.userid2 = u1;
         c.duedate = 6;
-        c.insert();
+        ASSERT_EQ(c.insert(),true);
 
         c.bookid2 = b1;
         c.userid2 = u2;
         c.duedate = 12;
-        c.insert();
+        ASSERT_EQ(c.insert(),true);
 
         c.bookid2 = b3;
         c.userid2 = u3;
         c.duedate = 2;
-        c.insert();
+        ASSERT_EQ(c.insert(),true);
 
         printf("inserted 4 checkouts\n");
     }
 
-    if (!t.commit())
-        exit(1);
+    ASSERT_EQ(t.commit(),true);
+    test11run = true;
+}
+
+TEST_F(SampleTextFixture,12_checkouts_protobuf)
+{
+    if (test11run == false)
+    {
+        printf("ERROR: 11 must be run before 12\n");
+        ASSERT_EQ(test11run,true);
+    }
 
 #ifdef INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT
-    {
-        SQL_TABLE_user_custom        u(pdb);
 
-        if (u.get_by_userid(u1))
-        {
-            printf("got userid %d!\n", u1);
-            u.get_subtable_Checkouts();
-            u.print();
-            library::TABLE_User_m  msg;
-            u.copy_to_proto(msg);
+    SQL_TABLE_user_custom   u2(pdb);
 
-            {
-                SQL_TABLE_user_custom  u2(pdb);
-                u2.copy_from_proto(msg);
-                printf("after protobuf marshaling:\n");
-                u2.print();
-            }
-        }
-    }
+    ASSERT_EQ(ucust.get_by_userid(u1),true);
+
+    printf("got userid %d!\n", u1);
+    ASSERT_GT(ucust.get_subtable_Checkouts(),0);
+    ucust.print();
+
+    library::TABLE_User_m  msg;
+    ucust.copy_to_proto(msg);
+
+    u2.copy_from_proto(msg);
+    printf("after protobuf marshaling:\n");
+    u2.print();
+
+    ASSERT_EQ(u2.firstname,"fir1");
+    ASSERT_EQ(u2.lastname,"las1");
+    ASSERT_EQ(u2.SSN,11);
+    ASSERT_EQ(u2.Checkouts.size(),2);
+
 #endif
+
+}
+
+TEST_F(SampleTextFixture,13_checkouts_xml)
+{
+    if (test11run == false)
+    {
+        printf("ERROR: 11 must be run before 12\n");
+        ASSERT_EQ(test11run,true);
+    }
 
 #ifdef INCLUDE_SQLITE3GEN_TINYXML2_SUPPORT
     {
@@ -456,7 +559,7 @@ test_subtables(sqlite3 * pdb)
         {
             tinyxml2::XMLDocument  doc;
 
-            doc.Parse( printer.CStr() );
+            ASSERT_EQ(doc.Parse( printer.CStr() ),tinyxml2::XML_SUCCESS);
             if (0) // i trust this to work
             {
                 tinyxml2::XMLPrinter printer2;
@@ -466,99 +569,107 @@ test_subtables(sqlite3 * pdb)
 
             sqlite3 * pdb2;
             printf("CREATING SECOND TEST DATABASE\n");
-            sqlite3_open("build_native/sample_test2.db", &pdb2);
-            library::SQL_TABLE_ALL_TABLES::init_all(pdb2, &table_callback);
+            ASSERT_EQ(sqlite3_open(TEST_DATABASE2, &pdb2),SQLITE_OK);
+            library::SQL_TABLE_ALL_TABLES::init_all(pdb2,
+                                                    &SampleTextFixture::table_callback);
             library::SQL_TABLE_ALL_TABLES::import_xml_all(pdb2,doc);
 
-            SQL_TABLE_user_custom        u(pdb2);
+            SQL_TABLE_user_custom u2(pdb2);
 
             printf(" *** displaying full contents of second test database\n");
 
-            bool ok = u.get_all();
+            int count = 0;
+            bool ok = u2.get_all();
             while (ok)
             {
-                u.get_subtables();
-                u.print();
-                ok = u.get_next();
+                u2.get_subtables();
+                u2.print();
+                count++;
+                ok = u2.get_next();
             }
 
-            u.set_db(NULL);
-
-            int r = sqlite3_close(pdb2);
-            if (r != SQLITE_OK)
-                printf("ERR!  close returns %d\n", r);
-            unlink("build_native/sample_test2.db");
+            ASSERT_EQ(count,3);
+            u2.set_db(NULL);
+            ASSERT_EQ(sqlite3_close(pdb2),SQLITE_OK);
+            unlink(TEST_DATABASE2);
 
             printf(" *** second test database done and gone\n");
         }
     }
 #endif
 
+}
+
+TEST_F(SampleTextFixture,14_merge_from_proto)
+{
+    if (ucust.get_by_userid(u2))
     {
-        SQL_TABLE_user_custom    u(pdb);
+        printf("BEFORE MERGE:\n");
+        ucust.print();
 
-        if (u.get_by_userid(u2))
-        {
-            printf("ABOUT TO TRY A MERGE, before:\n");
-            u.print();
+        library::TABLE_User_m msg;
+        msg.set_lastname("las2");
+        ASSERT_EQ(ucust.merge_from_proto(msg),false);
+        msg.set_mi("x");
+        ASSERT_EQ(ucust.merge_from_proto(msg),true);
 
-            library::TABLE_User_m msg;
-            msg.set_mi("x");
-
-            if (u.merge_from_proto(msg))
-                printf("MERGE RETURNS TRUE\n");
-            else
-                printf("MERGE RETURNS FALSE\n");
-
-            printf("ABOUT TO TRY A MERGE, after:\n");
-            u.print();
-        }
+        printf("AFTER MERGE:\n");
+        ucust.print();
     }
+}
 
+TEST_F(SampleTextFixture,15_due1)
+{
+    library::SQL_SELECT_due_books  due(pdb);
+
+    printf(" *** testing SQL_SELECT_due_books:\n");
+
+    bool ok = due.get(1,4);
+    ASSERT_EQ(ok,true);
+    int count = 0;
+    while (ok)
     {
-        library::SQL_SELECT_due_books  due(pdb);
-
-        printf(" *** testing SQL_SELECT_due_books:\n");
-
-        bool ok = due.get(1,4);
-        while (ok)
-        {
-            printf("user_rid %" PRId64 " %s %s "
-                   "book_rid %" PRId64 " %s "
-                   "checkouts_rid %" PRId64 " due %" PRId64 "\n",
-                   (int64_t) due.User_rowid,
-                   due.User_firstname.c_str(),
-                   due.User_lastname.c_str(),
-                   (int64_t) due.Book_rowid,
-                   due.Book_title.c_str(),
-                   (int64_t) due.Checkouts_rowid,
-                   (int64_t) due.Checkouts_duedate);
-            printf("TOSTRING: %s\n", due.toString().c_str());
-            ok = due.get_next();
-        }
+        printf("user_rid %" PRId64 " %s %s "
+               "book_rid %" PRId64 " %s "
+               "checkouts_rid %" PRId64 " due %" PRId64 "\n",
+               (int64_t) due.User_rowid,
+               due.User_firstname.c_str(),
+               due.User_lastname.c_str(),
+               (int64_t) due.Book_rowid,
+               due.Book_title.c_str(),
+               (int64_t) due.Checkouts_rowid,
+               (int64_t) due.Checkouts_duedate);
+        printf("TOSTRING: %s\n", due.toString().c_str());
+        count++;
+        ok = due.get_next();
     }
+    ASSERT_EQ(count,3);
+}
 
+TEST_F(SampleTextFixture,16_due2)
+{
+    library::SQL_SELECT_due_books2  due(pdb);
+
+    printf(" *** testing SQL_SELECT_due_books2:\n");
+
+    bool ok = due.get(1,4);
+    ASSERT_EQ(ok,true);
+    int count = 0;
+    while (ok)
     {
-        library::SQL_SELECT_due_books2  due(pdb);
-
-        printf(" *** testing SQL_SELECT_due_books2:\n");
-
-        bool ok = due.get(1,4);
-        while (ok)
-        {
-            printf("user_rid %" PRId64 " %s %s "
-                   "book_rid %" PRId64 " %s "
-                   "checkouts_rid %" PRId64 " due %" PRId64 "\n",
-                   (int64_t) due.User_rowid,
-                   due.User_firstname.c_str(),
-                   due.User_lastname.c_str(),
-                   (int64_t) due.Book_rowid,
-                   due.Book_title.c_str(),
-                   (int64_t) due.Checkouts_rowid,
-                   (int64_t) due.Checkouts_duedate);
-            printf("TOSTRING: %s\n", due.toString().c_str());
-            ok = due.get_next();
-        }
+        printf("user_rid %" PRId64 " %s %s "
+               "book_rid %" PRId64 " %s "
+               "checkouts_rid %" PRId64 " due %" PRId64 "\n",
+               (int64_t) due.User_rowid,
+               due.User_firstname.c_str(),
+               due.User_lastname.c_str(),
+               (int64_t) due.Book_rowid,
+               due.Book_title.c_str(),
+               (int64_t) due.Checkouts_rowid,
+               (int64_t) due.Checkouts_duedate);
+        printf("TOSTRING: %s\n", due.toString().c_str());
+        count++;
+        ok = due.get_next();
     }
-
+    ASSERT_EQ(count,3);
 }
