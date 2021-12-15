@@ -353,10 +353,9 @@ TEST_F(SampleTextFixture, 5_protobuf)
 
     ASSERT_EQ(t.SSN,456789012);
     ASSERT_EQ(t.lastname,"kadoodle");
+}
 
 #endif
-
-}
 
 TEST_F(SampleTextFixture,6_like)
 {
