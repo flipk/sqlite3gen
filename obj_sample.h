@@ -8,6 +8,10 @@
 // NOTE // NOTE // NOTE // NOTE // NOTE // NOTE // NOTE  //
 ///////////////////////////////////////////////////////////
 
+// multiple inclusion protection
+#ifndef __SQLITE3_SCHEMA_PACKAGE_library_HDR__
+#define __SQLITE3_SCHEMA_PACKAGE_library_HDR__ 1
+
 #include <inttypes.h>
 #include <string>
 #include <sstream>
@@ -640,4 +644,7 @@ public:
 /* header bottom line 1 */
 /* header bottom line 2 */
 
+
+
+#endif /* ifdef __SQLITE3_SCHEMA_PACKAGE_library_HDR__ */
 

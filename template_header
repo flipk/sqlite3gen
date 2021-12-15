@@ -2,6 +2,10 @@
 
 ________ HEADER_TOP
 
+// multiple inclusion protection
+#ifndef __SQLITE3_SCHEMA_PACKAGE_@@package@@_HDR__
+#define __SQLITE3_SCHEMA_PACKAGE_@@package@@_HDR__ 1
+
 #include <inttypes.h>
 #include <string>
 #include <sstream>
@@ -327,3 +331,10 @@ ________ END
 ________ HEADER_define_protobuf
 #define INCLUDE_SQLITE3GEN_PROTOBUF_SUPPORT 1
 ________ END
+
+________ HEADER_BOTTOM
+
+#endif /* ifdef __SQLITE3_SCHEMA_PACKAGE_@@package@@_HDR__ */
+
+________ END
+

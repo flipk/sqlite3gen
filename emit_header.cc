@@ -316,4 +316,5 @@ void emit_header(const std::string &fname,
     }
 
     output_CLASS_ALL_TABELS_DEFN(out, patterns);
+    output_HEADER_BOTTOM(out, patterns);
 }
