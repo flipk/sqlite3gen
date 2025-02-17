@@ -14,6 +14,9 @@ ________ HEADER_TOP
 #include <sstream>
 #include "sqlite3.h"
 
+// to enable debug prints, here or on command line:
+// #define DEBUG_TABLE_CREATION 1
+
 // OPTIONS enabled in this schema:
 @@defines@@
 

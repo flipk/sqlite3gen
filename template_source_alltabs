@@ -9,8 +9,10 @@ ________ TABLE_create_index
     r = sqlite3_exec(pdb,"CREATE INDEX @@tablename@@_@@fieldname@@ "
                  "ON @@tablename@@ (@@fieldname@@)",
         NULL, NULL, &errmsg);
+#if DEBUG_TABLE_CREATION
     printf("CREATE INDEX: CREATE INDEX @@tablename@@_@@fieldname@@ "
            "ON @@tablename@@ (@@fieldname@@)\n");
+#endif
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r

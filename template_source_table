@@ -524,8 +524,10 @@ bool SQL_TABLE_@@tablename@@ :: table_create(sqlite3 *pdb)
         "(@@table_create_fields@@)",
         NULL, NULL, &errmsg);
 
+#if DEBUG_TABLE_CREATION
     printf("CREATE TABLE: CREATE TABLE @@tablename@@ "
            "(@@table_create_fields@@)\n");
+#endif
 
     if (r != SQLITE_OK)
     {
@@ -564,7 +566,9 @@ void SQL_TABLE_@@tablename@@ :: table_drop(sqlite3 *pdb)
         sqlite3_free(errmsg);
     }
 
+#if DEBUG_TABLE_CREATION
     printf("DROP: DROP TABLE @@tablename@@\n");
+#endif
 
     sqlite3_exec(pdb, "delete from tables "
                  "where name = \"user\"",

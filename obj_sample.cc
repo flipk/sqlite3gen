@@ -2478,8 +2478,10 @@ bool SQL_TABLE_User :: table_create(sqlite3 *pdb)
         "(userid integer PRIMARY KEY AUTOINCREMENT, firstname text, lastname text, mi text, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))",
         NULL, NULL, &errmsg);
 
+#if DEBUG_TABLE_CREATION
     printf("CREATE TABLE: CREATE TABLE User "
            "(userid integer PRIMARY KEY AUTOINCREMENT, firstname text, lastname text, mi text, SSN integer, balance double, proto blob, test2 integer, test3 integer, CONSTRAINT user_constraint1 UNIQUE (firstname, lastname) CONSTRAINT user_constraint2 UNIQUE (mi, SSN))\n");
+#endif
 
     if (r != SQLITE_OK)
     {
@@ -2497,8 +2499,10 @@ bool SQL_TABLE_User :: table_create(sqlite3 *pdb)
     r = sqlite3_exec(pdb,"CREATE INDEX User_userid "
                  "ON User (userid)",
         NULL, NULL, &errmsg);
+#if DEBUG_TABLE_CREATION
     printf("CREATE INDEX: CREATE INDEX User_userid "
            "ON User (userid)\n");
+#endif
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r
@@ -2514,8 +2518,10 @@ bool SQL_TABLE_User :: table_create(sqlite3 *pdb)
     r = sqlite3_exec(pdb,"CREATE INDEX User_SSN "
                  "ON User (SSN)",
         NULL, NULL, &errmsg);
+#if DEBUG_TABLE_CREATION
     printf("CREATE INDEX: CREATE INDEX User_SSN "
            "ON User (SSN)\n");
+#endif
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r
@@ -2552,7 +2558,9 @@ void SQL_TABLE_User :: table_drop(sqlite3 *pdb)
         sqlite3_free(errmsg);
     }
 
+#if DEBUG_TABLE_CREATION
     printf("DROP: DROP TABLE User\n");
+#endif
 
     sqlite3_exec(pdb, "delete from tables "
                  "where name = \"user\"",
@@ -4037,8 +4045,10 @@ bool SQL_TABLE_Book :: table_create(sqlite3 *pdb)
         "(bookid integer PRIMARY KEY AUTOINCREMENT, title text, isbn text, price double, quantity integer)",
         NULL, NULL, &errmsg);
 
+#if DEBUG_TABLE_CREATION
     printf("CREATE TABLE: CREATE TABLE Book "
            "(bookid integer PRIMARY KEY AUTOINCREMENT, title text, isbn text, price double, quantity integer)\n");
+#endif
 
     if (r != SQLITE_OK)
     {
@@ -4056,8 +4066,10 @@ bool SQL_TABLE_Book :: table_create(sqlite3 *pdb)
     r = sqlite3_exec(pdb,"CREATE INDEX Book_bookid "
                  "ON Book (bookid)",
         NULL, NULL, &errmsg);
+#if DEBUG_TABLE_CREATION
     printf("CREATE INDEX: CREATE INDEX Book_bookid "
            "ON Book (bookid)\n");
+#endif
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r
@@ -4073,8 +4085,10 @@ bool SQL_TABLE_Book :: table_create(sqlite3 *pdb)
     r = sqlite3_exec(pdb,"CREATE INDEX Book_isbn "
                  "ON Book (isbn)",
         NULL, NULL, &errmsg);
+#if DEBUG_TABLE_CREATION
     printf("CREATE INDEX: CREATE INDEX Book_isbn "
            "ON Book (isbn)\n");
+#endif
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r
@@ -4111,7 +4125,9 @@ void SQL_TABLE_Book :: table_drop(sqlite3 *pdb)
         sqlite3_free(errmsg);
     }
 
+#if DEBUG_TABLE_CREATION
     printf("DROP: DROP TABLE Book\n");
+#endif
 
     sqlite3_exec(pdb, "delete from tables "
                  "where name = \"user\"",
@@ -5229,8 +5245,10 @@ bool SQL_TABLE_Checkouts :: table_create(sqlite3 *pdb)
         "(bookid2 integer, userid2 integer, duedate int64, FOREIGN KEY(bookid2) REFERENCES Book(bookid), FOREIGN KEY(userid2) REFERENCES User(userid))",
         NULL, NULL, &errmsg);
 
+#if DEBUG_TABLE_CREATION
     printf("CREATE TABLE: CREATE TABLE Checkouts "
            "(bookid2 integer, userid2 integer, duedate int64, FOREIGN KEY(bookid2) REFERENCES Book(bookid), FOREIGN KEY(userid2) REFERENCES User(userid))\n");
+#endif
 
     if (r != SQLITE_OK)
     {
@@ -5248,8 +5266,10 @@ bool SQL_TABLE_Checkouts :: table_create(sqlite3 *pdb)
     r = sqlite3_exec(pdb,"CREATE INDEX Checkouts_bookid2 "
                  "ON Checkouts (bookid2)",
         NULL, NULL, &errmsg);
+#if DEBUG_TABLE_CREATION
     printf("CREATE INDEX: CREATE INDEX Checkouts_bookid2 "
            "ON Checkouts (bookid2)\n");
+#endif
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r
@@ -5265,8 +5285,10 @@ bool SQL_TABLE_Checkouts :: table_create(sqlite3 *pdb)
     r = sqlite3_exec(pdb,"CREATE INDEX Checkouts_userid2 "
                  "ON Checkouts (userid2)",
         NULL, NULL, &errmsg);
+#if DEBUG_TABLE_CREATION
     printf("CREATE INDEX: CREATE INDEX Checkouts_userid2 "
            "ON Checkouts (userid2)\n");
+#endif
     if (r != SQLITE_OK)
     {
         e << "CREATE INDEX returned r = " << r
@@ -5303,7 +5325,9 @@ void SQL_TABLE_Checkouts :: table_drop(sqlite3 *pdb)
         sqlite3_free(errmsg);
     }
 
+#if DEBUG_TABLE_CREATION
     printf("DROP: DROP TABLE Checkouts\n");
+#endif
 
     sqlite3_exec(pdb, "delete from tables "
                  "where name = \"user\"",
